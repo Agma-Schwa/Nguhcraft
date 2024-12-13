@@ -57,12 +57,6 @@ public abstract class TridentEntityMixin extends PersistentProjectileEntity impl
     /** Whether this has dealt damage. */
     @Override public boolean Nguhcraft$DealtDamage() { return dealtDamage; }
 
-    /** Disable pickup in the constructor. */
-    @Inject(method = "<init>(Lnet/minecraft/world/World;Lnet/minecraft/entity/LivingEntity;Lnet/minecraft/item/ItemStack;)V", at = @At("TAIL"))
-    private void inject$init$0(World W, LivingEntity O, ItemStack S, CallbackInfo CI) {
-        this.pickupType = PickupPermission.CREATIVE_ONLY;
-    }
-
     /** If this has struck lightning, render with blue fire. */
     @Override public boolean doesRenderOnFire() { return dataTracker.get(STRUCK_LIGHTNING); }
 
