@@ -1,0 +1,13 @@
+{
+  "asset_id": "nguhcraft:rabo",
+  "author": {
+    "color": "gray",
+    "translate": "painting.nguhcraft.rabo.author"
+  },
+  "height": 4,
+  "title": {
+    "color": "white",
+    "translate": "painting.nguhcraft.rabo.title"
+  },
+  "width": 1
+}

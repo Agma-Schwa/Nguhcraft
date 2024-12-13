@@ -12,7 +12,7 @@ import net.minecraft.sound.SoundEvents
 import net.minecraft.util.Hand
 import org.nguh.nguhcraft.TridentUtils
 import org.nguh.nguhcraft.mixin.server.RangedWeaponItemAccessor
-import org.nguh.nguhcraft.network.ClientboundSyncHypershotStatePacket
+import org.nguh.nguhcraft.network.ClientFlags
 import org.nguh.nguhcraft.server.accessors.LivingEntityAccessor
 
 data class HypershotContext(
@@ -45,9 +45,9 @@ data class HypershotContext(
     fun Tick(SW: ServerWorld, Shooter: LivingEntity): Boolean {
         if (TickImpl(SW, Shooter) == EXPIRED) {
             (Shooter as LivingEntityAccessor).hypershotContext = null
-            if (Shooter is ServerPlayerEntity) ServerPlayNetworking.send(
-                Shooter,
-                ClientboundSyncHypershotStatePacket(false)
+            if (Shooter is ServerPlayerEntity) Shooter.SetClientFlag(
+                ClientFlags.IN_HYPERSHOT_CONTEXT,
+                false
             )
 
             return EXPIRED

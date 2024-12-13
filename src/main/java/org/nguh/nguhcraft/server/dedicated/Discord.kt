@@ -51,7 +51,9 @@ import org.nguh.nguhcraft.mixin.server.MinecraftServerAccessor
 import org.nguh.nguhcraft.network.ClientboundChatPacket
 import org.nguh.nguhcraft.network.ClientboundLinkUpdatePacket
 import org.nguh.nguhcraft.server.Broadcast
+import org.nguh.nguhcraft.server.IsVanished
 import org.nguh.nguhcraft.server.PlayerByUUID
+import org.nguh.nguhcraft.server.ServerUtils
 import org.nguh.nguhcraft.server.accessors.ServerPlayerAccessor
 import org.nguh.nguhcraft.server.accessors.ServerPlayerDiscordAccessor
 import org.nguh.nguhcraft.server.command.Commands
@@ -64,7 +66,6 @@ import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.function.Consumer
 import java.util.regex.PatternSyntaxException
-import kotlin.concurrent.Volatile
 
 private val ServerPlayerEntity.isLinked get() = (this as ServerPlayerDiscordAccessor).isLinked
 private val ServerPlayerEntity.isOperator get() = hasPermissionLevel(4)
@@ -289,7 +290,8 @@ internal class Discord : ListenerAdapter() {
         }
 
         @JvmStatic
-        fun BroadcastAdvancement(SP: ServerPlayerEntity?, AdvancementMessage: Text) {
+        fun BroadcastAdvancement(SP: ServerPlayerEntity, AdvancementMessage: Text) {
+            if (SP.IsVanished) return
             if (!Ready) return
             try {
                 val Text = AdvancementMessage.string
@@ -300,8 +302,25 @@ internal class Discord : ListenerAdapter() {
             }
         }
 
+        /** Sync state w/ the client. Called when a client (re)joins. */
+        @JvmStatic
+        fun BroadcastClientStateOnJoin(SP: ServerPlayerEntity) {
+            BroadcastJoinQuitMessage(SP, true)
+
+            // Broadcast this player’s name to everyone. If this player is vanished,
+            // we still need to send the packet to them so that they can see their
+            // own name properly.
+            Vanish.BroadcastIfNotVanished(SP, ClientboundLinkUpdatePacket(SP))
+
+            // Send all other players’ names to this player.
+            for (P in Server.playerManager.playerList)
+                if (P != SP && !P.IsVanished)
+                    ServerPlayNetworking.send(SP, ClientboundLinkUpdatePacket(P))
+        }
+
         @JvmStatic
         fun BroadcastDeathMessage(SP: ServerPlayerEntity, DeathMessage: Text) {
+            if (SP.IsVanished) return
             if (!Ready) return
 
             // Convoluted setup to both resend an abbreviated message if the actual
@@ -327,6 +346,11 @@ internal class Discord : ListenerAdapter() {
 
         @JvmStatic
         fun BroadcastJoinQuitMessage(SP: ServerPlayerEntity, Joined: Boolean) {
+            if (SP.IsVanished) return
+            BroadcastJoinQuitMessageImpl(SP, Joined)
+        }
+
+        fun BroadcastJoinQuitMessageImpl(SP: ServerPlayerEntity, Joined: Boolean) {
             if (!Ready) return
             try {
                 val Name = if (SP.isLinked) SP.discordName
@@ -341,7 +365,8 @@ internal class Discord : ListenerAdapter() {
 
         private fun BroadcastPlayerUpdate(SP: ServerPlayerEntity) {
             UpdatePlayerName(SP)
-            Server.Broadcast(
+            Vanish.BroadcastIfNotVanished(
+                SP,
                 ClientboundLinkUpdatePacket(
                     SP.uuid,
                     SP.gameProfile.name,
@@ -633,24 +658,6 @@ internal class Discord : ListenerAdapter() {
         @Contract(value = "null -> null; !null -> !null")
         fun SerialiseLegacyString(s: String?) = s?.replace("§.".toRegex(), "")
 
-        /** Sync state w/ the client. Called when a client first joins. */
-        @JvmStatic
-        fun SyncClientStateOnJoin(SP: ServerPlayerEntity) {
-            BroadcastJoinQuitMessage(SP, true)
-
-            // Re-fetch account data from Discord in the background to
-            // make sure they’re still linked.
-            UpdatePlayerAsync(SP)
-
-            // Broadcast this player’s name to everyone.
-            Server.Broadcast(ClientboundLinkUpdatePacket(SP))
-
-            // Send all other players’ names to this player.
-            for (P in Server.playerManager.playerList)
-                if (P != SP)
-                    ServerPlayNetworking.send(SP, ClientboundLinkUpdatePacket(P))
-        }
-
         fun Unlink(S: ServerCommandSource, SP: ServerPlayerEntity) {
             if (!Ready) return
             PerformUnlink(SP)
@@ -713,7 +720,8 @@ internal class Discord : ListenerAdapter() {
          * Re-fetch a linked player’s info from Discord. Called after a player
          * first joins.
          */
-        private fun UpdatePlayerAsync(SP: ServerPlayerEntity) {
+        @JvmStatic
+        fun UpdatePlayerAsync(SP: ServerPlayerEntity) {
             if (!SP.isLinked) {
                 BroadcastPlayerUpdate(SP)
                 return

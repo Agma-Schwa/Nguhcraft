@@ -5,12 +5,19 @@ import net.minecraft.block.entity.BlockEntity
 import net.minecraft.entity.Entity
 import net.minecraft.nbt.NbtCompound
 import net.minecraft.network.packet.CustomPayload
+import net.minecraft.network.packet.Packet
 import net.minecraft.server.MinecraftServer
 import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.server.world.ServerWorld
+import net.minecraft.text.Text
+import net.minecraft.util.Formatting
 import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.Vec3d
 import net.minecraft.world.TeleportTarget
+import org.nguh.nguhcraft.Constants
+import org.nguh.nguhcraft.protect.ProtectionManagerAccessor
+import org.nguh.nguhcraft.network.ClientFlags
+import org.nguh.nguhcraft.network.ClientboundSyncFlagPacket
 import org.nguh.nguhcraft.server.accessors.ServerPlayerAccessor
 import java.util.*
 
@@ -56,16 +63,50 @@ fun MinecraftServer.Broadcast(Except: ServerPlayerEntity, P: CustomPayload) {
             ServerPlayNetworking.send(Player, P)
 }
 
+fun MinecraftServer.Broadcast(Except: ServerPlayerEntity, P: Packet<*>) {
+    for (Player in playerManager.playerList)
+        if (Player != Except)
+            Player.networkHandler.sendPacket(P)
+}
+
+
 /** Send a packet to every client in a world. */
 fun MinecraftServer.Broadcast(W: ServerWorld, P: CustomPayload) {
     for (Player in W.players)
         ServerPlayNetworking.send(Player, P)
 }
 
+fun MinecraftServer.Broadcast(W: ServerWorld, P: Packet<*>) {
+    for (Player in W.players)
+        Player.networkHandler.sendPacket(P)
+}
+
 /** Send a packet to every client. */
 fun MinecraftServer.Broadcast(P: CustomPayload) {
     for (Player in playerManager.playerList)
         ServerPlayNetworking.send(Player, P)
+}
+
+fun MinecraftServer.Broadcast(P: Packet<*>) {
+    for (Player in playerManager.playerList)
+        Player.networkHandler.sendPacket(P)
+}
+
+fun MinecraftServer.Broadcast(Msg: Text) {
+    playerManager.broadcast(Msg, false)
+}
+
+/** Broadcast a message in the operator chat. */
+fun MinecraftServer.BroadcastToOperators(Msg: Text, Except: ServerPlayerEntity? = null) {
+    val Decorated = Text.empty()
+        .append(Text.literal("[").withColor(Constants.Orange))
+        .append(Text.literal("Console").formatted(Formatting.YELLOW))
+        .append(Text.literal("] ").withColor(Constants.Orange))
+        .append(Msg)
+
+    for (P in playerManager.playerList)
+        if (P != Except && P.IsSubscribedToConsole && P.hasPermissionLevel(4))
+            P.sendMessage(Decorated, false)
 }
 
 /** Get a player by Name. */
@@ -79,10 +120,23 @@ fun MinecraftServer.PlayerByUUID(ID: String?): ServerPlayerEntity? {
     catch (E: RuntimeException) { null }
 }
 
+val MinecraftServer.ProtectionManager get() =
+    (this as ProtectionManagerAccessor).`Nguhcraft$GetProtectionManager`() as ServerProtectionManager
+
 /** Check if a player is a moderator. */
 var ServerPlayerEntity.IsModerator
     get() = (this as ServerPlayerAccessor).isModerator
     set(value) { (this as ServerPlayerAccessor).setIsModerator(value) }
+
+/** Check if a player is a Vanished. */
+var ServerPlayerEntity.IsVanished
+    get() = (this as ServerPlayerAccessor).vanished
+    set(value) { (this as ServerPlayerAccessor).vanished = value }
+
+/** Check if a player is subscribed to console output. */
+var ServerPlayerEntity.IsSubscribedToConsole
+    get() = (this as ServerPlayerAccessor).isSubscribedToConsole
+    set(value) { (this as ServerPlayerAccessor).setIsSubscribedToConsole(value) }
 
 /** Save the player’s current position as a teleport target. */
 @JvmStatic
@@ -95,4 +149,8 @@ fun ServerPlayerEntity.SavePositionBeforeTeleport() {
         this.pitch,
         TeleportTarget.NO_OP
     )
+}
+
+fun ServerPlayerEntity.SetClientFlag(F: ClientFlags, V: Boolean) {
+    ServerPlayNetworking.send(this, ClientboundSyncFlagPacket(F, V))
 }

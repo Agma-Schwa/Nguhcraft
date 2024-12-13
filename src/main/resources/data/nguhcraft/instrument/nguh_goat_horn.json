@@ -1,0 +1,8 @@
+{
+	"description": {
+		"translate": "instrument.nguhcraft.nguh_goat_horn"
+	},
+	"range": 256.0,
+	"sound_event": "nguhcraft:nguh",
+	"use_duration": 7.0
+}

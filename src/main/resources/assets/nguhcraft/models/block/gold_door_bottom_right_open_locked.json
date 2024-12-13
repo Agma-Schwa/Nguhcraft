@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/door_bottom_right_open",
+  "textures": {
+    "bottom": "nguhcraft:block/gold_door_bottom_locked",
+    "top": "nguhcraft:block/gold_door_top_locked"
+  }
+}

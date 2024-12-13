@@ -10,6 +10,9 @@
 	"death.attack.minecart_collision.player": "%1$s crashed into %2$s while riding a minecart",
 	"death.attack.minecart_poor_track_design": "%1$s suffered poor track design",
 	"death.attack.minecart_poor_track_design.player": "%1$s suffered poor track while trying to escape %2$s",
+	"death.attack.obliterated": "%1$s was obliterated",
+	"death.attack.obliterated.item": "%1$s was obliterated while trying to escape %2$s",
+	"death.attack.obliterated.player": "%1$s was obliterated while trying to escape %2$s",
 
 	"enchantment.nguhcraft.homing": "Homing",
 	"enchantment.nguhcraft.hypershot": "Hypershot",
@@ -17,9 +20,32 @@
 	"enchantment.nguhcraft.health": "Health",
 	"enchantment.nguhcraft.saturation": "Saturation",
 
+	"instrument.nguhcraft.nguh_goat_horn": "Nguh",
+
 	"item.nguhcraft.lock": "Lock",
 	"item.nguhcraft.key": "Key",
+	"item.nguhcraft.music_disc_nguhrovision_2024": "Music Disc",
+	"item.nguhcraft.slablet_1": "1 Slablet",
+	"item.nguhcraft.slablet_2": "2 Slablets",
+	"item.nguhcraft.slablet_4": "4 Slablets",
+	"item.nguhcraft.slablet_8": "8 Slablets",
+	"item.nguhcraft.slablet_16": "16 Slablets",
+
+	"jukebox_song.nguhcraft.nguhrovision_2024": "Marcy Sheikah – Reflection",
 
 	"nguhcraft.block.locked": "%1$s is locked (key: %2$s)!",
-	"nguhcraft.door": "Door"
+	"nguhcraft.door": "Door",
+
+	"painting.nguhcraft.gambianholiday.author": "Agma Schwa",
+	"painting.nguhcraft.gambianholiday.title": "???",
+	"painting.nguhcraft.gold_nguh.author": "Ætérnal",
+	"painting.nguhcraft.gold_nguh.title": "Gold Nguh",
+	"painting.nguhcraft.gold_nguh_small.author": "Chronos",
+	"painting.nguhcraft.gold_nguh_small.title": "Gold Nguh",
+	"painting.nguhcraft.map.author": "Ætérnal",
+	"painting.nguhcraft.map.title": "World Map",
+	"painting.nguhcraft.rabo.author": "Agma Schwa",
+	"painting.nguhcraft.rabo.title": "Rabo",
+	"painting.nguhcraft.rail_diagram.author": "CenRail®",
+	"painting.nguhcraft.rail_diagram.title": "Rail Diagram"
 }

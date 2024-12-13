@@ -24,7 +24,6 @@ import net.minecraft.network.packet.s2c.play.TitleS2CPacket
 import net.minecraft.recipe.RecipeType
 import net.minecraft.recipe.SmeltingRecipe
 import net.minecraft.recipe.input.SingleStackRecipeInput
-import net.minecraft.registry.Registries
 import net.minecraft.registry.RegistryKey
 import net.minecraft.registry.RegistryKeys
 import net.minecraft.server.MinecraftServer
@@ -35,7 +34,6 @@ import net.minecraft.text.Text
 import net.minecraft.util.Formatting
 import net.minecraft.util.Hand
 import net.minecraft.util.Identifier
-import net.minecraft.util.dynamic.Codecs
 import net.minecraft.util.hit.HitResult
 import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.Box
@@ -45,14 +43,13 @@ import net.minecraft.world.RaycastContext
 import net.minecraft.world.TeleportTarget
 import net.minecraft.world.World
 import org.nguh.nguhcraft.Constants.MAX_HOMING_DISTANCE
+import org.nguh.nguhcraft.NguhDamageTypes
 import org.nguh.nguhcraft.SyncedGameRule
 import org.nguh.nguhcraft.Utils.EnchantLvl
 import org.nguh.nguhcraft.accessors.TridentEntityAccessor
 import org.nguh.nguhcraft.block.LockableBlockEntity
 import org.nguh.nguhcraft.enchantment.NguhcraftEnchantments
-import org.nguh.nguhcraft.network.ClientboundSyncHypershotStatePacket
-import org.nguh.nguhcraft.network.ClientboundSyncProtectionBypassPacket
-import org.nguh.nguhcraft.protect.ProtectionManager
+import org.nguh.nguhcraft.network.ClientFlags
 import org.nguh.nguhcraft.server.accessors.LivingEntityAccessor
 import org.nguh.nguhcraft.server.accessors.ServerPlayerAccessor
 import org.nguh.nguhcraft.server.dedicated.Discord
@@ -89,9 +86,10 @@ object ServerUtils {
         val LEA = SP as LivingEntityAccessor
         val SPA = SP as ServerPlayerAccessor
         SyncedGameRule.Send(SP)
-        ProtectionManager.Send(SP)
-        ServerPlayNetworking.send(SP, ClientboundSyncHypershotStatePacket(LEA.hypershotContext != null))
-        ServerPlayNetworking.send(SP, ClientboundSyncProtectionBypassPacket(SPA.bypassesRegionProtection))
+        SP.server.ProtectionManager.Send(SP)
+        SP.SetClientFlag(ClientFlags.BYPASSES_REGION_PROTECTION, SPA.bypassesRegionProtection)
+        SP.SetClientFlag(ClientFlags.IN_HYPERSHOT_CONTEXT, LEA.hypershotContext != null)
+        SP.SetClientFlag(ClientFlags.VANISHED, SP.IsVanished)
     }
 
     /**
@@ -102,11 +100,27 @@ object ServerUtils {
     @JvmStatic
     fun ActOnPlayerTick(SP: ServerPlayerEntity) {
         val SW = SP.serverWorld
-        if (!SP.hasPermissionLevel(4) && !SW.worldBorder.contains(SP.boundingBox)) {
+
+        // Check if the player is outside the world border.
+        // TODO: Can we make a 'global' region for the entire world
+        //       to simplify e.g. this world border check? It would
+        //       be a region that cannot be deleted and which is always
+        //       at the end of the list (and which expands first if the
+        //       world border is increased).
+        if (!SW.worldBorder.contains(SP.boundingBox)) {
             SP.Teleport(SW, SW.spawnPos)
             SendTitle(SP, BORDER_TITLE, BORDER_SUBTITLE)
             LOGGER.warn("Player {} tried to leave the border.", SP.displayName!!.string)
         }
+
+        SP.server.ProtectionManager.TickRegionsForPlayer(SP)
+    }
+
+    /** Broadcast a join message for a player. */
+    @JvmStatic
+    fun ActOnPlayerQuit(SP: ServerPlayerEntity, Msg: Text) {
+        SP.server.ProtectionManager.TickPlayerQuit(SP)
+        SendPlayerJoinQuitMessage(SP, Msg)
     }
 
     /** Check if we’re running on a dedicated server. */
@@ -155,9 +169,9 @@ object ServerUtils {
         )
 
         // If this is a player, tell them about this.
-        if (Shooter is ServerPlayerEntity) ServerPlayNetworking.send(
-            Shooter,
-            ClientboundSyncHypershotStatePacket(true)
+        if (Shooter is ServerPlayerEntity) Shooter.SetClientFlag(
+            ClientFlags.IN_HYPERSHOT_CONTEXT,
+            true
         )
 
         return true
@@ -225,11 +239,30 @@ object ServerUtils {
         for (Player in P) ServerPlayNetworking.send(Player, Packet)
     }
 
+    /**
+     * Obliterate the player.
+     *
+     * This summons a lightning bolt at their location (which is only there
+     * for atmosphere, though), then kills them.
+     */
+    fun Obliterate(SP: ServerPlayerEntity) {
+        if (SP.isDead || SP.isSpectator || SP.isCreative) return
+        val SW = SP.serverWorld
+        StrikeLighting(SW, SP.pos, null, true)
+        SP.damage(SW, NguhDamageTypes.Obliterated(SW), Float.MAX_VALUE)
+    }
+
     fun RoundExp(Exp: Float): Int {
         var Int = MathHelper.floor(Exp)
         val Frac = MathHelper.fractionalPart(Exp)
         if (Frac != 0.0f && Math.random() < Frac.toDouble()) Int++
         return Int
+    }
+
+    /** Broadcast a join message for a player. */
+    @JvmStatic
+    fun SendPlayerJoinQuitMessage(SP: ServerPlayerEntity, Msg: Text) {
+        if (!SP.IsVanished) SP.server.Broadcast(Msg)
     }
 
     /**
@@ -244,7 +277,7 @@ object ServerUtils {
     }
 
     /** Unconditionally strike lightning. */
-    fun StrikeLighting(W: ServerWorld, Where: Vec3d, TE: TridentEntity? = null) {
+    fun StrikeLighting(W: ServerWorld, Where: Vec3d, TE: TridentEntity? = null, Cosmetic: Boolean = false) {
         val Lightning = EntityType.LIGHTNING_BOLT.spawn(
             W,
             BlockPos.ofFloored(Where),
@@ -252,6 +285,7 @@ object ServerUtils {
         )
 
         if (Lightning != null) {
+            Lightning.setCosmetic(Cosmetic)
             Lightning.channeler = TE?.owner as? ServerPlayerEntity
             if (TE != null) (TE as TridentEntityAccessor).`Nguhcraft$SetStruckLightning`()
         }

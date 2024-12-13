@@ -5,6 +5,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.network.ClientConnection;
 import net.minecraft.network.packet.c2s.play.*;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.PlayerManager;
 import net.minecraft.server.network.ConnectedClientData;
 import net.minecraft.server.network.ServerCommonNetworkHandler;
 import net.minecraft.server.network.ServerPlayNetworkHandler;
@@ -20,6 +21,7 @@ import org.slf4j.Logger;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(ServerPlayNetworkHandler.class)
@@ -34,6 +36,18 @@ public abstract class ServerPlayNetworkHandlerMixin extends ServerCommonNetworkH
     @Shadow public ServerPlayerEntity player;
 
     @Shadow @Final static Logger LOGGER;
+
+    /** Hide quit message if the player is vanished. */
+    @Redirect(
+        method = "cleanUp",
+        at = @At(
+            value = "INVOKE",
+            target = "Lnet/minecraft/server/PlayerManager;broadcast(Lnet/minecraft/text/Text;Z)V"
+        )
+    )
+    private void inject$cleanUp(PlayerManager PM, Text Msg, boolean Overlay) {
+        ServerUtils.ActOnPlayerQuit(player, Msg);
+    }
 
     /**
     * Prevent players in a hypershot context from using weapons.

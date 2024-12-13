@@ -1,0 +1,13 @@
+{
+  "asset_id": "nguhcraft:gold_nguh_small",
+  "author": {
+    "color": "gray",
+    "translate": "painting.nguhcraft.gold_nguh_small.author"
+  },
+  "height": 1,
+  "title": {
+    "color": "yellow",
+    "translate": "painting.nguhcraft.gold_nguh_small.title"
+  },
+  "width": 1
+}

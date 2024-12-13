@@ -4,5 +4,11 @@
 		"sounds": [
 			"nguhcraft:nguh"
 		]
+	},
+	"music_disc.nguhrovision_2024": {
+		"subtitle": "jukebox_song.nguhcraft.nguhrovision_2024",
+		"sounds": [
+			"nguhcraft:nguhrovision_2024"
+		]
 	}
 }

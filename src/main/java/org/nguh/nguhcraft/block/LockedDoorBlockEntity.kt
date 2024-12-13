@@ -10,7 +10,9 @@ import net.minecraft.network.listener.ClientPlayPacketListener
 import net.minecraft.network.packet.Packet
 import net.minecraft.network.packet.s2c.play.BlockEntityUpdateS2CPacket
 import net.minecraft.registry.RegistryWrapper.WrapperLookup
+import net.minecraft.server.world.ServerWorld
 import net.minecraft.util.math.BlockPos
+import net.minecraft.world.World
 import org.nguh.nguhcraft.item.LockItem
 import org.nguh.nguhcraft.server.CreateUpdate
 
@@ -31,6 +33,8 @@ class LockedDoorBlockEntity(
         // This field was previously called 'Lock' and was a string;
         // it is now called 'lock' and is an item predicate; deal
         // with this accordingly.
+        //
+        // Do not use SetLock() here as that will crash during loading.
         val OldStyleLock = Tag.get("Lock")
         Lock = if (OldStyleLock != null) LockItem.CreateContainerLock(OldStyleLock.asString())
         else ContainerLock.fromNbt(Tag, RL)
@@ -67,5 +71,12 @@ class LockedDoorBlockEntity(
     }
 
     override fun getLock() = Lock
-    override fun SetLockInternal(NewLock: ContainerLock) { Lock = NewLock }
+    override fun SetLockInternal(NewLock: ContainerLock) {
+        Lock = NewLock
+        world?.let { UpdateBlockState(it) }
+    }
+
+    fun UpdateBlockState(W: World) {
+        W.setBlockState(pos, W.getBlockState(pos).with(LockedDoorBlock.LOCKED, Lock != ContainerLock.EMPTY))
+    }
 }

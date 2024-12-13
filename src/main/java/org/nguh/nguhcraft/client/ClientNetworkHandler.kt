@@ -14,8 +14,8 @@ import org.nguh.nguhcraft.Utils.LBRACK_COMPONENT
 import org.nguh.nguhcraft.Utils.RBRACK_COMPONENT
 import org.nguh.nguhcraft.client.ClientUtils.Client
 import org.nguh.nguhcraft.client.accessors.ClientPlayerListEntryAccessor
+import org.nguh.nguhcraft.protect.ProtectionManagerAccessor
 import org.nguh.nguhcraft.network.*
-import org.nguh.nguhcraft.protect.ProtectionManager
 import java.util.concurrent.CompletableFuture
 
 /** This runs on the network thread. */
@@ -100,19 +100,21 @@ object ClientNetworkHandler {
     /** Update the game rules. */
     private fun HandleSyncGameRulesPacket(Packet: ClientboundSyncGameRulesPacket) = SyncedGameRule.Update(Packet)
 
-    /** Sync hypershot state. */
-    private fun HandleSyncHypershotStatePacket(Packet: ClientboundSyncHypershotStatePacket) {
-        NguhcraftClient.InHypershotContext = Packet.InContext
-    }
-
     /** Sync protection bypass state. */
-    private fun HandleSyncProtectionBypassPacket(Packet: ClientboundSyncProtectionBypassPacket) {
-        NguhcraftClient.BypassesRegionProtection = Packet.BypassesRegionProtection
+    private fun HandleSyncProtectionBypassPacket(Packet: ClientboundSyncFlagPacket) {
+        when (Packet.Flag) {
+            ClientFlags.BYPASSES_REGION_PROTECTION -> NguhcraftClient.BypassesRegionProtection = Packet.Value
+            ClientFlags.IN_HYPERSHOT_CONTEXT -> NguhcraftClient.InHypershotContext = Packet.Value
+            ClientFlags.VANISHED -> NguhcraftClient.Vanished = Packet.Value
+        }
     }
 
     /** Sync protection manager state. */
     private fun HandleSyncProtectionMgrPacket(Packet: ClientboundSyncProtectionMgrPacket) {
-        ProtectionManager.UpdateState(Packet)
+        Execute {
+            val A = (Client().networkHandler as? ProtectionManagerAccessor)
+            A?.`Nguhcraft$SetProtectionManager`(ClientProtectionManager(Packet))
+        }
     }
 
     /** Initialise packet handlers. */
@@ -124,8 +126,7 @@ object ClientNetworkHandler {
         Register(ClientboundChatPacket.ID, ::HandleChatPacket)
         Register(ClientboundLinkUpdatePacket.ID, ::HandleLinkUpdatePacket)
         Register(ClientboundSyncGameRulesPacket.ID, ::HandleSyncGameRulesPacket)
-        Register(ClientboundSyncHypershotStatePacket.ID, ::HandleSyncHypershotStatePacket)
-        Register(ClientboundSyncProtectionBypassPacket.ID, ::HandleSyncProtectionBypassPacket)
+        Register(ClientboundSyncFlagPacket.ID, ::HandleSyncProtectionBypassPacket)
         Register(ClientboundSyncProtectionMgrPacket.ID, ::HandleSyncProtectionMgrPacket)
     }
 

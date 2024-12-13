@@ -8,6 +8,8 @@ import net.minecraft.item.ItemStack
 import net.minecraft.server.world.ServerWorld
 import net.minecraft.sound.SoundCategory
 import net.minecraft.sound.SoundEvents
+import net.minecraft.state.StateManager
+import net.minecraft.state.property.BooleanProperty
 import net.minecraft.text.Text
 import net.minecraft.util.ActionResult
 import net.minecraft.util.hit.BlockHitResult
@@ -23,6 +25,13 @@ import java.util.function.BiConsumer
 
 
 class LockedDoorBlock(S: Settings) : DoorBlock(BlockSetType.IRON, S), BlockEntityProvider {
+    init { defaultState = stateManager.defaultState.with(LOCKED, false) }
+
+    override fun appendProperties(B: StateManager.Builder<Block, BlockState>) {
+        super.appendProperties(B)
+        B.add(LOCKED)
+    }
+
     /** Create a block entity to hold the lock. */
     override fun createBlockEntity(Pos: BlockPos, St: BlockState) = LockedDoorBlockEntity(Pos, St)
 
@@ -102,5 +111,6 @@ class LockedDoorBlock(S: Settings) : DoorBlock(BlockSetType.IRON, S), BlockEntit
     companion object {
         val DOOR_TEXT: Text = Text.translatable("nguhcraft.door") // Separate key so we don’t show ‘Locked Door is locked’.
         val CODEC: MapCodec<LockedDoorBlock> = createCodec(::LockedDoorBlock)
+        val LOCKED: BooleanProperty = BooleanProperty.of("nguhcraft_locked") // Property to render a locked door.
     }
 }

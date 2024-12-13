@@ -1,0 +1,13 @@
+{
+	"asset_id": "nguhcraft:gambianholiday",
+	"author": {
+		"color": "gray",
+		"translate": "painting.nguhcraft.gambianholiday.author"
+	},
+	"height": 1,
+	"title": {
+		"color": "yellow",
+		"translate": "painting.nguhcraft.gambianholiday.title"
+	},
+	"width": 1
+}

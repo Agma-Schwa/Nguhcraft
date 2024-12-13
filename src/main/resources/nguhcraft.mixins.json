@@ -4,6 +4,7 @@
 	"package": "org.nguh.nguhcraft.mixin",
 	"compatibilityLevel": "JAVA_21",
 	"mixins": [
+		"common.AbstractMinecartEntityMixin",
 		"common.AnvilScreenHandlerMixin",
 		"common.ComponentPredicateAccessor",
 		"common.EnchantmentMixin",
@@ -15,6 +16,7 @@
 		"datafixer.ItemStackComponentizationFixMixin",
 		"datafixer.LockComponentPredicateFixMixin",
 		"datafixer.SchemasMixin",
+		"discord.common.EntityMixin",
 		"protect.BlockItemMixin",
 		"protect.Entity_ArmorStand_Warden_IsImmuneToExplosionMixin",
 		"protect.EntityMixin",
@@ -26,6 +28,7 @@
 		"protect.PlayerEntityMixin",
 		"protect.WitherSkullEntityMixin",
 		"protect.World_ServerWorldMixin",
+		"protect.WorldChunkMixin",
 		"protect.server.AbstractPressurePlateBlockMixin",
 		"protect.server.CarvedPumpkinBlock",
 		"protect.server.EggEntityMixin",
@@ -56,6 +59,7 @@
 		"server.HungerManagerMixin",
 		"server.LivingEntityMixin",
 		"server.MinecraftServerAccessor",
+		"server.MinecraftServerMixin",
 		"server.PlayerManagerMixin",
 		"server.ProjectileEntityMixin",
 		"server.RangedWeaponItemAccessor",
@@ -66,6 +70,7 @@
 		"server.TridentItemMixin",
 		"server.command.BanCommandMixin",
 		"server.command.BanIpCommandMixin",
+		"server.command.CommandBlockExecutorMixin",
 		"server.command.EnchantCommandMixin",
 		"server.command.KickCommandMixin",
 		"server.command.MeCommandMixin",
@@ -98,18 +103,22 @@
 		"discord.client.AbstractClientPlayerMixin",
 		"discord.client.PlayerListEntryMixin",
 		"protect.client.ClientPlayerInteractionManagerMixin",
+		"protect.client.ClientPlayNetworkHandlerMixin",
+		"protect.client.ClientWorldMixin",
 		"protect.client.GameRendererMixin",
 		"protect.client.LecternScreenMixin",
-		"protect.client.MinecraftClientMixin",
-		"server.integrated.IntegratedServerMixin"
+		"protect.client.MinecraftClientMixin"
 	],
 	"server": [
 		"discord.server.CommandManagerMixin",
-		"discord.server.PlayerAdvancementTrackerMixin",
 		"discord.server.PlayerManagerMixin",
 		"discord.server.ServerPlayerMixin",
 		"discord.server.ServerPlayNetworkHandlerMixin",
-		"server.dedicated.DedicatedServerMixin"
+		"server.dedicated.DedicatedServerMixin",
+		"server.dedicated.PlayerAdvancementTrackerMixin",
+		"vanish.PlayerManagerMixin",
+		"vanish.ServerCommonNetworkHandlerMixin",
+		"vanish.ServerPlayerEntityMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

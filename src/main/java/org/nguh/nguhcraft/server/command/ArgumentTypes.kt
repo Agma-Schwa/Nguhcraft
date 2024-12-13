@@ -18,15 +18,17 @@ import net.minecraft.util.Identifier
 import net.minecraft.world.World
 import org.nguh.nguhcraft.client.ClientUtils.Client
 import org.nguh.nguhcraft.protect.ProtectionManager
-import org.nguh.nguhcraft.protect.Region
 import org.nguh.nguhcraft.server.Home
+import org.nguh.nguhcraft.server.MCBASIC
 import org.nguh.nguhcraft.server.PlayerByName
+import org.nguh.nguhcraft.server.ProcedureManager
+import org.nguh.nguhcraft.server.ServerRegion
 import org.nguh.nguhcraft.server.WarpManager
 import org.nguh.nguhcraft.server.accessors.ServerPlayerAccessor
 import org.nguh.nguhcraft.server.command.Commands.Exn
 import java.util.concurrent.CompletableFuture
 
-private fun StringReader.ReadUntilWhitespace(): String {
+fun StringReader.ReadUntilWhitespace(): String {
     val Start = cursor
     while (canRead() && !Character.isWhitespace(peek())) skip()
     return string.substring(Start, cursor)
@@ -97,6 +99,28 @@ class HomeArgumentType : ArgumentType<String> {
     }
 }
 
+class ProcedureArgumentType : ArgumentType<String> {
+    override fun parse(R: StringReader) =  R.ReadUntilWhitespace()
+    companion object {
+        private val NO_SUCH_PROCEDURE = DynamicCommandExceptionType { Text.literal("No such procedure: '$it'") }
+
+        fun Procedure() = ProcedureArgumentType()
+
+        fun Resolve(Ctx: CommandContext<ServerCommandSource>, ArgName: String): MCBASIC.Procedure {
+            val Name = Ctx.getArgument(ArgName, String::class.java)
+            return Ctx.source.server.ProcedureManager.GetExisting(Name) ?: throw NO_SUCH_PROCEDURE.create(Name)
+        }
+
+        fun Suggest(
+            Ctx: CommandContext<ServerCommandSource>,
+            SB: SuggestionsBuilder
+        ): CompletableFuture<Suggestions> {
+            val Procedures = Ctx.source.server.ProcedureManager.Procedures.map { it.Name }
+            return CommandSource.suggestMatching(Procedures, SB)
+        }
+    }
+}
+
 class RegionArgumentType : ArgumentType<String> {
     override fun parse(R: StringReader) =  R.ReadUntilWhitespace()
 
@@ -105,26 +129,27 @@ class RegionArgumentType : ArgumentType<String> {
         Ctx: CommandContext<S>,
         SB: SuggestionsBuilder
     ): CompletableFuture<Suggestions> {
+        val S = Ctx.source
+        if (S !is ClientCommandSource) return Suggestions.empty()
+        val P = ProtectionManager.Get(Client().world!!)
+
         // If the input contains a ':', filter by the world
         // to the left of it.
         if (":" in SB.remaining) {
             val (W, _) = SB.remaining.split(":", limit = 2)
             val Key = RegistryKey.of(RegistryKeys.WORLD, Identifier.ofVanilla(W))
-            val Regions = ProtectionManager.TryGetRegions(Key) ?: return Suggestions.empty()
+            val Regions = P.TryGetRegions(Key) ?: return Suggestions.empty()
             return CommandSource.suggestMatching(Regions.map { "${Key.value.path}:${it.Name}" }, SB)
         }
 
         // Otherwise, suggest all regions in the current world if there is one.
         val Regions = mutableListOf<String>()
-        val S = Ctx.source
-        if (S is ClientCommandSource) {
-            val W = Client().world
-            if (W != null) Regions.addAll(ProtectionManager.GetRegions(W).map { it.Name })
-        }
+        val W = Client().world
+        if (W != null) Regions.addAll(ProtectionManager.GetRegions(W).map { it.Name })
 
         // And add the registry keys for any worlds that contain regions.
         fun AddWorldKey(W: RegistryKey<World>) {
-            if (ProtectionManager.TryGetRegions(W)!!.isNotEmpty())
+            if (P.TryGetRegions(W)!!.isNotEmpty())
                 Regions.add("${W.value.path}:")
         }
 
@@ -142,7 +167,7 @@ class RegionArgumentType : ArgumentType<String> {
 
         fun Region() = RegionArgumentType()
 
-        fun Resolve(Ctx: CommandContext<ServerCommandSource>, ArgName: String): Region {
+        fun Resolve(Ctx: CommandContext<ServerCommandSource>, ArgName: String): ServerRegion {
             var Name = Ctx.getArgument(ArgName, String::class.java)
             val S = Ctx.source
             var W = S.world
@@ -153,7 +178,7 @@ class RegionArgumentType : ArgumentType<String> {
                 Name = RegionName
             }
 
-            return ProtectionManager.GetRegion(W, Name) ?: throw NO_SUCH_REGION.create(Name, W)
+            return ProtectionManager.GetRegion(W, Name) as? ServerRegion ?: throw NO_SUCH_REGION.create(Name, W)
         }
     }
 }

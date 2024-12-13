@@ -49,6 +49,9 @@ public abstract class PlayerManagerMixin {
         ConnectedClientData Data,
         CallbackInfo Info
     ) {
-        Discord.SyncClientStateOnJoin(SP);
+        // Re-fetch account data from Discord in the background to
+        // make sure they’re still linked.
+        Discord.UpdatePlayerAsync(SP);
+        Discord.BroadcastClientStateOnJoin(SP);
     }
 }

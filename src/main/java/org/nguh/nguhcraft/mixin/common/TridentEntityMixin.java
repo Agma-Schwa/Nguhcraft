@@ -27,6 +27,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class TridentEntityMixin extends PersistentProjectileEntity implements TridentEntityAccessor {
     @Shadow @Final private static TrackedData<Byte> LOYALTY;
 
+    @Shadow private boolean dealtDamage;
+
     protected TridentEntityMixin(EntityType<? extends PersistentProjectileEntity> entityType, World world) {
         super(entityType, world);
     }
@@ -51,6 +53,9 @@ public abstract class TridentEntityMixin extends PersistentProjectileEntity impl
     @Override public void Nguhcraft$SetStruckLightning() {
         dataTracker.set(STRUCK_LIGHTNING, true);
     }
+
+    /** Whether this has dealt damage. */
+    @Override public boolean Nguhcraft$DealtDamage() { return dealtDamage; }
 
     /** Disable pickup in the constructor. */
     @Inject(method = "<init>(Lnet/minecraft/world/World;Lnet/minecraft/entity/LivingEntity;Lnet/minecraft/item/ItemStack;)V", at = @At("TAIL"))

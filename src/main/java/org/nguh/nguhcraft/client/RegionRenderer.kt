@@ -12,19 +12,26 @@ import net.minecraft.util.Colors
 import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.MathHelper
 import net.minecraft.util.math.RotationAxis
+import net.minecraft.util.math.Vec2f
 import net.minecraft.util.math.Vec3d
 import org.joml.Matrix4f
 import org.joml.Quaternionf
 import org.joml.Vector3d
 import org.nguh.nguhcraft.client.ClientUtils.Client
 import org.nguh.nguhcraft.protect.ProtectionManager
+import org.nguh.nguhcraft.protect.Region
+import kotlin.math.abs
+import kotlin.math.max
 import kotlin.math.min
 
 
 object RegionRenderer {
     const val PADDING = 2
-    const val COLOUR = Colors.LIGHT_YELLOW
     var ShouldRender = false
+
+    private fun ColourFor(R: Region) =
+        if (false) Colors.LIGHT_RED
+        else Colors.LIGHT_YELLOW
 
     fun Render(Ctx: WorldRenderContext) {
         if (!ShouldRender) return
@@ -50,12 +57,18 @@ object RegionRenderer {
         // Render each region.
         for (R in ProtectionManager.GetRegions(CW)) {
             // Only render regions we can actually see.
-            if (
-                min(
-                    Pos.subtract(Vec3d(R.MinX.toDouble(), .0, R.MinZ.toDouble())).horizontalLength(),
-                    Pos.subtract(Vec3d(R.MaxX.toDouble(), .0, R.MaxZ.toDouble())).horizontalLength()
-                ) > WR.viewDistance * 16
-            ) continue
+            //
+            // For this, check we’re inside the region or close enough to any of its
+            // edges using a distance field.
+            if (!R.Contains(BlockPos.ofFloored(Pos))) {
+                val ViewDistanceBlocks = WR.viewDistance * 16
+                val C = R.Center
+                val X = abs(Pos.x.toFloat() - C.x.toFloat())
+                val Z = abs(Pos.z.toFloat() - C.z.toFloat())
+                val Radius = R.Radius
+                val Dist = Vec2f(max(X - Radius.x, 0f), max(Z - Radius.y, 0f)).length()
+                if (Dist > ViewDistanceBlocks) continue
+            }
 
             // Coordinates in Minecraft are at the north-west (-X, -Z) corner of the block,
             // so we need to add 1 to the maximum values to include the last block within
@@ -68,40 +81,43 @@ object RegionRenderer {
             // Draw debug lines so we get a line width of 1 pixel.
             val VC = Tessellator.getInstance().begin(VertexFormat.DrawMode.DEBUG_LINES, VertexFormats.POSITION_COLOR)
 
+            // Indicate whether this is a restricted region.
+            val Colour = ColourFor(R)
+
             // Helper to add a vertex.
             fun Vertex(X: Int, Y: Int, Z: Int) = VC.vertex(
                 MTX,
                 X.toFloat(),
                 Y.toFloat(),
                 Z.toFloat()
-            ).color(COLOUR)
+            ).color(Colour)
 
             // Vertical lines along X axis.
             for (X in MinX.toInt()..MaxX.toInt()) {
-                Vertex(X, MinY, MinZ).color(COLOUR)
-                Vertex(X, MaxY, MinZ).color(COLOUR)
-                Vertex(X, MinY, MaxZ).color(COLOUR)
-                Vertex(X, MaxY, MaxZ).color(COLOUR)
+                Vertex(X, MinY, MinZ).color(Colour)
+                Vertex(X, MaxY, MinZ).color(Colour)
+                Vertex(X, MinY, MaxZ).color(Colour)
+                Vertex(X, MaxY, MaxZ).color(Colour)
             }
 
             // Vertical lines along Z axis.
             for (Z in MinZ.toInt()..MaxZ.toInt()) {
-                Vertex(MinX, MinY, Z).color(COLOUR)
-                Vertex(MinX, MaxY, Z).color(COLOUR)
-                Vertex(MaxX, MinY, Z).color(COLOUR)
-                Vertex(MaxX, MaxY, Z).color(COLOUR)
+                Vertex(MinX, MinY, Z).color(Colour)
+                Vertex(MinX, MaxY, Z).color(Colour)
+                Vertex(MaxX, MinY, Z).color(Colour)
+                Vertex(MaxX, MaxY, Z).color(Colour)
             }
 
             // Horizontal lines.
             for (Y in MinY.toInt()..MaxY.toInt()) {
-                Vertex(MinX, Y, MinZ).color(COLOUR)
-                Vertex(MaxX, Y, MinZ).color(COLOUR)
-                Vertex(MinX, Y, MaxZ).color(COLOUR)
-                Vertex(MaxX, Y, MaxZ).color(COLOUR)
-                Vertex(MinX, Y, MinZ).color(COLOUR)
-                Vertex(MinX, Y, MaxZ).color(COLOUR)
-                Vertex(MaxX, Y, MinZ).color(COLOUR)
-                Vertex(MaxX, Y, MaxZ).color(COLOUR)
+                Vertex(MinX, Y, MinZ).color(Colour)
+                Vertex(MaxX, Y, MinZ).color(Colour)
+                Vertex(MinX, Y, MaxZ).color(Colour)
+                Vertex(MaxX, Y, MaxZ).color(Colour)
+                Vertex(MinX, Y, MinZ).color(Colour)
+                Vertex(MinX, Y, MaxZ).color(Colour)
+                Vertex(MaxX, Y, MinZ).color(Colour)
+                Vertex(MaxX, Y, MaxZ).color(Colour)
             }
 
             BufferRenderer.drawWithGlobalProgram(VC.end())
@@ -128,7 +144,7 @@ object RegionRenderer {
             TextToRender,
             Ctx.scaledWindowWidth - PADDING - Width,
             Ctx.scaledWindowHeight - PADDING - Height,
-            COLOUR,
+            ColourFor(PlayerRegion),
             true
         )
     }

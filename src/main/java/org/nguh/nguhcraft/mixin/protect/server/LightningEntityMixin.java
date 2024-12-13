@@ -26,13 +26,13 @@ public abstract class LightningEntityMixin extends Entity {
         // isn’t directly in one.
         var X = Pos.getX();
         var Z = Pos.getZ();
-        return ProtectionManager.GetIntersectingRegion(
+        return ProtectionManager.IsProtectedRegion(
             W,
             X - 5,
             Z - 5,
             X + 5,
             Z + 5
-        ) != null;
+        );
     }
 
     @Unique private boolean IntersectsProtectedRegion() {

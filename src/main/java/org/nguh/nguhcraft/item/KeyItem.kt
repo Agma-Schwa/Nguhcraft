@@ -17,8 +17,6 @@ import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
 import net.minecraft.item.ItemUsageContext
 import net.minecraft.item.tooltip.TooltipType
-import net.minecraft.predicate.item.ComponentSubPredicate
-import net.minecraft.predicate.item.ItemSubPredicate
 import net.minecraft.registry.Registries
 import net.minecraft.registry.Registry
 import net.minecraft.registry.RegistryKey
@@ -150,6 +148,7 @@ class KeyItem : Item(
         *
         * For lockable doors, get the lower half instead.
         */
+        @JvmStatic
         fun GetLockableEntity(W: World, Pos: BlockPos): LockableBlockEntity? {
             val BE = W.getBlockEntity(Pos)
 

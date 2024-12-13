@@ -63,20 +63,20 @@ object MinecartUtils {
     ) = if (InCart) NguhDamageTypes.MinecartCollision(W, OtherPlayer)
     else NguhDamageTypes.MinecartRunOverBy(W, OtherPlayer)
 
-    /** Perform minecart collisions. Returns 'true' if there is one. */
+    /** Perform minecart collisions. Returns 'true' if we handled a collision. */
     @JvmStatic
     fun HandleCollisions(C: AbstractMinecartEntity): Boolean {
         // Don’t collide if we’re not on a track or too slow.
+        val OurPlayer = C.firstPassenger as? ServerPlayerEntity
+        val HasPlayer = OurPlayer != null
         val OurSpeed = C.velocity.horizontalLength()
         if (
             C.world.isClient ||
             !C.isOnRail ||
             OurSpeed < COLLISION_THRESHOLD
-        ) return false
+        ) return HasPlayer
 
         // Calculate bounding box at the target position.
-        val OurPlayer = C.firstPassenger as? ServerPlayerEntity
-        val HasPlayer = OurPlayer != null
         val BB = C.boundingBox.mapIf(HasPlayer) { it.union(OurPlayer!!.boundingBox) }
 
         // Check for colliding entities.
@@ -147,12 +147,9 @@ object MinecartUtils {
             // Do not process any more collisions. It is extremely unlikely that more than
             // two parties are ever involved in one, and we don’t want to get into a weird
             // state where we kill the same entity more than once.
-            //
-            // If we ran into another cart, then we’ve been destroyed. Stop ‘moving’,
-            return OtherMC != null
+            break
         }
 
-        // No collisions.
-        return false
+        return HasPlayer
     }
 }

@@ -4,3 +4,4 @@ accessible class net/minecraft/network/packet/c2s/play/PlayerInteractEntityC2SPa
 accessible method net/minecraft/network/packet/c2s/play/PlayerInteractEntityC2SPacket$InteractTypeHandler getType ()Lnet/minecraft/network/packet/c2s/play/PlayerInteractEntityC2SPacket$InteractType;
 accessible class net/minecraft/network/packet/c2s/play/PlayerInteractEntityC2SPacket$InteractType
 accessible class net/minecraft/entity/vehicle/ExperimentalMinecartController$MoveIteration
+accessible class net/minecraft/block/SculkVeinBlock$SculkVeinGrowChecker

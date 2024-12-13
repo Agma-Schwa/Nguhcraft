@@ -15,12 +15,14 @@ import org.jetbrains.annotations.NotNull;
 import org.nguh.nguhcraft.server.dedicated.Discord;
 import org.nguh.nguhcraft.server.accessors.ServerPlayerAccessor;
 import org.nguh.nguhcraft.server.accessors.ServerPlayerDiscordAccessor;
+import org.nguh.nguhcraft.server.dedicated.Vanish;
 import org.slf4j.Logger;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(ServerPlayerEntity.class)
 public abstract class ServerPlayerMixin extends PlayerEntity implements ServerPlayerDiscordAccessor {

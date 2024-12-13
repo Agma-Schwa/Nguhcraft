@@ -40,6 +40,7 @@ public abstract class ServerPlayerMixin extends PlayerEntity implements ServerPl
     @Unique private boolean Vanished = false;
     @Unique private boolean IsModerator = false;
     @Unique private boolean BypassesRegionProtection = false;
+    @Unique private boolean IsSubscribedToConsole = false;
     @Unique private TeleportTarget LastPositionBeforeTeleport = null;
     @Unique private List<Home> Homes = new ArrayList<>();
 
@@ -58,6 +59,9 @@ public abstract class ServerPlayerMixin extends PlayerEntity implements ServerPl
         BypassesRegionProtection = bypassesProtection;
     }
 
+    @Override public boolean isSubscribedToConsole() { return IsSubscribedToConsole; }
+    @Override public void setIsSubscribedToConsole(boolean IsSubscribedToConsole) { this.IsSubscribedToConsole = IsSubscribedToConsole; }
+
     @Override @Nullable public TeleportTarget getLastPositionBeforeTeleport() { return LastPositionBeforeTeleport; }
     @Override public void setLastPositionBeforeTeleport(TeleportTarget target) { LastPositionBeforeTeleport = target; }
 
@@ -72,6 +76,7 @@ public abstract class ServerPlayerMixin extends PlayerEntity implements ServerPl
             Vanished = Nguh.getBoolean(TAG_VANISHED);
             IsModerator = Nguh.getBoolean(TAG_IS_MODERATOR);
             BypassesRegionProtection = Nguh.getBoolean(TAG_BYPASSES_REGION_PROTECTION);
+            IsSubscribedToConsole = Nguh.getBoolean(TAG_IS_SUBSCRIBED_TO_CONSOLE);
             LastPositionBeforeTeleport = Nguh.contains(TAG_LAST_POSITION_BEFORE_TELEPORT)
                 ? ServerUtils.TeleportTargetFromNbt(getServer(), Nguh.getCompound(TAG_LAST_POSITION_BEFORE_TELEPORT))
                 : null;
@@ -102,6 +107,7 @@ public abstract class ServerPlayerMixin extends PlayerEntity implements ServerPl
         BypassesRegionProtection = OldNSP.getBypassesRegionProtection();
         Homes = OldNSP.Homes();
         LastPositionBeforeTeleport = OldNSP.getLastPositionBeforeTeleport();
+        IsSubscribedToConsole = OldNSP.isSubscribedToConsole();
     }
 
     /** Save Nbt data to the player file. */
@@ -112,6 +118,7 @@ public abstract class ServerPlayerMixin extends PlayerEntity implements ServerPl
         Nguh.putBoolean(TAG_VANISHED, Vanished);
         Nguh.putBoolean(TAG_IS_MODERATOR, IsModerator);
         Nguh.putBoolean(TAG_BYPASSES_REGION_PROTECTION, BypassesRegionProtection);
+        Nguh.putBoolean(TAG_IS_SUBSCRIBED_TO_CONSOLE, IsSubscribedToConsole);
         if (LastPositionBeforeTeleport != null)
             Nguh.put(TAG_LAST_POSITION_BEFORE_TELEPORT, ServerUtils.TeleportTargetToNbt(LastPositionBeforeTeleport));
 

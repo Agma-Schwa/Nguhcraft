@@ -1,0 +1,13 @@
+{
+  "asset_id": "nguhcraft:map",
+  "author": {
+    "color": "gray",
+    "translate": "painting.nguhcraft.map.author"
+  },
+  "height": 5,
+  "title": {
+    "color": "yellow",
+    "translate": "painting.nguhcraft.map.title"
+  },
+  "width": 5
+}

@@ -22,6 +22,10 @@ import org.nguh.nguhcraft.server.ServerUtils.StrikeLighting
 object TridentUtils {
     @JvmStatic
     fun ActOnBlockHit(TE: TridentEntity, BHR: BlockHitResult) {
+        // Don’t do anything if this has already dealt damage to prevent a
+        // trident with no loyalty from striking lightning both when an entity
+        // is hit and when it falls to the ground afterward.
+        if ((TE as TridentEntityAccessor).`Nguhcraft$DealtDamage`()) return
         val W = TE.world
         val Lvl = EnchantLvl(W, TE.itemStack, Enchantments.CHANNELING)
         if (W is ServerWorld && Lvl >= 2) {
@@ -37,6 +41,9 @@ object TridentUtils {
         var Volume = 1.0f
 
         // Check if it’s thundering or if we have Channeling II.
+        //
+        // This means we strike lightning *twice* if it’s also thundering,
+        // which seems fine.
         val W = TE.world
         val Thunder = W.isThundering
         val Lvl = EnchantLvl(W, TE.itemStack, Enchantments.CHANNELING)

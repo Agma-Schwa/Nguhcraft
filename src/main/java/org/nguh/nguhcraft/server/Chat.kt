@@ -5,10 +5,15 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.Context
 import net.minecraft.network.packet.s2c.play.GameMessageS2CPacket
 import net.minecraft.server.MinecraftServer
+import net.minecraft.server.command.ServerCommandSource
 import net.minecraft.server.network.ServerPlayNetworkHandler
 import net.minecraft.server.network.ServerPlayerEntity
+import net.minecraft.server.world.ServerWorld
+import net.minecraft.text.MutableText
 import net.minecraft.text.Text
 import net.minecraft.util.Formatting
+import net.minecraft.util.math.BlockPos
+import net.minecraft.world.World
 import org.nguh.nguhcraft.Constants
 import org.nguh.nguhcraft.Utils
 import org.nguh.nguhcraft.network.ClientboundChatPacket
@@ -28,6 +33,17 @@ object Chat {
     private val SRV_LIT_COMPONENT: Text = Text.literal("Server").withColor(Constants.Lavender)
     private val COLON_COMPONENT: Text = Text.literal(":")
     private val COMMA_COMPONENT = Text.literal(", ").withColor(Constants.DeepKoamaru)
+
+    /** Broadcast a command to subscribed operators. */
+    private fun BroadcastCommand(
+        S: MinecraftServer,
+        Source: MutableText,
+        Command: String,
+        SP: ServerPlayerEntity? = null
+    ) {
+        Source.append(" issued command\n    /$Command")
+        S.BroadcastToOperators(Source.formatted(Formatting.YELLOW), SP)
+    }
 
     /** Actually send a message. */
     private fun DispatchMessage(S: MinecraftServer, Sender: ServerPlayerEntity?, Message: String) {
@@ -67,6 +83,13 @@ object Chat {
     /** Log a chat message. */
     fun LogChat(SP: ServerPlayerEntity, Message: String, IsCommand: Boolean) {
         val Linked = IsLinkedOrOperator(SP)
+        if (IsCommand) BroadcastCommand(
+            SP.server,
+            SP.displayName?.copy() ?: Text.literal(SP.nameForScoreboard),
+            Message,
+            SP
+        )
+
         LOGGER.info(
             "[CHAT] {}{}{}: {}{}",
             SP.displayName?.string,
@@ -74,6 +97,26 @@ object Chat {
             if (IsCommand) " issued command" else " says",
             if (IsCommand) "/" else "",
             Message
+        )
+    }
+
+    /**
+    * Log a command block execution.
+    *
+    * Rather counterintuitively, it is easier to hook into every place
+    * that issues commands rather than into CommandManager::execute
+    * directly as by the time we get there, we no longer know where
+    * the command originally came from.
+    */
+    @JvmStatic
+    fun LogCommandBlock(S: String, SW: ServerWorld, Pos: BlockPos) {
+        val WorldKey = if (SW.registryKey == World.OVERWORLD) "" else "${SW.registryKey.value.path}:"
+        BroadcastCommand(SW.server, Text.literal("Command block at $WorldKey[${Pos.toShortString()}]"), S)
+        LOGGER.info(
+            "[CMD] Command block at {}[{}] issued command /{}",
+            WorldKey,
+            Pos.toShortString(),
+            S
         )
     }
 

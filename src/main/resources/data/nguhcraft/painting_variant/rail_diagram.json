@@ -1,0 +1,13 @@
+{
+  "asset_id": "nguhcraft:rail_diagram",
+  "author": {
+    "color": "gray",
+    "translate": "painting.nguhcraft.rail_diagram.author"
+  },
+  "height": 3,
+  "title": {
+    "color": "white",
+    "translate": "painting.nguhcraft.rail_diagram.title"
+  },
+  "width": 3
+}
