@@ -84,7 +84,7 @@ class LockedDoorBlock(S: Settings) : DoorBlock(BlockSetType.IRON, S), BlockEntit
             !ProtectionManager.BypassesRegionProtection(PE) &&
             !BE.lock.canOpen(PE.mainHandStack)
         ) {
-            PE.sendMessage(LockItem.FormatLockedMessage(BE.Lock, DOOR_TEXT), true)
+            PE.sendMessage(LockItem.FormatLockedMessage(BE.Lock, BE.CustomName ?: DOOR_TEXT), true)
             if (W.isClient) PE.playSoundToPlayer(SoundEvents.BLOCK_CHEST_LOCKED, SoundCategory.BLOCKS, 1.0F, 1.0F)
             return ActionResult.SUCCESS
         }
