@@ -1,6 +1,6 @@
 {
 	"block.nguhcraft.decorative_hopper": "Decorative Hopper",
-	"block.nguhcraft.locked_door": "Locked Door",
+	"block.nguhcraft.locked_door": "Lockable Door",
 
 	"death.attack.minecart_run_over": "%1$s was run over by a minecart",
 	"death.attack.minecart_run_over.player": "%1$s was run over by %2$s",
