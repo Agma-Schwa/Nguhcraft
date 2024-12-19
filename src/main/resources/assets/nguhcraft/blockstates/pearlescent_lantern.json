@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "hanging=false": {
+      "model": "nguhcraft:block/pearlescent_lantern"
+    },
+    "hanging=true": {
+      "model": "nguhcraft:block/pearlescent_lantern_hanging"
+    }
+  }
+}

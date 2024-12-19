@@ -1,0 +1,9 @@
+{
+	"replace": false,
+	"values": [
+		"nguhcraft:atlantic_armour_trim_smithing_template",
+		"nguhcraft:cenrail_armour_trim_smithing_template",
+		"nguhcraft:ice_cold_armour_trim_smithing_template",
+		"nguhcraft:veneficium_armour_trim_smithing_template"
+	]
+}

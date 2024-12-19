@@ -5,7 +5,6 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.Context
 import net.minecraft.network.packet.s2c.play.GameMessageS2CPacket
 import net.minecraft.server.MinecraftServer
-import net.minecraft.server.command.ServerCommandSource
 import net.minecraft.server.network.ServerPlayNetworkHandler
 import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.server.world.ServerWorld
@@ -26,7 +25,8 @@ import org.nguh.nguhcraft.server.dedicated.Discord
 /** This handles everything related to chat and messages */
 object Chat {
     private val LOGGER = LogUtils.getLogger()
-    private val ERR_NEEDS_LINK_TO_CHAT: Text = Text.translatable("You must link your account to send messages in chat or run commands (other than /discord link)").formatted(Formatting.RED)
+    private val ERR_NEEDS_LINK_TO_CHAT: Text = Text.literal("You must link your account to send messages in chat or run commands (other than /discord link)").formatted(Formatting.RED)
+    private val ERR_MUTED: Text = Text.literal("You are muted and cannot send messages in chat").formatted(Formatting.RED)
 
     /** Components used in sender names. */
     private val SERVER_COMPONENT: Text = Utils.BracketedLiteralComponent("Server")
@@ -70,13 +70,23 @@ object Chat {
         Discord.ForwardChatMessage(Sender, Message)
     }
 
-    /** Ensure a player is linked and issue an error if they aren’t. */
-    private fun EnsurePlayerIsLinked(Context: Context): Boolean {
+    /** Check if a player can send a chat message and issue an error if they can’t. */
+    private fun CanPlayerChat(Context: Context): Boolean {
+        if (IsIntegratedServer()) return true
+
+        // On the dedicated server, check if the player is linked.
         val SP = Context.player()
         if (!IsLinkedOrOperator(SP)) {
             Context.responseSender().sendPacket(GameMessageS2CPacket(ERR_NEEDS_LINK_TO_CHAT, false))
             return false
         }
+
+        // Or muted.
+        if (Discord.IsMuted(SP)) {
+            Context.responseSender().sendPacket(GameMessageS2CPacket(ERR_MUTED, false))
+            return false
+        }
+
         return true
     }
 
@@ -125,8 +135,8 @@ object Chat {
         val SP = Context.player()
         LogChat(SP, Message, false)
 
-        // Unlinked players cannot chat.
-        if (!EnsurePlayerIsLinked(Context)) return
+        // Unlinked and muted players cannot chat.
+        if (!CanPlayerChat(Context)) return
 
         // Dew it.
         DispatchMessage(Context.server(), SP, Message)
@@ -149,8 +159,15 @@ object Chat {
         S.commandManager.execute(ParsedCommand, Command)
     }
 
-    /** Send a private message to players. This has already been validated. */
+    /** Send a private message to players. */
     fun SendPrivateMessage(From: ServerPlayerEntity?, Players: Collection<ServerPlayerEntity>, Message: String) {
+        if (From != null && !IsIntegratedServer()) {
+            if (Discord.IsMuted(From)) {
+                From.sendMessage(ERR_MUTED, false)
+                return
+            }
+        }
+
         // Send an incoming message to all players in the list.
         val SenderName = if (From == null) SRV_LIT_COMPONENT else From.displayName!!
         Multicast(Players, ClientboundChatPacket(
@@ -178,6 +195,11 @@ object Chat {
         ))
     }
 
+    // TODO: Use colours when serialising components for the console.
+
     /** Send a message from the console. */
-    fun SendServerMessage(S: MinecraftServer, Message: String) = DispatchMessage(S, null, Message)
+    fun SendServerMessage(S: MinecraftServer, Message: String) {
+        LOGGER.info("{} {}", SERVER_COMPONENT, Message)
+        DispatchMessage(S, null, Message)
+    }
 }

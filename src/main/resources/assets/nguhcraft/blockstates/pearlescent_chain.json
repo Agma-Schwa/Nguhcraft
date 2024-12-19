@@ -1,0 +1,16 @@
+{
+  "variants": {
+    "axis=x": {
+      "model": "nguhcraft:block/pearlescent_chain",
+      "x": 90,
+      "y": 90
+    },
+    "axis=y": {
+      "model": "nguhcraft:block/pearlescent_chain"
+    },
+    "axis=z": {
+      "model": "nguhcraft:block/pearlescent_chain",
+      "x": 90
+    }
+  }
+}

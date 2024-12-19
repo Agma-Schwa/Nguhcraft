@@ -6,6 +6,7 @@
 	"mixins": [
 		"common.AbstractMinecartEntityMixin",
 		"common.AnvilScreenHandlerMixin",
+		"common.ChestBlockEntityMixin",
 		"common.ComponentPredicateAccessor",
 		"common.EnchantmentMixin",
 		"common.EnderEyeItemMixin",

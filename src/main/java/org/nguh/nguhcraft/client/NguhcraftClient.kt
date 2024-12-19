@@ -42,6 +42,8 @@ class NguhcraftClient : ClientModInitializer {
         Registry.register(Registries.ITEM_GROUP, Id("treasures"), TREASURES_ITEM_GROUP)
 
         BlockRenderLayerMap.INSTANCE.putBlock(NguhBlocks.LOCKED_DOOR, RenderLayer.getCutout())
+        BlockRenderLayerMap.INSTANCE.putBlock(NguhBlocks.PEARLESCENT_LANTERN, RenderLayer.getCutout())
+        BlockRenderLayerMap.INSTANCE.putBlock(NguhBlocks.PEARLESCENT_CHAIN, RenderLayer.getCutout())
 
         ClientCommandRegistrationCallback.EVENT.register { Dispatcher, _ ->
             Dispatcher.register(RenderCommand())

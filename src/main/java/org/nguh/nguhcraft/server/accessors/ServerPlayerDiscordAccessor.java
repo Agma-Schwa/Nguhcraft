@@ -13,6 +13,7 @@ public interface ServerPlayerDiscordAccessor {
     String TAG_DISCORD_COLOUR = "DiscordRoleColour";
     String TAG_DISCORD_NAME = "DiscordName";
     String TAG_DISCORD_AVATAR = "DiscordAvatar";
+    String TAG_MUTED = "Muted";
 
     long getDiscordId();
     void setDiscordId(long id);
@@ -31,6 +32,9 @@ public interface ServerPlayerDiscordAccessor {
 
     boolean isLinked();
     boolean isLinkedOrOperator();
+
+    boolean getMuted();
+    void setMuted(boolean muted);
 
     void LoadDiscordNguhcraftNbt(@NotNull NbtCompound nbt);
 }

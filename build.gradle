@@ -36,8 +36,8 @@ dependencies {
     implementation 'org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.1'
 
     // Discord API
-    implementation 'net.dv8tion:JDA:5.0.0'
-    shadow 'net.dv8tion:JDA:5.0.0'
+    implementation 'net.dv8tion:JDA:5.2.1'
+    shadow 'net.dv8tion:JDA:5.2.1'
 }
 
 shadowJar {

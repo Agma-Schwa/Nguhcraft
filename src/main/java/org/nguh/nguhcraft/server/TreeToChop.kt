@@ -67,26 +67,28 @@ class TreeToChop private constructor(private val Owner: ServerPlayerEntity, priv
     }
 
     companion object {
-        private val LOG_TO_LEAVES: Map<Block, Array<Block>> = java.util.Map.of(
-            Blocks.ACACIA_LOG, arrayOf(Blocks.ACACIA_LEAVES),
-            Blocks.BIRCH_LOG, arrayOf(Blocks.BIRCH_LEAVES),
-            Blocks.CHERRY_LOG, arrayOf(Blocks.CHERRY_LEAVES),
-            Blocks.DARK_OAK_LOG, arrayOf(Blocks.DARK_OAK_LEAVES),
-            Blocks.JUNGLE_LOG, arrayOf(Blocks.JUNGLE_LEAVES),
-            Blocks.MANGROVE_LOG, arrayOf(Blocks.MANGROVE_LEAVES),
-            Blocks.OAK_LOG, arrayOf(Blocks.OAK_LEAVES, Blocks.AZALEA_LEAVES, Blocks.FLOWERING_AZALEA_LEAVES),
-            Blocks.SPRUCE_LOG, arrayOf(Blocks.SPRUCE_LEAVES)
+        private val LOG_TO_LEAVES: Map<Block, Array<Block>> = mapOf(
+            Blocks.ACACIA_LOG to arrayOf(Blocks.ACACIA_LEAVES),
+            Blocks.BIRCH_LOG to arrayOf(Blocks.BIRCH_LEAVES),
+            Blocks.CHERRY_LOG to arrayOf(Blocks.CHERRY_LEAVES),
+            Blocks.DARK_OAK_LOG to arrayOf(Blocks.DARK_OAK_LEAVES),
+            Blocks.JUNGLE_LOG to arrayOf(Blocks.JUNGLE_LEAVES),
+            Blocks.MANGROVE_LOG to arrayOf(Blocks.MANGROVE_LEAVES),
+            Blocks.OAK_LOG to arrayOf(Blocks.OAK_LEAVES, Blocks.AZALEA_LEAVES, Blocks.FLOWERING_AZALEA_LEAVES),
+            Blocks.SPRUCE_LOG to arrayOf(Blocks.SPRUCE_LEAVES),
+            Blocks.PALE_OAK_LOG to arrayOf(Blocks.PALE_OAK_LEAVES)
         )
 
-        private val WOOD_TYPES: Map<Block, Array<Block>> = java.util.Map.of(
-            Blocks.ACACIA_LOG, arrayOf(Blocks.ACACIA_LOG),
-            Blocks.BIRCH_LOG, arrayOf(Blocks.BIRCH_LOG),
-            Blocks.CHERRY_LOG, arrayOf(Blocks.CHERRY_LOG),
-            Blocks.DARK_OAK_LOG, arrayOf(Blocks.DARK_OAK_LOG),
-            Blocks.JUNGLE_LOG, arrayOf(Blocks.JUNGLE_LOG),
-            Blocks.MANGROVE_LOG, arrayOf(Blocks.MANGROVE_LOG, Blocks.MANGROVE_ROOTS, Blocks.MUDDY_MANGROVE_ROOTS),
-            Blocks.OAK_LOG, arrayOf(Blocks.OAK_LOG),
-            Blocks.SPRUCE_LOG, arrayOf(Blocks.SPRUCE_LOG)
+        private val WOOD_TYPES: Map<Block, Array<Block>> = mapOf(
+            Blocks.ACACIA_LOG to arrayOf(Blocks.ACACIA_LOG),
+            Blocks.BIRCH_LOG to arrayOf(Blocks.BIRCH_LOG),
+            Blocks.CHERRY_LOG to arrayOf(Blocks.CHERRY_LOG),
+            Blocks.DARK_OAK_LOG to arrayOf(Blocks.DARK_OAK_LOG),
+            Blocks.JUNGLE_LOG to arrayOf(Blocks.JUNGLE_LOG),
+            Blocks.MANGROVE_LOG to arrayOf(Blocks.MANGROVE_LOG, Blocks.MANGROVE_ROOTS, Blocks.MUDDY_MANGROVE_ROOTS),
+            Blocks.OAK_LOG to arrayOf(Blocks.OAK_LOG),
+            Blocks.SPRUCE_LOG to arrayOf(Blocks.SPRUCE_LOG),
+            Blocks.PALE_OAK_LOG to arrayOf(Blocks.PALE_OAK_LOG)
         )
 
         private const val LOG_MARKED_FOR_SCAN = false

@@ -1,0 +1,8 @@
+{
+	"asset_id": "nguhcraft:atlantic",
+	"decal": false,
+	"description": {
+		"translate": "trim_pattern.nguhcraft.atlantic"
+	},
+	"template_item": "nguhcraft:atlantic_armour_trim_smithing_template"
+}

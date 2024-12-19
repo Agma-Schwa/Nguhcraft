@@ -1,6 +1,8 @@
 {
 	"block.nguhcraft.decorative_hopper": "Decorative Hopper",
 	"block.nguhcraft.locked_door": "Lockable Door",
+	"block.nguhcraft.pearlescent_lantern": "Pearlescent Lantern",
+	"block.nguhcraft.pearlescent_chain": "Pearlescent Chain",
 
 	"death.attack.minecart_run_over": "%1$s was run over by a minecart",
 	"death.attack.minecart_run_over.player": "%1$s was run over by %2$s",
@@ -30,6 +32,10 @@
 	"item.nguhcraft.slablet_4": "4 Slablets",
 	"item.nguhcraft.slablet_8": "8 Slablets",
 	"item.nguhcraft.slablet_16": "16 Slablets",
+	"item.nguhcraft.atlantic_armour_trim_smithing_template": "Atlantic Armor Trim",
+	"item.nguhcraft.cenrail_armour_trim_smithing_template": "Cenrail Armor Trim",
+	"item.nguhcraft.ice_cold_armour_trim_smithing_template": "Ice-Cold Armor Trim",
+	"item.nguhcraft.veneficium_armour_trim_smithing_template": "Venēficium Armor Trim",
 
 	"jukebox_song.nguhcraft.nguhrovision_2024": "Marcy Sheikah – Reflection",
 
@@ -47,5 +53,10 @@
 	"painting.nguhcraft.rabo.author": "Agma Schwa",
 	"painting.nguhcraft.rabo.title": "Rabo",
 	"painting.nguhcraft.rail_diagram.author": "CenRail®",
-	"painting.nguhcraft.rail_diagram.title": "Rail Diagram"
+	"painting.nguhcraft.rail_diagram.title": "Rail Diagram",
+
+	"trim_pattern.nguhcraft.atlantic": "Atlantic Armor Trim",
+	"trim_pattern.nguhcraft.cenrail": "Cenrail Armor Trim",
+	"trim_pattern.nguhcraft.ice_cold": "Ice-Cold Armor Trim",
+	"trim_pattern.nguhcraft.veneficium": "Venēficium Armor Trim"
 }

@@ -86,6 +86,7 @@ object Commands {
             D.register(DelHomeCommand())              // /delhome
             D.register(DiscardCommand())              // /discard
             D.register(EnchantCommand(A))             // /enchant
+            D.register(EntityCountCommand())          // /entity_count
             D.register(FixCommand())                  // /fix
             D.register(HomeCommand())                 // /home
             D.register(HomesCommand())                // /homes
@@ -830,6 +831,16 @@ object Commands {
                         1
                     )
                 }
+        )
+
+    private fun EntityCountCommand(): LiteralArgumentBuilder<ServerCommandSource> = literal("entity_count")
+        .requires { it.hasPermissionLevel(4) }
+        .then(argument("selector", EntityArgumentType.entities())
+            .executes {
+                val E = EntityArgumentType.getEntities(it, "selector")
+                it.source.Reply("There are ${E.size} entities that match the given selector.")
+                E.size
+            }
         )
 
     private fun FixCommand(): LiteralArgumentBuilder<ServerCommandSource> = literal("fix")

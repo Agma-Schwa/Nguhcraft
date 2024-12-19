@@ -12,11 +12,7 @@ import net.dv8tion.jda.api.JDABuilder
 import net.dv8tion.jda.api.entities.*
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent
-import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleAddEvent
-import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleRemoveEvent
 import net.dv8tion.jda.api.events.guild.member.GuildMemberUpdateEvent
-import net.dv8tion.jda.api.events.guild.member.update.GuildMemberUpdateAvatarEvent
-import net.dv8tion.jda.api.events.guild.member.update.GuildMemberUpdateNicknameEvent
 import net.dv8tion.jda.api.events.guild.update.GuildUpdateIconEvent
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
@@ -34,6 +30,7 @@ import net.minecraft.nbt.NbtCompound
 import net.minecraft.nbt.NbtIo
 import net.minecraft.nbt.NbtSizeTracker
 import net.minecraft.screen.ScreenTexts
+import net.minecraft.server.BannedPlayerEntry
 import net.minecraft.server.command.ServerCommandSource
 import net.minecraft.server.dedicated.MinecraftDedicatedServer
 import net.minecraft.server.network.ServerPlayerEntity
@@ -53,7 +50,6 @@ import org.nguh.nguhcraft.network.ClientboundLinkUpdatePacket
 import org.nguh.nguhcraft.server.Broadcast
 import org.nguh.nguhcraft.server.IsVanished
 import org.nguh.nguhcraft.server.PlayerByUUID
-import org.nguh.nguhcraft.server.ServerUtils
 import org.nguh.nguhcraft.server.accessors.ServerPlayerAccessor
 import org.nguh.nguhcraft.server.accessors.ServerPlayerDiscordAccessor
 import org.nguh.nguhcraft.server.command.Commands
@@ -64,7 +60,6 @@ import org.slf4j.Logger
 import java.io.File
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
-import java.util.function.Consumer
 import java.util.regex.PatternSyntaxException
 
 private val ServerPlayerEntity.isLinked get() = (this as ServerPlayerDiscordAccessor).isLinked
@@ -77,15 +72,18 @@ private var ServerPlayerEntity.discordId
 private var ServerPlayerEntity.discordColour
     get() = (this as ServerPlayerDiscordAccessor).discordColour
     set(value) { (this as ServerPlayerDiscordAccessor).discordColour = value }
-private var ServerPlayerEntity.discordName: String?
+private var ServerPlayerEntity.discordName: String
     get() = (this as ServerPlayerDiscordAccessor).discordName
     set(value) { (this as ServerPlayerDiscordAccessor).discordName = value }
-private var ServerPlayerEntity.discordAvatarURL: String?
+private var ServerPlayerEntity.discordAvatarURL: String
     get() = (this as ServerPlayerDiscordAccessor).discordAvatarURL
     set(value) { (this as ServerPlayerDiscordAccessor).discordAvatarURL = value }
 private var ServerPlayerEntity.discordDisplayName: Text?
     get() = (this as ServerPlayerDiscordAccessor).nguhcraftDisplayName
     set(value) { (this as ServerPlayerDiscordAccessor).nguhcraftDisplayName = value }
+private var ServerPlayerEntity.isMuted
+    get() = (this as ServerPlayerDiscordAccessor).muted
+    set(value) { (this as ServerPlayerDiscordAccessor).muted = value }
 
 private lateinit var Server: MinecraftDedicatedServer
 
@@ -99,77 +97,63 @@ internal class Discord : ListenerAdapter() {
         if (!ID.startsWith(BUTTON_ID_LINK)) return
 
         // Try to retrieve the player we need to link to.
-        val SP = Server.PlayerByUUID(ID.substring(BUTTON_ID_LINK.length))
-        if (SP == null) E.reply("Invalid player!").setEphemeral(true).queue()
-
-        // Sanity check. Overriding the link would not be the end of the
-        // world, so we don’t check for that elsewhere, but we might as
-        // well check for it here.
-        else if (SP.isLinked) E.reply("This account is already linked to a Discord account!")
-            .setEphemeral(true).queue()
-
-        // If the account is not a server member, ignore.
-        else AgmaSchwaGuild.retrieveMemberById(E.user.idLong).queue({ M ->
-            // I don’t think it’s possible to get here w/ 'M' being null,
-            // but I’d rather not take any chances in this particular part
-            // of the code base...
-            if (M == null) {
-                E.reply("You are not a member of the server!").setEphemeral(true).queue()
-                return@queue
+        Server.execute {
+            val SP = Server.PlayerByUUID(ID.substring(BUTTON_ID_LINK.length))
+            if (SP == null) {
+                E.reply("Invalid player!").setEphemeral(true).queue()
+                return@execute
             }
 
-            // Last-minute check because race conditions.
-            if (!IsAllowedToLink(M)) {
-                E.reply("You must have at least the @ŋimp role to link your account!")
+            // Sanity check. Overriding the link would not be the end of the
+            // world, so we don’t check for that elsewhere, but we might as
+            // well check for it here.
+            if (SP.isLinked) {
+                E.reply("This account is already linked to a Discord account!")
                     .setEphemeral(true).queue()
-                return@queue
+                return@execute
             }
 
-            // Link the player. Take care to do this in the main thread.
-            Server.execute { PerformLink(SP, M) }
-            E.reply("Done!").setEphemeral(true).queue()
-        }, { Error ->
-            if (Error is ErrorResponseException && Error.errorResponse == ErrorResponse.UNKNOWN_MEMBER) {
-                E.reply("You are not a member of the server!").setEphemeral(true).queue()
-            } else {
-                E.reply("Error: ${Error.message}\n\nAre you a member of the Agma Schwa Discord server?")
-                    .setEphemeral(true)
-                    .queue()
-            }
-        })
+            // If the account is not a server member, ignore.
+            val UUID = SP.uuid
+            AgmaSchwaGuild.retrieveMemberById(E.user.idLong).queue({ M ->
+                // I don’t think it’s possible to get here w/ 'M' being null,
+                // but I’d rather not take any chances in this particular part
+                // of the code base...
+                if (M == null) {
+                    E.reply("You are not a member of the server!").setEphemeral(true).queue()
+                    return@queue
+                }
+
+                // Last-minute check because race conditions.
+                if (!IsAllowedToLink(M)) {
+                    E.reply("You must have at least the @nguh-bruh role to link your account!")
+                        .setEphemeral(true).queue()
+                    return@queue
+                }
+
+                // Link the player. Take care to do this in the main thread and re-fetch
+                // the player in case they’ve died in the meantime.
+                WithPlayer(UUID) { PerformLink(it, M) }
+                E.reply("Done!").setEphemeral(true).queue()
+            }, { Error ->
+                if (Error is ErrorResponseException && Error.errorResponse == ErrorResponse.UNKNOWN_MEMBER) {
+                    E.reply("You are not a member of the server!").setEphemeral(true).queue()
+                } else {
+                    E.reply("Error: ${Error.message}\n\nAre you a member of the Agma Schwa Discord server?")
+                        .setEphemeral(true)
+                        .queue()
+                }
+            })
+        }
     }
 
     override fun onGuildMemberRemove(E: GuildMemberRemoveEvent) {
-        if (Ready) UpdateLinkedPlayer(E.user.idLong) { PerformUnlink(it) }
-    }
-
-    override fun onGuildMemberRoleAdd(E: GuildMemberRoleAddEvent) {
-        if (Ready) MemberRoleChanged(E.member)
-    }
-
-    override fun onGuildMemberRoleRemove(E: GuildMemberRoleRemoveEvent) {
-        if (Ready) MemberRoleChanged(E.member)
+        if (Ready) HandleMemberRemoved(E.user.idLong)
     }
 
     override fun onGuildMemberUpdate(E: GuildMemberUpdateEvent) {
         val M = E.member
         UpdateLinkedPlayer(M.idLong) { UpdatePlayer(it, M) }
-    }
-
-    override fun onGuildMemberUpdateAvatar(E: GuildMemberUpdateAvatarEvent) {
-        if (!Ready) return
-        val URL = E.newAvatarUrl
-        UpdateLinkedPlayer(E.member.idLong) { it.discordAvatarURL = URL }
-    }
-
-    override fun onGuildMemberUpdateNickname(E: GuildMemberUpdateNicknameEvent) {
-        if (!Ready) return
-        UpdateLinkedPlayer(E.member.idLong) {
-            var Name = E.newNickname
-            if (Name == null) Name = E.member.effectiveName
-            it.discordName = Name
-            BroadcastPlayerUpdate(it)
-        }
     }
 
     override fun onGuildUpdateIcon(E: GuildUpdateIconEvent) {
@@ -219,7 +203,7 @@ internal class Discord : ListenerAdapter() {
         }
 
         private val MUST_ENABLE_DMS : SimpleCommandExceptionType
-            = Commands.Exn("You must enable DMs from server members to link your account!")
+            = Exn("You must enable DMs from server members to link your account!")
 
         private val LOGGER: Logger = LogUtils.getLogger()
         private const val BUTTON_ID_LINK = "ng_lnk:"
@@ -237,6 +221,7 @@ internal class Discord : ListenerAdapter() {
         private lateinit var MessageChannel: TextChannel
         private lateinit var AgmaSchwaGuild: Guild
         private lateinit var NguhcrafterRole: Role
+        private lateinit var MutedRole: Role
         private lateinit var RequiredRoles: List<Role>
 
         @Volatile private var ServerAvatarURL: String = DEFAULT_AVATARS[0]
@@ -250,6 +235,7 @@ internal class Discord : ListenerAdapter() {
             val channelId: Long,
             val webhookId: Long,
             val playerRoleId: Long,
+            val mutedRoleId: Long,
             val requiredRoleIds: List<Long>
         )
 
@@ -275,6 +261,7 @@ internal class Discord : ListenerAdapter() {
             MessageChannel = Get("channel") { Client.getTextChannelById(Config.channelId) }
             MessageWebhook = Get("webhook") { Client.retrieveWebhookById(Config.webhookId).complete() }
             NguhcrafterRole = Get("player role") { AgmaSchwaGuild.getRoleById(Config.playerRoleId) }
+            MutedRole = Get("muted role") { AgmaSchwaGuild.getRoleById(Config.mutedRoleId) }
             RequiredRoles = Config.requiredRoleIds.map { Get ("required role") { AgmaSchwaGuild.getRoleById(it) } }
             ServerAvatarURL = AgmaSchwaGuild.iconUrl ?: Client.selfUser.effectiveAvatarUrl
             Ready = true
@@ -371,7 +358,7 @@ internal class Discord : ListenerAdapter() {
                     SP.uuid,
                     SP.gameProfile.name,
                     SP.discordColour,
-                    SP.discordName!!,
+                    SP.discordName,
                     SP.isLinked
                 )
             )
@@ -433,12 +420,57 @@ internal class Discord : ListenerAdapter() {
             }
         }
 
+        /** Handle a player no longer being on the Discord server. */
+        private fun HandleMemberRemoved(Id: Long) {
+            // If there is no player online that is linked with this user, then do nothing;
+            // here. This code will trigger again when they next join, and we’ll take care
+            // of anything that needs to be done then and there.
+            UpdateLinkedPlayer(Id) {
+                // Retrieve this now since we won’t be able to find the linked player anymore
+                // after unlinking them.
+                val GP = it.gameProfile
+
+                // Always unlink the player if they’re not on the server anymore.
+                PerformUnlink(it)
+
+                // Try to retrieve the ban list entry for this user; if this succeeds,
+                // that means they were actually banned (instead of simply leaving or
+                // getting kicked); ban them from the Minecraft server as well.
+                AgmaSchwaGuild.retrieveBan(UserSnowflake.fromId(Id)).queue({
+                    if (Server.playerManager.userBanList.contains(GP)) return@queue
+                    Server.playerManager.userBanList.add(
+                        BannedPlayerEntry(
+                            GP,
+                            null,
+                            "Discord Integration",
+                            null,
+                            "Banned from the Agma Schwa Discord server"
+                        )
+                    )
+
+                    // Kick the player if they’re online.
+                    LOGGER.info("Banned player ${GP.name} since they were banned from the Discord server.")
+                    val SP = Server.playerManager.getPlayer(GP.id)
+                    SP?.networkHandler?.disconnect(Text.translatable("multiplayer.disconnect.banned"))
+                }) { e ->
+                    // This is racy; the player may have been unbanned again.
+                    if (e !is ErrorResponseException || e.errorResponse != ErrorResponse.UNKNOWN_BAN)
+                        LOGGER.error("Failed to check ban status for player $Id: ${e.message}")
+                    else
+                        LOGGER.info("No Discord ban found for user $Id")
+                }
+            }
+        }
+
         /** Check if a server member is allowed to link their account at all. */
         private fun IsAllowedToLink(M: Member): Boolean =
             M.roles.any { RequiredRoles.contains(it) }
 
         /** DO NOT USE. */
         fun __IsLinkedOrOperatorImpl(SP: ServerPlayerEntity): Boolean = SP.isLinkedOrOperator
+
+        /** Check if a player is muted. */
+        fun IsMuted(SP: ServerPlayerEntity): Boolean = SP.isMuted
 
         /** Attempt to initiate a link of a player to a member w/ the given ID */
         @Throws(CommandSyntaxException::class)
@@ -508,18 +540,6 @@ internal class Discord : ListenerAdapter() {
             }
         }
 
-        private fun MemberRoleChanged(M: Member) {
-            val Colour = M.colorRaw
-            UpdateLinkedPlayer(M.idLong) { SP: ServerPlayerEntity ->
-                if (Colour != SP.discordColour) {
-                    Server.execute {
-                        SP.discordColour = Colour
-                        BroadcastPlayerUpdate(SP)
-                    }
-                }
-            }
-        }
-
         /**
          * Send a message to [Discord.MessageChannel] using [Discord.MessageWebhook]
          *
@@ -540,7 +560,7 @@ internal class Discord : ListenerAdapter() {
          * Send a message as a player.
          */
         private fun Message(SP: ServerPlayerEntity, Content: String?) {
-            if (SP.isLinked) Message(SP.discordName!!, SP.discordAvatarURL, Content)
+            if (SP.isLinked) Message(SP.discordName, SP.discordAvatarURL, Content)
             else {
                 val N = SP.nameForScoreboard
                 Message("$N (unlinked)", DefaultAvatarURL(N.length), Content)
@@ -551,8 +571,14 @@ internal class Discord : ListenerAdapter() {
             val ID = SP.discordId
             UpdatePlayer(SP, INVALID_ID, null, null, Constants.Grey)
 
-            // Remove the @ŋguhcrafter role.
-            AgmaSchwaGuild.removeRoleFromMember(UserSnowflake.fromId(ID), NguhcrafterRole).queue()
+            // Remove the @ŋguhcrafter role. This can fail if the user is no
+            // longer a server member, so just ignore that error.
+            AgmaSchwaGuild.removeRoleFromMember(UserSnowflake.fromId(ID), NguhcrafterRole).queue({}) { e ->
+                if (
+                    e !is ErrorResponseException ||
+                    e.errorResponse != ErrorResponse.UNKNOWN_MEMBER
+                ) throw e
+            }
         }
 
         private fun PerformLink(SP: ServerPlayerEntity, M: Member) {
@@ -675,14 +701,15 @@ internal class Discord : ListenerAdapter() {
          * Get the player linked to the Discord account with the given ID, and
          * if it exists, queue F to run in the main thread to update the player.
          */
-        fun UpdateLinkedPlayer(ID: Long, F: Consumer<ServerPlayerEntity>) {
-            val SP = LinkedPlayerForMember(ID) ?: return
-            Server.execute { F.accept(SP) }
+        fun UpdateLinkedPlayer(ID: Long, F: (ServerPlayerEntity) -> Unit) {
+            Server.execute {
+                val SP = LinkedPlayerForMember(ID) ?: return@execute
+                F(SP)
+            }
         }
 
         /**
          * Refresh a player after (un)linking them.
-         *
          *
          * This sets a player’s display name and refreshes their commands.
          */
@@ -696,32 +723,46 @@ internal class Discord : ListenerAdapter() {
             // Sanity check.
             assert(Server.isOnThread) { "Must link on tick thread" }
 
+            // Only resend the command tree if this has changed, so compute
+            // this before we update the id below.
+            val LinkStatusChanged = SP.discordId != ID
+
             // Dew it.
             SP.discordId = ID
-            SP.discordName = DisplayName
+            SP.discordName = DisplayName ?: ""
             SP.discordColour = NameColour
-            SP.discordAvatarURL = AvatarURL
-            BroadcastPlayerUpdate(SP)
+            SP.discordAvatarURL = AvatarURL ?: ""
 
-            // The 'link'/'unlink' options are only available if the player is
-            // unlinked/linked, so we need to refresh the player’s commands.
-            Server.commandManager.sendCommandTree(SP)
+            // Broadcast this player’s info to everyone.
+            if (!SP.isDisconnected) {
+                BroadcastPlayerUpdate(SP)
+
+                // The 'link'/'unlink' options are only available if the player is
+                // unlinked/linked, so we need to refresh the player’s commands.
+                if (LinkStatusChanged) Server.commandManager.sendCommandTree(SP)
+            }
         }
 
-        private fun UpdatePlayer(SP: ServerPlayerEntity, M: Member) = UpdatePlayer(
-            SP,
-            M.idLong,
-            M.effectiveName,
-            M.effectiveAvatarUrl,
-            M.colorRaw
-        )
+        private fun UpdatePlayer(SP: ServerPlayerEntity, M: Member) {
+            // Compute whether they’re muted.
+            SP.isMuted = M.roles.contains(MutedRole)
+
+            // Update the name etc.
+            UpdatePlayer(
+                SP,
+                M.idLong,
+                M.effectiveName,
+                M.effectiveAvatarUrl,
+                M.colorRaw
+            )
+        }
 
         /**
          * Re-fetch a linked player’s info from Discord. Called after a player
          * first joins.
          */
         @JvmStatic
-        fun UpdatePlayerAsync(SP: ServerPlayerEntity) {
+        fun UpdatePlayerOnJoin(SP: ServerPlayerEntity) {
             if (!SP.isLinked) {
                 BroadcastPlayerUpdate(SP)
                 return
@@ -729,19 +770,22 @@ internal class Discord : ListenerAdapter() {
 
             // Retrieve the member to see if they’re still on the server and because
             // their name, avatar, etc. may have changed since we last saw them.
-            AgmaSchwaGuild.retrieveMemberById(SP.discordId).useCache(false).queue({ M: Member? ->
-                Server.execute {
-                    if (M == null) PerformUnlink(SP)
-                    else UpdatePlayer(SP, M)
-                }
+            val UUID = SP.uuid
+            AgmaSchwaGuild.retrieveMemberById(SP.discordId).useCache(false).queue({ M ->
+                WithPlayer(UUID) { UpdatePlayer(it, M) }
             }, { failure ->
-                Server.execute {
+                WithPlayer(UUID) {
                     // Failure likely indicates that the player is no longer on the
                     // server; unlink them just in case and log the error.
-                    PerformUnlink(SP)
-                    SP.sendMessage(INTERNAL_ERROR_PLEASE_RELINK)
-                    failure.printStackTrace()
-                    LOGGER.error("Failed to fetch Discord info for player '${SP.name}': ${failure.message}")
+                    HandleMemberRemoved(it.discordId)
+
+                    // The call to HandleMemberRemoved() may have just banned this
+                    // player, so do nothing here if that’s the case.
+                    if (!it.isDisconnected) {
+                        it.sendMessage(INTERNAL_ERROR_PLEASE_RELINK)
+                        failure.printStackTrace()
+                        LOGGER.error("Failed to fetch Discord info for player '${it.name}': ${failure.message}")
+                    }
                 }
             })
         }
@@ -757,11 +801,26 @@ internal class Discord : ListenerAdapter() {
             SP.discordDisplayName = ComputePlayerName(
                 SP.isLinked,
                 SP.nameForScoreboard,
-                SP.discordName ?: "",
+                SP.discordName,
                 SP.discordColour
             )
 
             UpdateCacheEntry(SP)
+        }
+
+        /**
+         * Get a player by UUID and run some code on them.
+         *
+         * Use this instead of reusing ServerPlayerEntity objects across
+         * callback boundaries as the player entity may have become invalid
+         * by the time we get to the callback (the player may have died or
+         * left the server in the meantime).
+         */
+        private fun WithPlayer(Id: UUID, F: (ServerPlayerEntity) -> Unit) {
+            Server.execute {
+                val SP = Server.playerManager.getPlayer(Id) ?: return@execute
+                F(SP)
+            }
         }
     }
 }
@@ -824,15 +883,15 @@ class PlayerList private constructor(private val ByID: HashMap<UUID, Entry>) : I
 
             // Enumerate all players for which we have an entry, adding them to the list.
             assert(Server.isOnThread) { "Must run on the server thread" }
-            for (F in DatFiles!!) {
+            for (F in DatFiles) {
                 try {
                     val ID = UUID.fromString(F.substring(0, F.length - 4))
                     AddPlayerData(PlayerData, ID)
                 }
 
                 // Filename parsing failed. Ignore random garbage in this directory.
-                catch (ignored: IllegalArgumentException) { }
-                catch (ignored: IndexOutOfBoundsException) { }
+                catch (_: IllegalArgumentException) { }
+                catch (_: IndexOutOfBoundsException) { }
             }
 
             // Also add online players that haven’t been saved yet.
@@ -858,7 +917,7 @@ class PlayerList private constructor(private val ByID: HashMap<UUID, Entry>) : I
                 SP.discordId,
                 SP.discordColour,
                 SP.nameForScoreboard,
-                SP.discordName ?: ""
+                SP.discordName
             )
 
             CACHE[SP.uuid] = NewData

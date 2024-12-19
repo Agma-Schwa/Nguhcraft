@@ -37,6 +37,7 @@ public abstract class ServerPlayerMixin extends PlayerEntity implements ServerPl
     @Unique private String DiscordName = "";
     @Unique private String DiscordAvatar = "";
     @Unique private Text NguhcraftDisplayName = null;
+    @Unique private boolean Muted = false;
 
     @Override public long getDiscordId() { return DiscordId; }
     @Override public void setDiscordId(long id) { DiscordId = id; }
@@ -56,6 +57,8 @@ public abstract class ServerPlayerMixin extends PlayerEntity implements ServerPl
     @Override public boolean isLinked() { return DiscordId != 0; }
     @Override public boolean isLinkedOrOperator() { return isLinked() || hasPermissionLevel(4); }
 
+    @Override public boolean getMuted() { return Muted; }
+    @Override public void setMuted(boolean muted) { Muted = muted; }
 
     /** Get a player’s display name. Used in death messages etc. */
     @Override
@@ -77,6 +80,7 @@ public abstract class ServerPlayerMixin extends PlayerEntity implements ServerPl
             DiscordColour = nguh.getInt(TAG_DISCORD_COLOUR);
             DiscordName = nguh.getString(TAG_DISCORD_NAME);
             DiscordAvatar = nguh.getString(TAG_DISCORD_AVATAR);
+            Muted = nguh.getBoolean(TAG_MUTED);
         }
     }
 
@@ -100,6 +104,7 @@ public abstract class ServerPlayerMixin extends PlayerEntity implements ServerPl
         DiscordName = OldNSP.getDiscordName();
         DiscordAvatar = OldNSP.getDiscordAvatarURL();
         NguhcraftDisplayName = OldNSP.getNguhcraftDisplayName();
+        Muted = OldNSP.getMuted();
     }
 
     /**
@@ -130,6 +135,7 @@ public abstract class ServerPlayerMixin extends PlayerEntity implements ServerPl
         tag.putString(TAG_DISCORD_NAME, DiscordName);
         tag.putString(TAG_DISCORD_AVATAR, DiscordAvatar);
         tag.putString(TAG_LAST_KNOWN_NAME, getNameForScoreboard());
+        tag.putBoolean(TAG_MUTED, Muted);
         nbt.put(ServerPlayerAccessor.TAG_ROOT, tag);
     }
 
