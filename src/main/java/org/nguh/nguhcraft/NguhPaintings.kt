@@ -18,6 +18,7 @@ object NguhPaintings {
     val MAP = of("map")
     val RABO = of("rabo")
     val RAIL_DIAGRAM = of("rail_diagram")
+    val RAILS_OF_ERAS = of("rails_of_eras")
 
     // All paintings that can be obtained randomly by placing them.
     val PLACEABLE = arrayOf(CHILLVANA_METRO, GAMBIANHOLIDAY, GOLD_NGUH, GOLD_NGUH_SMALL, MAP, RABO, RAIL_DIAGRAM)
@@ -33,13 +34,14 @@ object NguhPaintings {
             ))
         }
 
-        Register(CHILLVANA_METRO, 5, 4)
+        Register(CHILLVANA_METRO, 3, 2)
         Register(GAMBIANHOLIDAY, 1, 1)
         Register(GOLD_NGUH, 1, 1)
         Register(GOLD_NGUH_SMALL, 1, 1)
         Register(MAP, 5, 5)
         Register(RABO, 1, 4)
         Register(RAIL_DIAGRAM, 3, 3)
+        Register(RAILS_OF_ERAS, 3, 2)
     }
 
     fun of(Key: String) = RKey(RegistryKeys.PAINTING_VARIANT, Key)
