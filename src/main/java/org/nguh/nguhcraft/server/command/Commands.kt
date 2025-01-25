@@ -24,6 +24,7 @@ import net.minecraft.server.command.ServerCommandSource
 import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.server.world.ServerWorld
 import net.minecraft.text.MutableText
+import net.minecraft.text.Style
 import net.minecraft.text.Text
 import net.minecraft.util.Formatting
 import net.minecraft.util.math.BlockPos
@@ -95,6 +96,7 @@ object Commands {
             D.register(ObliterateCommand())           // /obliterate
             D.register(ProcedureCommand())            // /procedure
             D.register(RegionCommand())               // /region
+            D.register(RenameCommand(A))              // /rename
             D.register(RuleCommand())                 // /rule
             D.register(SayCommand())                  // /say
             D.register(SetHomeCommand())              // /sethome
@@ -542,6 +544,23 @@ object Commands {
 
             R.AppendWorldAndName(Mess)
             S.Reply(Mess)
+            return 1
+        }
+    }
+
+    object RenameCommand {
+        private val ERR_EMPTY = Exn("New name may not be empty!")
+        private val NO_ITEM = Exn("You must be holding an item to rename it!")
+        private val RENAME_SUCCESS = ReplyMsg("Your item has been renamed!")
+        private val NO_ITALIC = Style.EMPTY.withItalic(false)
+
+        fun Execute(S: ServerCommandSource, Name: Text): Int {
+            val SP = S.playerOrThrow
+            val St = SP.mainHandStack
+            if (St.isEmpty) throw NO_ITEM.create()
+            if (Name.string.trim() == "") throw ERR_EMPTY.create()
+            St.set(DataComponentTypes.CUSTOM_NAME, Text.empty().append(Name).setStyle(NO_ITALIC))
+            S.Success(RENAME_SUCCESS)
             return 1
         }
     }
@@ -1099,6 +1118,12 @@ object Commands {
             )
             .then(literal("flags").then(RegionFlagsNameNode))
     }
+
+    private fun RenameCommand(A: CommandRegistryAccess): LiteralArgumentBuilder<ServerCommandSource>  = literal("rename")
+        .requires { it.isExecutedByPlayer && it.hasPermissionLevel(2) }
+        .then(argument("name", TextArgumentType.text(A))
+            .executes { RenameCommand.Execute(it.source, TextArgumentType.getTextArgument(it, "name")) }
+        )
 
     private fun RuleCommand(): LiteralArgumentBuilder<ServerCommandSource> {
         var Command = literal("rule").requires { it.hasPermissionLevel(4) }
