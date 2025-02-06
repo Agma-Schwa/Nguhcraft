@@ -38,6 +38,7 @@ class NguhcraftClient : ClientModInitializer {
         HudRenderCallback.EVENT.register {
             Ctx, _ ->
             RegionRenderer.RenderHUD(Ctx)
+            DisplayRenderer.RenderHUD(Ctx)
             RenderVanishedMessage(Ctx)
         }
 

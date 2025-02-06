@@ -90,11 +90,11 @@
 	],
 	"client": [
 		"client.AnvilScreenMixin",
+		"client.ClientPlayNetworkHandlerMixin",
 		"client.KeyboardMixin",
 		"client.MinecraftClientMixin",
 		"client.chat.ChatOptionsScreenMixin",
 		"client.chat.ChatScreenMixin",
-		"client.chat.ClientPlayNetworkHandlerMixin",
 		"client.chat.MessageIndicatorMixin",
 		"client.chat.ScreenMixin",
 		"client.chat.SocialInteractionsPlayerListEntryMixin",

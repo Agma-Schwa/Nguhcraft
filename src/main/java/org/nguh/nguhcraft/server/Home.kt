@@ -5,7 +5,9 @@ import net.minecraft.registry.RegistryKey
 import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
+import org.nguh.nguhcraft.Nbt
 import org.nguh.nguhcraft.Utils
+import org.nguh.nguhcraft.set
 
 /**
 * Represents a home.
@@ -19,17 +21,20 @@ data class Home(
     val World: RegistryKey<World>,
     val Pos: BlockPos,
 ) {
-    fun Save(): NbtCompound {
-        val Tag = NbtCompound()
-        Tag.putString("Name", Name)
-        Tag.put("World", Utils.SerialiseWorld(World))
-        Tag.putInt("X", Pos.x)
-        Tag.putInt("Y", Pos.y)
-        Tag.putInt("Z", Pos.z)
-        return Tag
+    fun Save() = Nbt {
+        set(TAG_NAME, Name)
+        set(TAG_WORLD, Utils.SerialiseWorld(World))
+        set(TAG_X, Pos.x)
+        set(TAG_Y, Pos.y)
+        set(TAG_Z, Pos.z)
     }
 
     companion object {
+        private const val TAG_NAME = "Name"
+        private const val TAG_WORLD = "World"
+        private const val TAG_X = "X"
+        private const val TAG_Y = "Y"
+        private const val TAG_Z = "Z"
         const val BED_HOME = "bed"
         const val DEFAULT_HOME = "home"
 
@@ -41,12 +46,12 @@ data class Home(
 
         @JvmStatic
         fun Load(Tag: NbtCompound): Home {
-            val Name = Tag.getString("Name")
-            val World = Utils.DeserialiseWorld(Tag.get("World")!!)
+            val Name = Tag.getString(TAG_NAME)
+            val World = Utils.DeserialiseWorld(Tag.get(TAG_WORLD)!!)
             val Pos = BlockPos(
-                Tag.getInt("X"),
-                Tag.getInt("Y"),
-                Tag.getInt("Z")
+                Tag.getInt(TAG_X),
+                Tag.getInt(TAG_Y),
+                Tag.getInt(TAG_Z)
             )
             return Home(Name, World, Pos)
         }

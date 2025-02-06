@@ -6,7 +6,9 @@ import net.minecraft.nbt.NbtElement
 import net.minecraft.registry.RegistryKey
 import net.minecraft.util.math.Vec3d
 import net.minecraft.world.World
+import org.nguh.nguhcraft.NbtListOf
 import org.nguh.nguhcraft.Utils
+import org.nguh.nguhcraft.set
 
 object WarpManager {
     private val LOGGER = LogUtils.getLogger()
@@ -56,18 +58,14 @@ object WarpManager {
 
     /** Save warps to save file. */
     fun Save(Nbt: NbtCompound) {
-        val Tag = Nbt.getList(TAG_ROOT, NbtElement.COMPOUND_TYPE.toInt())
-        for (W in Warps.values) {
-            val WTag = NbtCompound()
-            WTag.putString(TAG_NAME, W.Name)
-            WTag.put(TAG_WORLD, Utils.SerialiseWorld(W.World))
-            WTag.putDouble(TAG_X, W.Pos.x)
-            WTag.putDouble(TAG_Y, W.Pos.y)
-            WTag.putDouble(TAG_Z, W.Pos.z)
-            WTag.putFloat(TAG_YAW, W.Yaw)
-            WTag.putFloat(TAG_PITCH, W.Pitch)
-            Tag.add(WTag)
-        }
-        Nbt.put(TAG_ROOT, Tag)
+        Nbt.put(TAG_ROOT, NbtListOf(Warps.values) {
+            set(TAG_NAME, it.Name)
+            set(TAG_WORLD, Utils.SerialiseWorld(it.World))
+            set(TAG_X, it.Pos.x)
+            set(TAG_Y, it.Pos.y)
+            set(TAG_Z, it.Pos.z)
+            set(TAG_YAW, it.Yaw)
+            set(TAG_PITCH, it.Pitch)
+        })
     }
 }

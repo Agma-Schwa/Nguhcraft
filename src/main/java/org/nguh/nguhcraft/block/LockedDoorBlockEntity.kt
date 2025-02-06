@@ -16,6 +16,7 @@ import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
 import org.nguh.nguhcraft.item.LockItem
 import org.nguh.nguhcraft.server.CreateUpdate
+import org.nguh.nguhcraft.set
 
 class LockedDoorBlockEntity(
     Pos: BlockPos,
@@ -67,8 +68,8 @@ class LockedDoorBlockEntity(
 
     /** Send lock in initial chunk data.  */
     override fun toInitialChunkDataNbt(WL: WrapperLookup) = CreateUpdate {
-        Lock.writeNbt(it, WL)
-        if (CustomName != null) it.putString("CustomName", Text.Serialization.toJsonString(CustomName, WL))
+        Lock.writeNbt(this, WL)
+        if (CustomName != null) set("CustomName", Text.Serialization.toJsonString(CustomName, WL))
     }
 
     /** Actually send the packet.  */

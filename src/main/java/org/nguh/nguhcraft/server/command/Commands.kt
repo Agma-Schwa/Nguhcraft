@@ -89,6 +89,7 @@ object Commands {
             D.register(BypassCommand())               // /bypass
             D.register(DelHomeCommand())              // /delhome
             D.register(DiscardCommand())              // /discard
+            D.register(DisplayCommand())              // /display
             D.register(EnchantCommand(A))             // /enchant
             D.register(EntityCountCommand())          // /entity_count
             D.register(FixCommand())                  // /fix
@@ -115,6 +116,7 @@ object Commands {
             D.register(WildCommand())                 // /wild
         }
 
+        ArgType("display", DisplayArgumentType::Display)
         ArgType("home", HomeArgumentType::Home)
         ArgType("procedure", ProcedureArgumentType::Procedure)
         ArgType("region", RegionArgumentType::Region)
@@ -168,6 +170,28 @@ object Commands {
 
             S.Reply("Discarded ${Entities.size} entities")
             return Entities.size
+        }
+    }
+
+    object DisplayCommand {
+        fun Clear(S: ServerCommandSource, Players: Collection<ServerPlayerEntity>): Int {
+            for (SP in Players) S.server.DisplayManager.SetActiveDisplay(SP, null)
+            return Players.size
+        }
+
+        fun List(S: ServerCommandSource, D: DisplayHandle): Int {
+            S.sendMessage(D.Listing())
+            return 1
+        }
+
+        fun ListAll(S: ServerCommandSource): Int {
+            S.Reply(S.server.DisplayManager.ListAll())
+            return 0
+        }
+
+        fun SetDisplay(S: ServerCommandSource, Players: Collection<ServerPlayerEntity>, D: DisplayHandle): Int {
+            for (SP in Players) S.server.DisplayManager.SetActiveDisplay(SP, D)
+            return Players.size
         }
     }
 
@@ -753,8 +777,52 @@ object Commands {
             .executes { DiscardCommand.Execute(it.source, EntityArgumentType.getEntities(it, "entity")) }
         )
 
+    private fun DisplayCommand(): LiteralArgumentBuilder<ServerCommandSource> = literal("display")
+        .requires { it.hasPermissionLevel(4) }
+        .then(literal("clear")
+            .then(argument("players", EntityArgumentType.players())
+                .executes { DisplayCommand.Clear(
+                    it.source,
+                    EntityArgumentType.getPlayers(it, "players")
+                ) }
+            )
+        )
+        .then(literal("set")
+            .then(argument("players", EntityArgumentType.players())
+                .then(argument("display", DisplayArgumentType.Display())
+                    .suggests(DisplayArgumentType::Suggest)
+                    .executes { DisplayCommand.SetDisplay(
+                        it.source,
+                        EntityArgumentType.getPlayers(it, "players"),
+                        DisplayArgumentType.Resolve(it, "display")
+                    ) }
+                )
+            )
+        )
+        .then(literal("show")
+            .then(argument("display", DisplayArgumentType.Display())
+                .suggests(DisplayArgumentType::Suggest)
+                .executes { DisplayCommand.List(it.source, DisplayArgumentType.Resolve(it, "display")) }
+            )
+        )
+        .executes { DisplayCommand.ListAll(it.source) }
+
     @Environment(EnvType.SERVER)
     private fun DiscordCommand(): LiteralArgumentBuilder<ServerCommandSource> = literal("discord")
+        .then(literal("force-link")
+            .requires { it.hasPermissionLevel(4) }
+            .then(argument("player", EntityArgumentType.player())
+                .then(argument("id", LongArgumentType.longArg())
+                    .executes {
+                        org.nguh.nguhcraft.server.dedicated.DiscordCommand.ForceLink(
+                            it.source,
+                            EntityArgumentType.getPlayer(it, "player"),
+                            LongArgumentType.getLong(it, "id")
+                        )
+                    }
+                )
+            )
+        )
         .then(literal("link")
             .requires { it.entity is ServerPlayerEntity && !(it.entity as ServerPlayerDiscordAccessor).isLinked }
             .then(argument("id", LongArgumentType.longArg())

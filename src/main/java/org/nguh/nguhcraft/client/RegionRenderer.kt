@@ -1,6 +1,8 @@
 package org.nguh.nguhcraft.client
 
 import com.mojang.blaze3d.systems.RenderSystem
+import net.fabricmc.api.EnvType
+import net.fabricmc.api.Environment
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext
 import net.minecraft.client.gl.ShaderProgramKeys
 import net.minecraft.client.gui.DrawContext
@@ -10,21 +12,14 @@ import net.minecraft.client.render.VertexFormat
 import net.minecraft.client.render.VertexFormats
 import net.minecraft.util.Colors
 import net.minecraft.util.math.BlockPos
-import net.minecraft.util.math.MathHelper
-import net.minecraft.util.math.RotationAxis
 import net.minecraft.util.math.Vec2f
-import net.minecraft.util.math.Vec3d
-import org.joml.Matrix4f
-import org.joml.Quaternionf
-import org.joml.Vector3d
 import org.nguh.nguhcraft.client.ClientUtils.Client
 import org.nguh.nguhcraft.protect.ProtectionManager
 import org.nguh.nguhcraft.protect.Region
 import kotlin.math.abs
 import kotlin.math.max
-import kotlin.math.min
 
-
+@Environment(EnvType.CLIENT)
 object RegionRenderer {
     const val PADDING = 2
     var ShouldRender = false

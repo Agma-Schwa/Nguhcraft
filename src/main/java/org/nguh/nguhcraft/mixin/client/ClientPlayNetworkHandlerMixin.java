@@ -1,4 +1,4 @@
-package org.nguh.nguhcraft.mixin.client.chat;
+package org.nguh.nguhcraft.mixin.client;
 
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.MinecraftClient;
@@ -7,22 +7,29 @@ import net.minecraft.client.network.ClientConnectionState;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.network.ClientConnection;
 import net.minecraft.network.packet.c2s.play.CommandExecutionC2SPacket;
+import org.jetbrains.annotations.NotNull;
 import org.nguh.nguhcraft.client.NguhcraftClient;
+import org.nguh.nguhcraft.client.accessors.ClientDisplayData;
+import org.nguh.nguhcraft.client.accessors.ClientDisplayDataAccessor;
 import org.nguh.nguhcraft.network.ServerboundChatPacket;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(ClientPlayNetworkHandler.class)
-public abstract class ClientPlayNetworkHandlerMixin extends ClientCommonNetworkHandler {
-    @Shadow private boolean displayedUnsecureChatWarning;
-
+public abstract class ClientPlayNetworkHandlerMixin extends ClientCommonNetworkHandler implements ClientDisplayDataAccessor {
     protected ClientPlayNetworkHandlerMixin(MinecraftClient client, ClientConnection connection, ClientConnectionState connectionState) {
         super(client, connection, connectionState);
     }
+
+    @Shadow private boolean displayedUnsecureChatWarning;
+    @Unique private final ClientDisplayData DisplayData = new ClientDisplayData();
+
+    @Override public @NotNull ClientDisplayData Nguhcraft$GetDisplayData() { return DisplayData; }
 
     /** Suppress unsecure server toast. */
     @Inject(method = "onGameJoin(Lnet/minecraft/network/packet/s2c/play/GameJoinS2CPacket;)V", at = @At("HEAD"))

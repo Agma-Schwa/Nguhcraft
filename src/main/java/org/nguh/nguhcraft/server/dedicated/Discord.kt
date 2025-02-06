@@ -1,5 +1,6 @@
 package org.nguh.nguhcraft.server.dedicated
 
+import com.mojang.authlib.GameProfile
 import com.mojang.brigadier.exceptions.CommandSyntaxException
 import com.mojang.brigadier.exceptions.DynamicCommandExceptionType
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType
@@ -55,6 +56,7 @@ import org.nguh.nguhcraft.server.accessors.ServerPlayerDiscordAccessor
 import org.nguh.nguhcraft.server.command.Commands.Exn
 import org.nguh.nguhcraft.server.command.Error
 import org.nguh.nguhcraft.server.command.Reply
+import org.nguh.nguhcraft.server.command.Success
 import org.nguh.nguhcraft.server.dedicated.PlayerList.Companion.UpdateCacheEntry
 import org.slf4j.Logger
 import java.io.File
@@ -204,6 +206,9 @@ internal class Discord : ListenerAdapter() {
 
         private val MUST_ENABLE_DMS : SimpleCommandExceptionType
             = Exn("You must enable DMs from server members to link your account!")
+
+        private val PLEASE_WAIT : SimpleCommandExceptionType
+            = Exn("Bot is still starting; please wait a few seconds and try again.")
 
         private val LOGGER: Logger = LogUtils.getLogger()
         private const val BUTTON_ID_LINK = "ng_lnk:"
@@ -364,6 +369,30 @@ internal class Discord : ListenerAdapter() {
             )
         }
 
+        /**
+        * Check if a player is allowed to join the server.
+        *
+        * @return `null` If nothing is preventing them from joining on Discord’s end, or
+        * a message explaining why they can’t join.
+        */
+        @JvmStatic
+        fun CheckCanJoin(GP: GameProfile): Text? {
+            // If we have no record of that player, we can’t map them to
+            // a Discord profile, so give up.
+            val Entry = PlayerList.Player(GP) ?: return null
+
+            // Likewise, if the player is not linked, give up.
+            if (!Entry.isLinked) return null
+
+            // Get the member, if this fails, the rest of the code will just
+            // unlink them and put them in adventure mode on join, so there’s
+            // no reason to do that here.
+            val M = MemberByID(Entry.DiscordID) ?: return null
+
+            // Finally, check if they have the muted role.
+            if (M.roles.contains(MutedRole)) return Text.translatable("multiplayer.disconnect.muted")
+            return null
+        }
 
         /** Compute the name of a (linked) player. */
         private fun ComputePlayerName(
@@ -395,6 +424,27 @@ internal class Discord : ListenerAdapter() {
                 Character.MODIFIER_SYMBOL -> false
                 else -> true
             }
+        }
+
+        /**
+         * Force a member to link with a player, ignoring the
+         * usual permission checks.
+         */
+        fun ForceLink(S: ServerCommandSource, SP: ServerPlayerEntity, ID: Long) {
+            if (!Ready) throw PLEASE_WAIT.create()
+
+            // Fetch the member.
+            val Member = MemberByID(S, ID) ?: return
+
+            // Warn if they’re already linked and unlink them.
+            if (SP.isLinked) {
+                S.Reply("Warning: Member ${Member.effectiveName} is already linked to ${SP.nameForScoreboard}. Unlinking...")
+                PerformUnlink(SP)
+            }
+
+            // Finally, link them. No need for WithMember() here as this
+            // happens synchronously during the server tick.
+            PerformLink(SP, Member)
         }
 
         /**
@@ -510,6 +560,14 @@ internal class Discord : ListenerAdapter() {
         private fun LinkedPlayerForMember(ID: Long): ServerPlayerEntity?
             = Server.playerManager.playerList.find { it.discordId == ID }
 
+        private fun MemberByID(ID: Long): Member? {
+            return try {
+                AgmaSchwaGuild.retrieveMemberById(ID).complete()
+            } catch (_: ErrorResponseException) {
+                null
+            }
+        }
+
         private fun MemberByID(Source: ServerCommandSource, ID: Long): Member? {
             try {
                 return AgmaSchwaGuild.retrieveMemberById(ID).complete()
@@ -533,11 +591,7 @@ internal class Discord : ListenerAdapter() {
          */
         private fun MemberForPlayer(SP: ServerPlayerEntity): Member? {
             if (!SP.isLinked) return null
-            return try {
-                AgmaSchwaGuild.retrieveMemberById(SP.discordId).complete()
-            } catch (E: ErrorResponseException) {
-                null
-            }
+            return MemberByID(SP.discordId)
         }
 
         /**
@@ -755,6 +809,9 @@ internal class Discord : ListenerAdapter() {
                 M.effectiveAvatarUrl,
                 M.colorRaw
             )
+
+            // Kick them if they are now muted.
+            if (SP.isMuted) SP.networkHandler.disconnect(Text.translatable("multiplayer.disconnect.muted"))
         }
 
         /**
@@ -899,7 +956,7 @@ class PlayerList private constructor(private val ByID: HashMap<UUID, Entry>) : I
             return PlayerList(PlayerData)
         }
 
-        /** Retrieve Nguhcraft-specific data for a player that is online.  */
+        /** Retrieve Nguhcraft-specific data for a player that is online. */
         fun Player(SP: ServerPlayerEntity): Entry {
             // Should always be a cache hit if they’re online.
             val Data = CACHE[SP.uuid]
@@ -909,7 +966,10 @@ class PlayerList private constructor(private val ByID: HashMap<UUID, Entry>) : I
             return UpdateCacheEntry(SP)
         }
 
-        /** Override the cache entry for a player that is online.  */
+        /** Retrieve Nguhcraft-specific data for a game profile. */
+        fun Player(GP: GameProfile) = GetPlayerData(GP.id)
+
+        /** Override the cache entry for a player that is online. */
         @JvmStatic
         fun UpdateCacheEntry(SP: ServerPlayerEntity): Entry {
             val NewData = Entry(
@@ -925,21 +985,21 @@ class PlayerList private constructor(private val ByID: HashMap<UUID, Entry>) : I
         }
 
         /** Add a player’s data to a set, fetching it from wherever appropriate.  */
-        private fun AddPlayerData(Map: HashMap<UUID, Entry>, PlayerID: UUID) {
-            if (Map.containsKey(PlayerID)) return
+        private fun AddPlayerData(Map: HashMap<UUID, Entry>, PlayerId: UUID) {
+            if (Map.containsKey(PlayerId)) return
+            GetPlayerData(PlayerId)?.let { Map[PlayerId] = it }
+        }
 
+        private fun GetPlayerData(PlayerId: UUID): Entry? {
             // If we’ve cached their data, use that.
-            val Data = CACHE[PlayerID]
-            if (Data != null) {
-                if (Data != NULL_ENTRY) Map[PlayerID] = Data
-                return
-            }
+            val Data = CACHE[PlayerId]
+            if (Data != null) return if (Data != NULL_ENTRY) Data else null
 
             // Otherwise, load the player from disk. If this fails, there is nothing we can do.
-            val Nbt = ReadPlayerData(PlayerID)
+            val Nbt = ReadPlayerData(PlayerId)
             if (Nbt == null) {
-                CACHE[PlayerID] = NULL_ENTRY
-                return
+                CACHE[PlayerId] = NULL_ENTRY
+                return null
             }
 
             // There no longer is a way to get a player’s name from their UUID (thanks
@@ -964,7 +1024,7 @@ class PlayerList private constructor(private val ByID: HashMap<UUID, Entry>) : I
 
             // Get the rest of the data from the tag and cache it.
             val NewData = Entry(
-                PlayerID,
+                PlayerId,
                 DiscordID,
                 RoleColour,
                 Name,
@@ -972,8 +1032,8 @@ class PlayerList private constructor(private val ByID: HashMap<UUID, Entry>) : I
             )
 
             // Save the data and add it to the map.
-            CACHE[PlayerID] = NewData
-            Map[PlayerID] = NewData
+            CACHE[PlayerId] = NewData
+            return NewData
         }
 
         private fun ReadPlayerData(PlayerID: UUID): NbtCompound? {
@@ -1033,6 +1093,14 @@ object DiscordCommand {
                 .append(LPAREN)
                 .append(IS_NOT_LINKED)
                 .append(RPAREN)
+        }
+    }
+
+    @Throws(CommandSyntaxException::class)
+    fun ForceLink(S: ServerCommandSource, SP: ServerPlayerEntity, ID: Long): Int {
+        return Try(S) {
+            Discord.ForceLink(S, SP, ID)
+            1
         }
     }
 

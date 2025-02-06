@@ -18,6 +18,8 @@ import net.minecraft.util.Identifier
 import net.minecraft.world.World
 import org.nguh.nguhcraft.client.ClientUtils.Client
 import org.nguh.nguhcraft.protect.ProtectionManager
+import org.nguh.nguhcraft.server.DisplayHandle
+import org.nguh.nguhcraft.server.DisplayManager
 import org.nguh.nguhcraft.server.Home
 import org.nguh.nguhcraft.server.MCBASIC
 import org.nguh.nguhcraft.server.PlayerByName
@@ -32,6 +34,28 @@ fun StringReader.ReadUntilWhitespace(): String {
     val Start = cursor
     while (canRead() && !Character.isWhitespace(peek())) skip()
     return string.substring(Start, cursor)
+}
+
+class DisplayArgumentType : ArgumentType<String> {
+    override fun parse(R: StringReader) =  R.readString()
+    companion object {
+        private val NO_SUCH_DISPLAY = DynamicCommandExceptionType { Text.literal("No such display: '$it'") }
+
+        fun Display() = ProcedureArgumentType()
+
+        fun Resolve(Ctx: CommandContext<ServerCommandSource>, ArgName: String): DisplayHandle {
+            val Name = Ctx.getArgument(ArgName, String::class.java)
+            return Ctx.source.server.DisplayManager.GetExisting(Name) ?: throw NO_SUCH_DISPLAY.create(Name)
+        }
+
+        fun Suggest(
+            Ctx: CommandContext<ServerCommandSource>,
+            SB: SuggestionsBuilder
+        ): CompletableFuture<Suggestions> {
+            val Displays = Ctx.source.server.DisplayManager.GetExistingDisplayNames()
+            return CommandSource.suggestMatching(Displays, SB)
+        }
+    }
 }
 
 class HomeArgumentType : ArgumentType<String> {

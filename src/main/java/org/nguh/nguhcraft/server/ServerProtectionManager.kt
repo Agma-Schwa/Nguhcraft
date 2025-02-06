@@ -16,11 +16,13 @@ import net.minecraft.util.Formatting
 import net.minecraft.util.profiler.Profilers
 import net.minecraft.world.World
 import org.nguh.nguhcraft.Constants
+import org.nguh.nguhcraft.Nbt
 import org.nguh.nguhcraft.server.MCBASIC
 import org.nguh.nguhcraft.network.ClientboundSyncProtectionMgrPacket
 import org.nguh.nguhcraft.protect.ProtectionManager
 import org.nguh.nguhcraft.protect.Region
 import org.nguh.nguhcraft.server.accessors.ServerPlayerAccessor
+import org.nguh.nguhcraft.set
 import java.util.UUID
 
 /** Used to signal that a region’s properties are invalid. */
@@ -126,20 +128,17 @@ class ServerRegion(
     }
 
     /** Save this region. */
-    fun Save(): NbtCompound {
-        val Tag = NbtCompound()
-        Tag.putString(TAG_NAME, Name)
-        Tag.putInt(TAG_MIN_X, MinX)
-        Tag.putInt(TAG_MIN_Z, MinZ)
-        Tag.putInt(TAG_MAX_X, MaxX)
-        Tag.putInt(TAG_MAX_Z, MaxZ)
+    fun Save() = Nbt {
+        set(TAG_NAME, Name)
+        set(TAG_MIN_X, MinX)
+        set(TAG_MIN_Z, MinZ)
+        set(TAG_MAX_X, MaxX)
+        set(TAG_MAX_Z, MaxZ)
 
         // Store flags as strings for robustness.
-        val FlagsTag = NbtCompound()
-        Flags.entries.forEach { FlagsTag.putBoolean(it.name.lowercase(), Test(it)) }
-        Tag.put(TAG_FLAGS, FlagsTag)
-
-        return Tag
+        set(TAG_FLAGS, Nbt {
+            Flags.entries.forEach { set(it.name.lowercase(), Test(it)) }
+        })
     }
 
     /** Set a region flag. */
