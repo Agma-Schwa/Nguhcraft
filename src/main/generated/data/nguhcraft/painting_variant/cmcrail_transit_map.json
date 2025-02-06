@@ -1,0 +1,13 @@
+{
+  "asset_id": "nguhcraft:cmcrail_transit_map",
+  "author": {
+    "color": "gray",
+    "translate": "painting.nguhcraft.cmcrail_transit_map.author"
+  },
+  "height": 2,
+  "title": {
+    "color": "yellow",
+    "translate": "painting.nguhcraft.cmcrail_transit_map.title"
+  },
+  "width": 3
+}
