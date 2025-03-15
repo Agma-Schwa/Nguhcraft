@@ -66,6 +66,7 @@ object Treasures {
             .unbreakable()
             .enchant(SHARPNESS, 255)
             .enchant(KNOCKBACK, 10)
+            .enchant(CHANNELING, 2)
             .build()
 
         val THOU_HAS_BEEN_YEETEN_CROSSBOW = Builder(Ctx, Items.CROSSBOW, Name("Thou Hast Been Yeeten (Crossbow Version)"))

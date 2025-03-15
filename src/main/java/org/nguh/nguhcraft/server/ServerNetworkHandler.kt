@@ -22,15 +22,16 @@ object ServerNetworkHandler {
     private val ERR_ILLEGAL_CHARS: Text = Text.translatable("multiplayer.disconnect.illegal_characters")
     private val ERR_CHAT_DISABLED: Text = Text.translatable("chat.disabled.options").formatted(Formatting.RED)
     private val ERR_EMPTY_MESSAGE: Text = Text.literal("Client attempted to send an empty message.")
+    private val ERR_EMPTY_COMMAND: Text = Text.literal("Command is empty!").formatted(Formatting.RED)
     private val ERR_NEEDS_CLIENT_MOD: Text = Text.literal("Sorry, the Nguhcraft client-side mod is required\nto play on the server!")
 
     @JvmStatic fun HandleChatMessage(Message: String, Context: Context) {
-        if (!ValidateIncomingMessage(Message, Context.player())) return
+        if (!ValidateIncomingMessage(Message, Context.player(), false)) return
         Context.server().execute { Chat.ProcessChatMessage(Message, Context) }
     }
 
     @JvmStatic fun HandleCommand(Handler: ServerPlayNetworkHandler, Command: String) {
-        if (!ValidateIncomingMessage(Command, Handler.player)) return
+        if (!ValidateIncomingMessage(Command, Handler.player, true)) return
         Handler.player.server.execute { Chat.ProcessCommand(Handler, Command) }
     }
 
@@ -74,7 +75,11 @@ object ServerNetworkHandler {
     }
 
     /** Validate an incoming chat message or command. */
-    private fun ValidateIncomingMessage(Incoming: String, SP: ServerPlayerEntity): Boolean {
+    private fun ValidateIncomingMessage(
+        Incoming: String,
+        SP: ServerPlayerEntity,
+        IsCommand: Boolean
+    ): Boolean {
         val S = SP.server
 
         // Server is shutting down.
@@ -90,8 +95,13 @@ object ServerNetworkHandler {
         }
 
         // Disallow empty messages.
+        //
+        // This can actually happen if a user just sends '/', which gets processed
+        // as an empty command since the '/' is not included in the command text.
+        // Don’t kick them in that case.
         if (Incoming.isEmpty()) {
-            SP.networkHandler.disconnect(ERR_EMPTY_MESSAGE)
+            if (IsCommand) SP.networkHandler.sendPacket(GameMessageS2CPacket(ERR_EMPTY_COMMAND, false))
+            else SP.networkHandler.disconnect(ERR_EMPTY_MESSAGE)
             return false
         }
 

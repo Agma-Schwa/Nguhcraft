@@ -1,0 +1,13 @@
+{
+  "asset_id": "nguhcraft:kozdenen_rail_diagram",
+  "author": {
+    "color": "gray",
+    "translate": "painting.nguhcraft.kozdenen_rail_diagram.author"
+  },
+  "height": 2,
+  "title": {
+    "color": "yellow",
+    "translate": "painting.nguhcraft.kozdenen_rail_diagram.title"
+  },
+  "width": 3
+}

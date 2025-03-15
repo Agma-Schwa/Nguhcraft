@@ -1,23 +1,20 @@
 package org.nguh.nguhcraft
 
 import net.minecraft.enchantment.Enchantments
-import net.minecraft.entity.EntityType
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.entity.projectile.TridentEntity
 import net.minecraft.item.ItemStack
-import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.server.world.ServerWorld
 import net.minecraft.sound.SoundEvents
 import net.minecraft.util.hit.BlockHitResult
 import net.minecraft.util.hit.EntityHitResult
-import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.Vec3d
 import net.minecraft.world.World
 import org.nguh.nguhcraft.Utils.EnchantLvl
 import org.nguh.nguhcraft.accessors.ProjectileEntityAccessor
 import org.nguh.nguhcraft.accessors.TridentEntityAccessor
 import org.nguh.nguhcraft.server.ServerUtils.MaybeEnterHypershotContext
-import org.nguh.nguhcraft.server.ServerUtils.StrikeLighting
+import org.nguh.nguhcraft.server.ServerUtils.StrikeLightning
 
 object TridentUtils {
     @JvmStatic
@@ -29,7 +26,7 @@ object TridentUtils {
         val W = TE.world
         val Lvl = EnchantLvl(W, TE.itemStack, Enchantments.CHANNELING)
         if (W is ServerWorld && Lvl >= 2) {
-            StrikeLighting(W, Vec3d.ofBottomCenter(BHR.blockPos), TE)
+            StrikeLightning(W, Vec3d.ofBottomCenter(BHR.blockPos), TE)
             TE.playSound(SoundEvents.ITEM_TRIDENT_THUNDER.value(), 5f, 1.0f)
         }
     }
@@ -51,7 +48,7 @@ object TridentUtils {
             EHR.entity.timeUntilRegen = 0
             val Where = EHR.entity.blockPos
             if (Lvl >= 2 || W.isSkyVisible(Where)) {
-                StrikeLighting(W, EHR.entity.pos, TE)
+                StrikeLightning(W, EHR.entity.pos, TE)
                 SE = SoundEvents.ITEM_TRIDENT_THUNDER.value()
                 Volume = 5.0f
             }

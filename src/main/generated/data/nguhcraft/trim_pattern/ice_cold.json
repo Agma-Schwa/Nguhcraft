@@ -1,0 +1,8 @@
+{
+  "asset_id": "nguhcraft:ice_cold",
+  "decal": false,
+  "description": {
+    "translate": "trim_pattern.nguhcraft.ice_cold"
+  },
+  "template_item": "nguhcraft:ice_cold_armour_trim_smithing_template"
+}

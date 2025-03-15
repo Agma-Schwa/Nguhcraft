@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "i": "minecraft:iron_ingot",
+    "r": "minecraft:redstone"
+  },
+  "pattern": [
+    " i ",
+    "i i",
+    "iri"
+  ],
+  "result": {
+    "count": 3,
+    "id": "nguhcraft:lock"
+  }
+}

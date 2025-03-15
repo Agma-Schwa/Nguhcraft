@@ -1,0 +1,13 @@
+{
+  "asset_id": "nguhcraft:rails_of_eras",
+  "author": {
+    "color": "gray",
+    "translate": "painting.nguhcraft.rails_of_eras.author"
+  },
+  "height": 2,
+  "title": {
+    "color": "yellow",
+    "translate": "painting.nguhcraft.rails_of_eras.title"
+  },
+  "width": 3
+}

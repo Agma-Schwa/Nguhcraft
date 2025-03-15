@@ -4,6 +4,9 @@
 	"block.nguhcraft.pearlescent_lantern": "Pearlescent Lantern",
 	"block.nguhcraft.pearlescent_chain": "Pearlescent Chain",
 
+	"chest_variant.nguhcraft.christmas": "Christmas Chest",
+	"chest_variant.nguhcraft.pale_oak": "Pale Oak Chest",
+
 	"death.attack.minecart_run_over": "%1$s was run over by a minecart",
 	"death.attack.minecart_run_over.player": "%1$s was run over by %2$s",
 	"death.attack.minecart_run_over.item": "%1$s was run over by %2$s",
@@ -39,21 +42,33 @@
 
 	"jukebox_song.nguhcraft.nguhrovision_2024": "Marcy Sheikah – Reflection",
 
+	"multiplayer.disconnect.muted": "You are currently muted on the Agma Schwa Discord server",
+
 	"nguhcraft.block.locked": "%1$s is locked (key: %2$s)!",
 	"nguhcraft.door": "Door",
 
+	"painting.nguhcraft.chillvana_metro.author": "sq",
+	"painting.nguhcraft.chillvana_metro.title": "Chillvana Metro Diagram",
 	"painting.nguhcraft.gambianholiday.author": "Agma Schwa",
 	"painting.nguhcraft.gambianholiday.title": "???",
 	"painting.nguhcraft.gold_nguh.author": "Ætérnal",
 	"painting.nguhcraft.gold_nguh.title": "Gold Nguh",
 	"painting.nguhcraft.gold_nguh_small.author": "Chronos",
 	"painting.nguhcraft.gold_nguh_small.title": "Gold Nguh",
+	"painting.nguhcraft.kozdenen_rail_diagram.author": "total pleb",
+	"painting.nguhcraft.kozdenen_rail_diagram.title": "Kozdenen Rail Diagram",
 	"painting.nguhcraft.map.author": "Ætérnal",
 	"painting.nguhcraft.map.title": "World Map",
 	"painting.nguhcraft.rabo.author": "Agma Schwa",
 	"painting.nguhcraft.rabo.title": "Rabo",
-	"painting.nguhcraft.rail_diagram.author": "CenRail®",
+	"painting.nguhcraft.rail_diagram.author": "sq",
 	"painting.nguhcraft.rail_diagram.title": "Rail Diagram",
+	"painting.nguhcraft.rails_of_eras.author": "sq",
+	"painting.nguhcraft.rails_of_eras.title": "Rails of Eras Diagram",
+	"painting.nguhcraft.rauratoshan_loop.author": "Galaxy System: Hikari",
+	"painting.nguhcraft.rauratoshan_loop.title": "Rauratoshan Loop Diagram",
+
+	"subtitles.nguhcraft.nguh": "Nguh",
 
 	"trim_pattern.nguhcraft.atlantic": "Atlantic Armor Trim",
 	"trim_pattern.nguhcraft.cenrail": "Cenrail Armor Trim",

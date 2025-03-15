@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "g": "minecraft:gold_ingot",
+    "r": "minecraft:redstone"
+  },
+  "pattern": [
+    "g ",
+    "gr",
+    "gr"
+  ],
+  "result": {
+    "count": 1,
+    "id": "nguhcraft:key"
+  }
+}

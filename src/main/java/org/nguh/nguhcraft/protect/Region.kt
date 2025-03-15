@@ -1,12 +1,11 @@
 package org.nguh.nguhcraft.protect
 
-import net.minecraft.network.RegistryByteBuf
 import net.minecraft.registry.RegistryKey
-import net.minecraft.util.math.BlockPos
-import net.minecraft.util.math.Vec2f
+import net.minecraft.util.function.BooleanBiFunction
+import net.minecraft.util.shape.VoxelShape
+import net.minecraft.util.shape.VoxelShapes
 import net.minecraft.world.World
-import kotlin.math.max
-import kotlin.math.min
+import org.nguh.nguhcraft.XZRect
 
 /**
  * A protected region.
@@ -24,7 +23,15 @@ abstract class Region(
     FromX: Int,
     FromZ: Int,
     ToX: Int,
-    ToZ: Int
+    ToZ: Int,
+
+    /** Barrier colour override, if any. */
+    ColourOverride: Int?  = null
+) : XZRect(
+    FromX = FromX,
+    FromZ = FromZ,
+    ToX = ToX,
+    ToZ = ToZ
 ) {
     /**
     * Flags.
@@ -79,6 +86,12 @@ abstract class Region(
          */
         HOSTILE_MOB_SPAWNING,
 
+        /** Allow players to enter this region. */
+        PLAYER_ENTRY,
+
+        /** Allow players to leave this region. */
+        PLAYER_EXIT,
+
         /**
          * Allow fall damage.
          *
@@ -96,6 +109,10 @@ abstract class Region(
 
         /**
          * Allow teleportation.
+         *
+         * Note that this flag only handles teleporting inside of a region;
+         * PLAYER_ENTRY and PLAYER_EXIT override this flag for the purposes
+         * of entering and exiting it.
          *
          * This restricts the use of ender pearls and chorus fruit, but NOT
          * the /tp command, command blocks, or other forms of hard-coded
@@ -118,14 +135,40 @@ abstract class Region(
         fun Bit() = 1L shl ordinal
     }
 
-    /** Flags that are set for this region. */
-    protected var RegionFlags: Long = 0
+    /**
+     * Flags that are set for this region.
+     *
+     * By default, players are allowed to enter and exit a region.
+     */
+    protected var RegionFlags: Long = Flags.PLAYER_ENTRY.Bit() or Flags.PLAYER_EXIT.Bit()
 
-    /** Bounds of the region. */
-    val MinX: Int = min(FromX, ToX)
-    val MinZ: Int = min(FromZ, ToZ)
-    val MaxX: Int = max(FromX, ToX)
-    val MaxZ: Int = max(FromZ, ToZ)
+    /** Colour override, if any. */
+    var ColourOverride: Int? = ColourOverride
+        protected set
+
+    /** Voxel shape for collisions from the inside. */
+    val InsideShape: VoxelShape = VoxelShapes.combineAndSimplify(
+        VoxelShapes.UNBOUNDED,
+        VoxelShapes.cuboid(
+            MinX.toDouble(),
+            Double.NEGATIVE_INFINITY,
+            MinZ.toDouble(),
+            OutsideMaxX.toDouble(),
+            Double.POSITIVE_INFINITY,
+            OutsideMaxZ.toDouble()
+        ),
+        BooleanBiFunction.ONLY_FIRST
+    )
+
+    /** Voxel shape for collisions from the outside. */
+    val OutsideShape: VoxelShape = VoxelShapes.cuboid(
+        MinX.toDouble(),
+        Double.NEGATIVE_INFINITY,
+        MinZ.toDouble(),
+        OutsideMaxX.toDouble(),
+        Double.POSITIVE_INFINITY,
+        OutsideMaxZ.toDouble()
+    ).simplify()
 
     /** Check if this region allows players to attack non-hostile mobs. */
     fun AllowsAttackingFriendlyEntities() = Test(Flags.ATTACK_FRIENDLY)
@@ -148,6 +191,12 @@ abstract class Region(
     /** Check if this region allows natural spawning of hostile mobs. */
     fun AllowsHostileMobSpawning() = Test(Flags.HOSTILE_MOB_SPAWNING)
 
+    /** Check if this region allows players to enter. */
+    fun AllowsPlayerEntry() = Test(Flags.PLAYER_ENTRY)
+
+    /** Check if this region allows players to exit. */
+    fun AllowsPlayerExit() = Test(Flags.PLAYER_EXIT)
+
     /** Check if entities should be affected by fall damage. */
     fun AllowsPlayerFallDamage() = Test(Flags.PLAYER_FALL_DAMAGE)
 
@@ -166,38 +215,15 @@ abstract class Region(
     /** Check if this region allows trading with villagers. */
     fun AllowsVillagerTrading() = Test(Flags.ENTITY_INTERACT) || Test(Flags.TRADE)
 
-    /** Get the centre of a region. */
-    val Center: BlockPos get() = BlockPos((MinX + MaxX) / 2, 0, (MinZ + MaxZ) / 2)
-
-    /** Check if this region contains a block or region. */
-    fun Contains(Pos: BlockPos): Boolean = Contains(Pos.x, Pos.z)
-    fun Contains(X: Int, Z: Int): Boolean = X in MinX..MaxX && Z in MinZ..MaxZ
-    fun Contains(R: Region) = Contains(R.MinX, R.MinZ) && Contains(R.MaxX, R.MaxZ)
-
-    /** Check if a region intersects another. */
-    fun Intersects(Other: Region) = Intersects(
-        MinX = Other.MinX,
-        MinZ = Other.MinZ,
-        MaxX = Other.MaxX,
-        MaxZ = Other.MaxZ
-    )
-
-    /** Check if a region intersects a rectangle. */
-    fun Intersects(MinX: Int, MinZ: Int, MaxX: Int, MaxZ: Int) =
-        MinX <= this.MaxX && MaxX >= this.MinX && MinZ <= this.MaxZ && MaxZ >= this.MinZ
-
-    /** Get the radius of the region. */
-    val Radius: Vec2f get() {
-        val X = (MaxX - MinX) / 2
-        val Z = (MaxZ - MinZ) / 2
-        return Vec2f(X.toFloat(), Z.toFloat())
-    }
-
     /** Helper to simplify testing flags. */
     protected fun Test(Flag: Flags) = RegionFlags and Flag.Bit() != 0L
 
     /** Get a string representation of this region. */
     override fun toString(): String {
         return "Region($Name, [$MinX, $MinZ] -> [$MaxX, $MaxZ]): $RegionFlags"
+    }
+
+    companion object {
+        const val COLOUR_OVERRIDE_NONE_ENC = 0
     }
 }

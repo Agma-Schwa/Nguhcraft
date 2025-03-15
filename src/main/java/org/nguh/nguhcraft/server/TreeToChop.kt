@@ -40,6 +40,9 @@ class TreeToChop private constructor(private val Owner: ServerPlayerEntity, priv
         do {
             val B = Next()
             val State = SW.getBlockState(B)
+
+            // Guard against race condition: the block at this position may have
+            // been changed to something else after chopping started.
             if (!WoodTypes.contains(State.block)) continue
 
             // Drop the stacks manually because we need to pass in the axe for
@@ -147,7 +150,7 @@ class TreeToChop private constructor(private val Owner: ServerPlayerEntity, priv
             // have the same block type as the starting block, as well as for
             // leaves of the same wood type; if we can find any leaves that are
             // non-persistent, chop down all logs above the starting position.
-            Q.add(Start)
+            Q.add(Start.toImmutable())
             while (!Q.isEmpty()) {
                 val Block = Q.remove()
 
@@ -166,13 +169,33 @@ class TreeToChop private constructor(private val Owner: ServerPlayerEntity, priv
                     if (St.get(LeavesBlock.PERSISTENT)) return
                     SeenNonPersistentLeaves = true
                 } else if (WoodTypes.contains(B)) {
-                    val Up = Block.up()
                     Tree.Add(Block)
-                    VisitLog(Q, Visited, Up)
-                    VisitLog(Q, Visited, Block.north())
-                    VisitLog(Q, Visited, Block.east())
-                    VisitLog(Q, Visited, Block.south())
-                    VisitLog(Q, Visited, Block.west())
+
+                    // Some trees are really dumb and generate in non-obvious ways, the worst
+                    // offender arguably being acacia trees; for those, we also need to check
+                    // the blocks that are a layer above the current block.
+                    //
+                    // Even otherwise fairly normal trees (like oaks) generate in weird ways
+                    // in jungles, so just visit everything as part of the flood fill every
+                    // time.
+                    val Up = Block.up()
+                    VisitBlock(Q, Visited, Up)
+                    VisitBlock(Q, Visited, Block.north())
+                    VisitBlock(Q, Visited, Block.east())
+                    VisitBlock(Q, Visited, Block.south())
+                    VisitBlock(Q, Visited, Block.west())
+                    VisitBlock(Q, Visited, Block.west().north())
+                    VisitBlock(Q, Visited, Block.west().south())
+                    VisitBlock(Q, Visited, Block.east().north())
+                    VisitBlock(Q, Visited, Block.east().south())
+                    VisitBlock(Q, Visited, Up.north())
+                    VisitBlock(Q, Visited, Up.east())
+                    VisitBlock(Q, Visited, Up.south())
+                    VisitBlock(Q, Visited, Up.west())
+                    VisitBlock(Q, Visited, Up.west().north())
+                    VisitBlock(Q, Visited, Up.west().south())
+                    VisitBlock(Q, Visited, Up.east().north())
+                    VisitBlock(Q, Visited, Up.east().south())
 
                     // Do chop downwards if these are Mangrove roots because it looks stupid
                     // if only the roots are left (re ‘that is not how trees work’: they’re
@@ -180,17 +203,7 @@ class TreeToChop private constructor(private val Owner: ServerPlayerEntity, priv
                     if (ChopDownwards && (
                         B == Blocks.MANGROVE_ROOTS ||
                         B == Blocks.MUDDY_MANGROVE_ROOTS
-                    )) VisitLog(Q, Visited, Block.down())
-
-                    // Some trees are really dumb and generate in non-obvious ways, the worst
-                    // offender arguably being acacia trees; for those, we also need to check
-                    // W, E, N, and S of the block above the log.
-                    if (B == Blocks.ACACIA_LOG) {
-                        VisitLog(Q, Visited, Up.north())
-                        VisitLog(Q, Visited, Up.east())
-                        VisitLog(Q, Visited, Up.south())
-                        VisitLog(Q, Visited, Up.west())
-                    }
+                    )) VisitBlock(Q, Visited, Block.down())
                 }
             }
 
@@ -214,7 +227,7 @@ class TreeToChop private constructor(private val Owner: ServerPlayerEntity, priv
         }
 
         // Used by ChopDownTree().
-        private fun VisitLog(
+        private fun VisitBlock(
             Q: ArrayDeque<BlockPos>,
             Visited: HashMap<BlockPos, Boolean?>,
             Block: BlockPos

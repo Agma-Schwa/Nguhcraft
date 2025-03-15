@@ -1,25 +1,38 @@
 package org.nguh.nguhcraft
 
 import com.mojang.logging.LogUtils
+import net.minecraft.component.ComponentChanges
 import net.minecraft.enchantment.Enchantment
 import net.minecraft.enchantment.EnchantmentHelper
 import net.minecraft.entity.player.PlayerEntity
+import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
+import net.minecraft.nbt.NbtCompound
 import net.minecraft.nbt.NbtElement
 import net.minecraft.nbt.NbtOps
+import net.minecraft.network.RegistryByteBuf
 import net.minecraft.network.packet.CustomPayload
+import net.minecraft.registry.Registries
 import net.minecraft.registry.RegistryKey
 import net.minecraft.registry.RegistryKeys
 import net.minecraft.text.MutableText
 import net.minecraft.text.Text
+import net.minecraft.util.math.BlockPos
+import net.minecraft.util.math.Box
+import net.minecraft.util.math.Vec2f
+import net.minecraft.util.math.Vec3d
 import net.minecraft.world.World
 import org.nguh.nguhcraft.enchantment.NguhcraftEnchantments
 import java.text.Normalizer
 import java.util.*
+import kotlin.math.abs
+import kotlin.math.max
+import kotlin.math.min
 
 typealias MojangPair<A, B> = com.mojang.datafixers.util.Pair<A, B>
 operator fun <A, B> MojangPair<A, B>.component1(): A = this.first
 operator fun <A, B> MojangPair<A, B>.component2(): B = this.second
+operator fun Vec3d.unaryMinus() = Vec3d(-x, -y, -z)
 
 /**
 * Transform 'this' using a function iff 'Cond' is true and return
@@ -27,6 +40,118 @@ operator fun <A, B> MojangPair<A, B>.component2(): B = this.second
 */
 inline fun <T> T.mapIf(Cond: Boolean, Block: (T) -> T): T
     = if (Cond) Block(this) else this
+
+/**
+ * Rectangle that has X and Z bounds but ignores the Y axis. Used by regions
+ * and in barrier rendering.
+ */
+open class XZRect(FromX: Int, FromZ: Int, ToX: Int, ToZ: Int) {
+    /** Bounds of the rectangle. */
+    val MinX: Int = min(FromX, ToX)
+    val MinZ: Int = min(FromZ, ToZ)
+    val MaxX: Int = max(FromX, ToX)
+    val MaxZ: Int = max(FromZ, ToZ)
+
+    /**
+     * Coordinates in Minecraft are at the north-west (-X, -Z) corner of the block,
+     * so for rendering, we need to add 1 to the maximum values to include the last
+     * block within the region.
+     */
+    val OutsideMaxX get() = MaxX + 1
+    val OutsideMaxZ get() = MaxZ + 1
+
+    /** Get the centre of this rectangle. */
+    val Center: BlockPos get() = BlockPos((MinX + MaxX) / 2, 0, (MinZ + MaxZ) / 2)
+
+    /** Check if this rectangle contains a block or another rectangle. */
+    operator fun contains(Pos: BlockPos): Boolean = Contains(Pos.x, Pos.z)
+    operator fun contains(Pos: Vec3d): Boolean = Contains(Pos.x, Pos.z)
+    operator fun contains(XZ: XZRect) = Contains(XZ.MinX, XZ.MinZ) && Contains(XZ.MaxX, XZ.MaxZ)
+    fun Contains(X: Int, Z: Int): Boolean = X in MinX..MaxX && Z in MinZ..MaxZ
+    fun Contains(X: Double, Z: Double): Boolean =
+        X in MinX.toDouble()..OutsideMaxX.toDouble() &&
+        Z in MinZ.toDouble()..OutsideMaxZ.toDouble()
+
+    /**
+     * Get the distance of a position to the nearest side of the
+     * rectangle, or 0 if the position is inside the rectangle.
+     *
+     * This is a 2D distance calculation that uses the distance field
+     * of a rectangle.
+     */
+    fun DistanceFrom(Pos: BlockPos) = DistanceFrom(Vec3d.of(Pos))
+    fun DistanceFrom(Pos: Vec3d): Float {
+        if (Pos in this) return 0f
+        val C = Center
+        val X = abs(Pos.x.toFloat() - C.x.toFloat())
+        val Z = abs(Pos.z.toFloat() - C.z.toFloat())
+        val Radius = Radius
+        return Vec2f(max(X - Radius.x, 0f), max(Z - Radius.y, 0f)).length()
+    }
+
+    /** Check if a rectangle intersects another. */
+    fun Intersects(XZ: XZRect) = Intersects(
+        MinX = XZ.MinX.toDouble(),
+        MinZ = XZ.MinZ.toDouble(),
+        MaxX = XZ.OutsideMaxX.toDouble(),
+        MaxZ = XZ.OutsideMaxZ.toDouble()
+    )
+
+    fun Intersects(MinX: Double, MinZ: Double, MaxX: Double, MaxZ: Double) =
+        MinX <= OutsideMaxX.toDouble() &&
+        MaxX >= this.MinX.toDouble() &&
+        MinZ <= OutsideMaxX.toDouble() &&
+        MaxZ >= this.MinZ.toDouble()
+
+    fun Intersects(BB: Box) = Intersects(
+        MinX = BB.minX,
+        MinZ = BB.minZ,
+        MaxX = BB.maxX,
+        MaxZ = BB.maxZ
+    )
+
+    /** Get the radius of this rectangle. */
+    val Radius: Vec2f get() {
+        val X = (MaxX - MinX) / 2
+        val Z = (MaxZ - MinZ) / 2
+        return Vec2f(X.toFloat(), Z.toFloat())
+    }
+
+    fun SaveXZRect(Tag: NbtCompound) = Tag.apply {
+        set(TAG_MIN_X, MinX)
+        set(TAG_MIN_Z, MinZ)
+        set(TAG_MAX_X, MaxX)
+        set(TAG_MAX_Z, MaxZ)
+    }
+
+    fun WriteXZRect(buf: RegistryByteBuf) {
+        buf.writeInt(MinX)
+        buf.writeInt(MinZ)
+        buf.writeInt(MaxX)
+        buf.writeInt(MaxZ)
+    }
+
+    companion object {
+        const val TAG_MIN_X = "MinX"
+        const val TAG_MIN_Z = "MinZ"
+        const val TAG_MAX_X = "MaxX"
+        const val TAG_MAX_Z = "MaxZ"
+
+        fun Load(Tag: NbtCompound) = XZRect(
+            FromX = Tag.getInt(TAG_MIN_X),
+            FromZ = Tag.getInt(TAG_MIN_Z),
+            ToX = Tag.getInt(TAG_MAX_X),
+            ToZ = Tag.getInt(TAG_MAX_Z)
+        )
+
+        fun ReadXZRect(B: RegistryByteBuf) = XZRect(
+            FromX = B.readInt(),
+            FromZ = B.readInt(),
+            ToX = B.readInt(),
+            ToZ = B.readInt()
+        )
+    }
+}
 
 object Utils {
     val LOGGER = LogUtils.getLogger()
@@ -67,6 +192,22 @@ object Utils {
         .append(LBRACK_COMPONENT)
         .append(Text.literal(Content).withColor(Constants.Lavender))
         .append(RBRACK_COMPONENT)
+
+    /**
+     * The ItemStack constructor for this sucks so much it’s not even funny anymore.
+     *
+     * The callback has no default parameter because at that point you can literally
+     * just use the ItemStack constructor instead.
+     */
+    fun BuildItemStack(I: Item, Count: Int = 1, ComponentBuilder: ComponentChanges.Builder.() -> Unit): ItemStack {
+        val B = ComponentChanges.builder()
+        B.ComponentBuilder()
+        return ItemStack(
+            Registries.ITEM.getEntry(I),
+            Count,
+            B.build()
+        )
+    }
 
     /** Calculate a player’s total saturation enchantment value. */
     @JvmStatic

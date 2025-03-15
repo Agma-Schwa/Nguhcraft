@@ -1,6 +1,9 @@
 /.idea/
 /.gradle/
+/.kotlin/
 /build/
 /run/
 /run-copy/
 /logs/
+/src/main/generated/.cache/
+/event-ideas.txt

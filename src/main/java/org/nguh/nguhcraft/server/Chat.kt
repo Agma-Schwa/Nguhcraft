@@ -60,7 +60,8 @@ object Chat {
         // On the dedicated server, actually do everything properly.
         val Name = (
             if (Sender == null) SERVER_COMPONENT
-            else Sender.displayName!!.copy()
+            else Text.empty()
+                .append(Sender.displayName!!)
                 .append(COLON_COMPONENT.copy().withColor(
                     (Sender as ServerPlayerDiscordAccessor).discordColour)
                 )
@@ -198,6 +199,7 @@ object Chat {
     // TODO: Use colours when serialising components for the console.
 
     /** Send a message from the console. */
+    @JvmStatic
     fun SendServerMessage(S: MinecraftServer, Message: String) {
         LOGGER.info("{} {}", SERVER_COMPONENT, Message)
         DispatchMessage(S, null, Message)

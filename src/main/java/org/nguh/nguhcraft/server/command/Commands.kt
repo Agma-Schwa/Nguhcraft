@@ -3,6 +3,7 @@ package org.nguh.nguhcraft.server.command
 import com.mojang.brigadier.arguments.*
 import com.mojang.brigadier.builder.LiteralArgumentBuilder
 import com.mojang.brigadier.context.CommandContext
+import com.mojang.brigadier.exceptions.DynamicCommandExceptionType
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
@@ -24,6 +25,7 @@ import net.minecraft.server.command.ServerCommandSource
 import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.server.world.ServerWorld
 import net.minecraft.text.MutableText
+import net.minecraft.text.Style
 import net.minecraft.text.Text
 import net.minecraft.util.Formatting
 import net.minecraft.util.math.BlockPos
@@ -41,9 +43,10 @@ import org.nguh.nguhcraft.item.KeyItem
 import org.nguh.nguhcraft.network.ClientFlags
 import org.nguh.nguhcraft.protect.ProtectionManager
 import org.nguh.nguhcraft.protect.Region
+import org.nguh.nguhcraft.protect.TeleportResult
 import org.nguh.nguhcraft.server.*
 import org.nguh.nguhcraft.server.ServerUtils.IsIntegratedServer
-import org.nguh.nguhcraft.server.ServerUtils.StrikeLighting
+import org.nguh.nguhcraft.server.ServerUtils.StrikeLightning
 import org.nguh.nguhcraft.server.accessors.ServerPlayerAccessor
 import org.nguh.nguhcraft.server.accessors.ServerPlayerDiscordAccessor
 import org.nguh.nguhcraft.server.dedicated.Vanish
@@ -59,6 +62,9 @@ fun ServerCommandSource.Reply(Msg: MutableText) = sendMessage(Msg.formatted(Form
 fun ServerCommandSource.Success(Msg: String) = Success(Text.literal(Msg))
 fun ServerCommandSource.Success(Msg: Text) = Success(Text.empty().append(Msg))
 fun ServerCommandSource.Success(Msg: MutableText) = sendMessage(Msg.formatted(Formatting.GREEN))
+
+val ServerCommandSource.HasModeratorPermissions: Boolean get() =
+    hasPermissionLevel(4) || (isExecutedByPlayer && playerOrThrow.IsModerator)
 
 fun ReplyMsg(Msg: String): Text = Text.literal(Msg).formatted(Formatting.YELLOW)
 
@@ -85,6 +91,7 @@ object Commands {
             D.register(BypassCommand())               // /bypass
             D.register(DelHomeCommand())              // /delhome
             D.register(DiscardCommand())              // /discard
+            D.register(DisplayCommand())              // /display
             D.register(EnchantCommand(A))             // /enchant
             D.register(EntityCountCommand())          // /entity_count
             D.register(FixCommand())                  // /fix
@@ -95,6 +102,7 @@ object Commands {
             D.register(ObliterateCommand())           // /obliterate
             D.register(ProcedureCommand())            // /procedure
             D.register(RegionCommand())               // /region
+            D.register(RenameCommand(A))              // /rename
             D.register(RuleCommand())                 // /rule
             D.register(SayCommand())                  // /say
             D.register(SetHomeCommand())              // /sethome
@@ -110,6 +118,7 @@ object Commands {
             D.register(WildCommand())                 // /wild
         }
 
+        ArgType("display", DisplayArgumentType::Display)
         ArgType("home", HomeArgumentType::Home)
         ArgType("procedure", ProcedureArgumentType::Procedure)
         ArgType("region", RegionArgumentType::Region)
@@ -166,6 +175,28 @@ object Commands {
         }
     }
 
+    object DisplayCommand {
+        fun Clear(S: ServerCommandSource, Players: Collection<ServerPlayerEntity>): Int {
+            for (SP in Players) S.server.DisplayManager.SetActiveDisplay(SP, null)
+            return Players.size
+        }
+
+        fun List(S: ServerCommandSource, D: DisplayHandle): Int {
+            S.sendMessage(D.Listing())
+            return 1
+        }
+
+        fun ListAll(S: ServerCommandSource): Int {
+            S.Reply(S.server.DisplayManager.ListAll())
+            return 0
+        }
+
+        fun SetDisplay(S: ServerCommandSource, Players: Collection<ServerPlayerEntity>, D: DisplayHandle): Int {
+            for (SP in Players) S.server.DisplayManager.SetActiveDisplay(SP, D)
+            return Players.size
+        }
+    }
+
     object EnchantCommand {
         private val ERR_NO_ITEM = Exn("You must be holding an item to enchant it!")
 
@@ -218,7 +249,10 @@ object Commands {
     }
 
     object HomeCommand {
-        private val CANT_TOUCH_THIS = Exn("The \"bed\" home is special and cannot be deleted or set!")
+        private val CANT_TOUCH_THIS = Exn("The 'bed' home is special and cannot be deleted or set!")
+        private val CANT_ENTER = DynamicCommandExceptionType { Text.literal("The home '$it' is in a region that restricts teleporting!") }
+        private val CANT_LEAVE = DynamicCommandExceptionType { Text.literal("Teleporting out of this region is not allowed!") }
+        private val CANT_SETHOME_HERE = Exn("Cannot /sethome here as this region restricts teleporting!")
         private val CONNOR_MACLEOD = Exn("You may only have one home!")
         private val NO_HOMES = ReplyMsg("No homes defined!")
 
@@ -265,18 +299,39 @@ object Commands {
             val (TargetPlayer, Name) = HomeArgumentType.MapOrThrow(SP, RawName)
             if (Name == Home.BED_HOME) throw CANT_TOUCH_THIS.create()
             val Homes = (TargetPlayer as ServerPlayerAccessor).Homes()
+
+            // If this region doesn’t allow entry by teleport, then setting a home here makes
+            // no sense as we can’t use it, which might not be obvious to people.
+            //
+            // Note that we pass in 'SP', not 'TargetPlayer' as the player whose permissions to
+            // check here; this allows admins to set someone else’s home in a restricted region if
+            // need be.
+            if (!ProtectionManager.AllowTeleportToFromAnywhere(SP, SP.world, SP.blockPos))
+                throw CANT_SETHOME_HERE.create()
+
+            // Remove the home *after* the check above to ensure we only remove it if we’re about
+            // to add a new home to the list.
             Homes.removeIf { it.Name == Name }
 
-            // And add the new one.
-            if (!TargetPlayer.hasPermissionLevel(4) && Homes.isNotEmpty()) throw CONNOR_MACLEOD.create()
-            Homes.add(Home(Name, SP.world.registryKey, SP.blockPos))
+            // Check that either there are no other homes or this player can have more than one home.
+            if (!TargetPlayer.hasPermissionLevel(4) && Homes.isNotEmpty())
+                throw CONNOR_MACLEOD.create()
 
+            // If yes, add it.
+            Homes.add(Home(Name, SP.world.registryKey, SP.blockPos))
             S.Success(Text.literal("Set home ").append(Text.literal(Name).formatted(Formatting.AQUA)))
             return 1
         }
 
         fun Teleport(SP: ServerPlayerEntity, H: Home): Int {
-            SP.Teleport(SP.server.getWorld(H.World)!!, H.Pos, true)
+            val World = SP.server.getWorld(H.World)!!
+            when (ProtectionManager.GetTeleportResult(SP, World, H.Pos)) {
+                TeleportResult.ENTRY_DISALLOWED -> throw CANT_ENTER.create(H.Name)
+                TeleportResult.EXIT_DISALLOWED -> throw CANT_LEAVE.create(H.Name)
+                else -> {}
+            }
+
+            SP.Teleport(World, H.Pos, true)
             return 1
         }
 
@@ -515,7 +570,7 @@ object Commands {
         fun PrintRegionInfo(S: ServerCommandSource, SP: ServerPlayerEntity): Int {
             val W = SP.world
             val Regions = ProtectionManager.GetRegions(W)
-            val R = Regions.find { it.Contains(SP.blockPos) }
+            val R = Regions.find { SP.blockPos in it }
             if (R == null) {
                 S.sendError(NOT_IN_ANY_REGION)
                 return 0
@@ -542,6 +597,23 @@ object Commands {
 
             R.AppendWorldAndName(Mess)
             S.Reply(Mess)
+            return 1
+        }
+    }
+
+    object RenameCommand {
+        private val ERR_EMPTY = Exn("New name may not be empty!")
+        private val NO_ITEM = Exn("You must be holding an item to rename it!")
+        private val RENAME_SUCCESS = ReplyMsg("Your item has been renamed!")
+        private val NO_ITALIC = Style.EMPTY.withItalic(false)
+
+        fun Execute(S: ServerCommandSource, Name: Text): Int {
+            val SP = S.playerOrThrow
+            val St = SP.mainHandStack
+            if (St.isEmpty) throw NO_ITEM.create()
+            if (Name.string.trim() == "") throw ERR_EMPTY.create()
+            St.set(DataComponentTypes.CUSTOM_NAME, Text.empty().append(Name).setStyle(NO_ITALIC))
+            S.Success(RENAME_SUCCESS)
             return 1
         }
     }
@@ -648,7 +720,7 @@ object Commands {
                 var Pos = BlockPos.Mutable(X, Y, Z)
 
                 // Check that it is not in a region.
-                if (!ProtectionManager.IsLegalTeleportTarget(SW, Pos)) continue
+                if (!ProtectionManager.AllowTeleport(SP, SW, Pos)) continue
 
                 // Check if we can place the player somewhere in this XZ columns.
                 //
@@ -731,24 +803,51 @@ object Commands {
             .executes { DiscardCommand.Execute(it.source, EntityArgumentType.getEntities(it, "entity")) }
         )
 
+    private fun DisplayCommand(): LiteralArgumentBuilder<ServerCommandSource> = literal("display")
+        .requires { it.hasPermissionLevel(4) }
+        .then(literal("clear")
+            .then(argument("players", EntityArgumentType.players())
+                .executes { DisplayCommand.Clear(
+                    it.source,
+                    EntityArgumentType.getPlayers(it, "players")
+                ) }
+            )
+        )
+        .then(literal("set")
+            .then(argument("players", EntityArgumentType.players())
+                .then(argument("display", DisplayArgumentType.Display())
+                    .suggests(DisplayArgumentType::Suggest)
+                    .executes { DisplayCommand.SetDisplay(
+                        it.source,
+                        EntityArgumentType.getPlayers(it, "players"),
+                        DisplayArgumentType.Resolve(it, "display")
+                    ) }
+                )
+            )
+        )
+        .then(literal("show")
+            .then(argument("display", DisplayArgumentType.Display())
+                .suggests(DisplayArgumentType::Suggest)
+                .executes { DisplayCommand.List(it.source, DisplayArgumentType.Resolve(it, "display")) }
+            )
+        )
+        .executes { DisplayCommand.ListAll(it.source) }
+
     @Environment(EnvType.SERVER)
     private fun DiscordCommand(): LiteralArgumentBuilder<ServerCommandSource> = literal("discord")
-        .then(literal("info")
+        .then(literal("force-link")
             .requires { it.hasPermissionLevel(4) }
             .then(argument("player", EntityArgumentType.player())
-                .executes {
-                    org.nguh.nguhcraft.server.dedicated.DiscordCommand.ShowLinkInfoForPlayer(
-                        it.source,
-                        EntityArgumentType.getPlayer(it, "player")
-                    )
-                }
-            )
-            .executes {
-                org.nguh.nguhcraft.server.dedicated.DiscordCommand.ShowLinkInfoForPlayer(
-                    it.source,
-                    it.source.playerOrThrow
+                .then(argument("id", LongArgumentType.longArg())
+                    .executes {
+                        org.nguh.nguhcraft.server.dedicated.DiscordCommand.ForceLink(
+                            it.source,
+                            EntityArgumentType.getPlayer(it, "player"),
+                            LongArgumentType.getLong(it, "id")
+                        )
+                    }
                 )
-            }
+            )
         )
         .then(literal("link")
             .requires { it.entity is ServerPlayerEntity && !(it.entity as ServerPlayerDiscordAccessor).isLinked }
@@ -763,10 +862,10 @@ object Commands {
             )
         )
         .then(literal("list")
-            .requires { it.hasPermissionLevel(4) }
+            .requires { it.HasModeratorPermissions }
             .then(literal("all").executes { org.nguh.nguhcraft.server.dedicated.DiscordCommand.ListAllOrLinked(it.source, true) })
             .then(literal("linked").executes { org.nguh.nguhcraft.server.dedicated.DiscordCommand.ListAllOrLinked(it.source, false) })
-            .then(argument("filter", StringArgumentType.string())
+            .then(argument("filter", StringArgumentType.greedyString())
                 .executes {
                     org.nguh.nguhcraft.server.dedicated.DiscordCommand.ListPlayers(
                         it.source,
@@ -776,20 +875,9 @@ object Commands {
             )
             .executes { org.nguh.nguhcraft.server.dedicated.DiscordCommand.ListSyntaxError(it.source) }
         )
-        .then(literal("query")
-            .requires { it.hasPermissionLevel(4) }
-            .then(argument("param", StringArgumentType.greedyString())
-                .executes {
-                    org.nguh.nguhcraft.server.dedicated.DiscordCommand.QueryMemberInfo(
-                        it.source,
-                        StringArgumentType.getString(it, "param")
-                    )
-                }
-            )
-        )
         .then(literal("unlink")
             .then(argument("player", EntityArgumentType.player())
-                .requires { it.hasPermissionLevel(4) }
+                .requires { it.HasModeratorPermissions }
                 .executes {
                     org.nguh.nguhcraft.server.dedicated.DiscordCommand.TryUnlink(
                         it.source,
@@ -1100,6 +1188,12 @@ object Commands {
             .then(literal("flags").then(RegionFlagsNameNode))
     }
 
+    private fun RenameCommand(A: CommandRegistryAccess): LiteralArgumentBuilder<ServerCommandSource>  = literal("rename")
+        .requires { it.isExecutedByPlayer && it.hasPermissionLevel(2) }
+        .then(argument("name", TextArgumentType.text(A))
+            .executes { RenameCommand.Execute(it.source, TextArgumentType.getTextArgument(it, "name")) }
+        )
+
     private fun RuleCommand(): LiteralArgumentBuilder<ServerCommandSource> {
         var Command = literal("rule").requires { it.hasPermissionLevel(4) }
         SyncedGameRule.entries.forEach { Rule ->
@@ -1158,7 +1252,7 @@ object Commands {
                 val Entities = EntityArgumentType.getEntities(it, "targets")
                 for (E in Entities)
                     if (E !is LightningEntity)
-                        StrikeLighting(E.world as ServerWorld, E.pos)
+                        StrikeLightning(E.world as ServerWorld, E.pos)
 
                 // And tell the user how many things were smitten.
                 it.source.sendMessage(Text.literal(
@@ -1172,7 +1266,7 @@ object Commands {
             .requires { it.isExecutedByPlayer }
             .executes {
                 val Pos = BlockPosArgumentType.getBlockPos(it, "where")
-                StrikeLighting(it.source.world as ServerWorld, Vec3d.ofBottomCenter(Pos))
+                StrikeLightning(it.source.world as ServerWorld, Vec3d.ofBottomCenter(Pos))
                 it.source.sendMessage(Text.literal("[$Pos] has been smitten").formatted(Formatting.YELLOW))
                 1
             }

@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "nguhcraft:veneficium_armour_trim_smithing_template"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    },
+    "has_veneficium_armour_trim_smithing_template": {
+      "conditions": {
+        "items": [
+          {
+            "items": "nguhcraft:veneficium_armour_trim_smithing_template"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_veneficium_armour_trim_smithing_template"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "nguhcraft:veneficium_armour_trim_smithing_template"
+    ]
+  }
+}

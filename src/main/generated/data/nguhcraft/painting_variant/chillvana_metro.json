@@ -1,0 +1,13 @@
+{
+  "asset_id": "nguhcraft:chillvana_metro",
+  "author": {
+    "color": "gray",
+    "translate": "painting.nguhcraft.chillvana_metro.author"
+  },
+  "height": 2,
+  "title": {
+    "color": "yellow",
+    "translate": "painting.nguhcraft.chillvana_metro.title"
+  },
+  "width": 3
+}

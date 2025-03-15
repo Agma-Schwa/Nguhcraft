@@ -43,6 +43,7 @@ import net.minecraft.world.RaycastContext
 import net.minecraft.world.TeleportTarget
 import net.minecraft.world.World
 import org.nguh.nguhcraft.Constants.MAX_HOMING_DISTANCE
+import org.nguh.nguhcraft.Nbt
 import org.nguh.nguhcraft.NguhDamageTypes
 import org.nguh.nguhcraft.SyncedGameRule
 import org.nguh.nguhcraft.Utils.EnchantLvl
@@ -53,6 +54,7 @@ import org.nguh.nguhcraft.network.ClientFlags
 import org.nguh.nguhcraft.server.accessors.LivingEntityAccessor
 import org.nguh.nguhcraft.server.accessors.ServerPlayerAccessor
 import org.nguh.nguhcraft.server.dedicated.Discord
+import org.nguh.nguhcraft.set
 import org.slf4j.Logger
 
 object ServerUtils {
@@ -87,6 +89,7 @@ object ServerUtils {
         val SPA = SP as ServerPlayerAccessor
         SyncedGameRule.Send(SP)
         SP.server.ProtectionManager.Send(SP)
+        SP.server.DisplayManager.Send(SP)
         SP.SetClientFlag(ClientFlags.BYPASSES_REGION_PROTECTION, SPA.bypassesRegionProtection)
         SP.SetClientFlag(ClientFlags.IN_HYPERSHOT_CONTEXT, LEA.hypershotContext != null)
         SP.SetClientFlag(ClientFlags.VANISHED, SP.IsVanished)
@@ -248,7 +251,7 @@ object ServerUtils {
     fun Obliterate(SP: ServerPlayerEntity) {
         if (SP.isDead || SP.isSpectator || SP.isCreative) return
         val SW = SP.serverWorld
-        StrikeLighting(SW, SP.pos, null, true)
+        StrikeLightning(SW, SP.pos, null, true)
         SP.damage(SW, NguhDamageTypes.Obliterated(SW), Float.MAX_VALUE)
     }
 
@@ -277,7 +280,9 @@ object ServerUtils {
     }
 
     /** Unconditionally strike lightning. */
-    fun StrikeLighting(W: ServerWorld, Where: Vec3d, TE: TridentEntity? = null, Cosmetic: Boolean = false) {
+    @JvmStatic
+    @JvmOverloads
+    fun StrikeLightning(W: ServerWorld, Where: Vec3d, TE: TridentEntity? = null, Cosmetic: Boolean = false) {
         val Lightning = EntityType.LIGHTNING_BOLT.spawn(
             W,
             BlockPos.ofFloored(Where),
@@ -304,15 +309,13 @@ object ServerUtils {
 
     /** Save a teleport target to NBT data. */
     @JvmStatic
-    fun TeleportTargetToNbt(Target: TeleportTarget): NbtCompound {
-        val Tag = NbtCompound()
-        Tag.putDouble("X", Target.position.x)
-        Tag.putDouble("Y", Target.position.y)
-        Tag.putDouble("Z", Target.position.z)
-        Tag.putFloat("Yaw", Target.yaw)
-        Tag.putFloat("Pitch", Target.pitch)
-        Tag.putString("World", Target.world.registryKey.value.toString())
-        return Tag
+    fun TeleportTargetToNbt(Target: TeleportTarget) = Nbt {
+        set("X", Target.position.x)
+        set("Y", Target.position.y)
+        set("Z", Target.position.z)
+        set("Yaw", Target.yaw)
+        set("Pitch", Target.pitch)
+        set("World", Target.world.registryKey.value.toString())
     }
 
     /** Result of smelting a stack. */

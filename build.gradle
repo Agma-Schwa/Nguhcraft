@@ -118,6 +118,18 @@ publishing {
 kotlin {
     jvmToolchain(21)
 }
+
+fabricApi {
+    configureDataGeneration()
+}
+
 loom {
     accessWidenerPath = file('src/main/resources/nguhcraft.accessWidener')
+
+    // Required for client-side data generation (e.g. block models) to work.
+    runs {
+        datagen {
+            inherit client
+        }
+    }
 }

@@ -27,7 +27,7 @@ public abstract class TeleportRandomlyConsumeEffectMixin {
         boolean ParticleEffects
     ) {
         var To = new BlockPos((int) X, (int) Y, (int) Z);
-        if (!ProtectionManager.IsLegalTeleportTarget(LE.getWorld(), To)) return false;
+        if (!ProtectionManager.AllowTeleport(LE, LE.getWorld(), To)) return false;
         return LE.teleport(X, Y, Z, ParticleEffects);
     }
 }

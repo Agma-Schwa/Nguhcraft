@@ -15,21 +15,21 @@ import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.Vec3d
 import net.minecraft.world.TeleportTarget
 import org.nguh.nguhcraft.Constants
+import org.nguh.nguhcraft.Nbt
 import org.nguh.nguhcraft.protect.ProtectionManagerAccessor
 import org.nguh.nguhcraft.network.ClientFlags
 import org.nguh.nguhcraft.network.ClientboundSyncFlagPacket
 import org.nguh.nguhcraft.server.accessors.ServerPlayerAccessor
+import org.nguh.nguhcraft.set
 import java.util.*
 
 @JvmStatic
-fun BlockEntity.CreateUpdate(Update: (Tag: NbtCompound) -> Unit) : NbtCompound {
-    val Tag = NbtCompound()
-    Update(Tag)
+fun BlockEntity.CreateUpdate(Update: NbtCompound.() -> Unit) = Nbt {
+    Update()
 
     // An empty tag prevents deserialisation on the client, so
     // ensure that this is never empty.
-    if (Tag.isEmpty) Tag.putBoolean("nguhcraft_ensure_deserialised", true)
-    return Tag
+    if (isEmpty) set("nguhcraft_ensure_deserialised", true)
 }
 
 fun Entity.Teleport(
@@ -39,6 +39,14 @@ fun Entity.Teleport(
 ) {
     val Vec = Vec3d(OnTopOf.x.toDouble(), OnTopOf.y.toDouble() + 1, OnTopOf.z.toDouble())
     Teleport(TeleportTarget(ToWorld, Vec, Vec3d.ZERO, 0F, 0F, TeleportTarget.NO_OP), SaveLastPos)
+}
+
+fun Entity.Teleport(
+    ToWorld: ServerWorld,
+    To: Vec3d,
+    SaveLastPos: Boolean = false
+) {
+    Teleport(TeleportTarget(ToWorld, To, Vec3d.ZERO, yaw, pitch, TeleportTarget.NO_OP), SaveLastPos)
 }
 
 fun Entity.Teleport(

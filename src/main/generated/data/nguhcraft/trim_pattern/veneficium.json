@@ -1,0 +1,8 @@
+{
+  "asset_id": "nguhcraft:veneficium",
+  "decal": false,
+  "description": {
+    "translate": "trim_pattern.nguhcraft.veneficium"
+  },
+  "template_item": "nguhcraft:veneficium_armour_trim_smithing_template"
+}

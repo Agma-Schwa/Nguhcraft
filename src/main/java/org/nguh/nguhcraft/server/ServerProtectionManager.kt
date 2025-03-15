@@ -16,12 +16,13 @@ import net.minecraft.util.Formatting
 import net.minecraft.util.profiler.Profilers
 import net.minecraft.world.World
 import org.nguh.nguhcraft.Constants
-import org.nguh.nguhcraft.server.MCBASIC
+import org.nguh.nguhcraft.Nbt
 import org.nguh.nguhcraft.network.ClientboundSyncProtectionMgrPacket
 import org.nguh.nguhcraft.protect.ProtectionManager
 import org.nguh.nguhcraft.protect.Region
 import org.nguh.nguhcraft.server.accessors.ServerPlayerAccessor
-import java.util.UUID
+import org.nguh.nguhcraft.set
+import java.util.*
 
 /** Used to signal that a region’s properties are invalid. */
 data class MalformedRegionException(val Msg: Text) : Exception()
@@ -72,12 +73,25 @@ class ServerRegion(
         if (Name.isEmpty()) throw IllegalArgumentException("Region name cannot be empty!")
 
         // Read flags.
+        //
+        // Take care to start with the default flags in the accumulator
+        // so that existing regions inherit new default flags. Note that
+        // a flag may be stored in one of THREE states: true, false, or
+        // not present. The last one is used to indicate that we should
+        // not override the default value and will be true when a region
+        // is first loaded after adding new flags.
         val FlagsTag = Tag.getCompound(TAG_FLAGS)
-        RegionFlags = Flags.entries.fold(0L) { Acc, Flag ->
-            if (FlagsTag.getBoolean(Flag.name.lowercase())) Acc or Flag.Bit() else Acc
+        RegionFlags = Flags.entries.fold(RegionFlags) { Acc, Flag ->
+            val N = Flag.name.lowercase()
+            if (!FlagsTag.contains(N)) Acc
+            else if (FlagsTag.getBoolean(N)) Acc or Flag.Bit()
+            else Acc and Flag.Bit().inv()
         }
-    }
 
+        // Read colour override.
+        if (Tag.contains(TAG_COLOUR_OVERRIDE, NbtElement.INT_TYPE.toInt()))
+            ColourOverride = Tag.getInt(TAG_COLOUR_OVERRIDE)
+    }
 
     /** Display the region’s bounds. */
     fun AppendBounds(MT: MutableText): MutableText = MT.append(Text.literal(" ["))
@@ -126,20 +140,23 @@ class ServerRegion(
     }
 
     /** Save this region. */
-    fun Save(): NbtCompound {
-        val Tag = NbtCompound()
-        Tag.putString(TAG_NAME, Name)
-        Tag.putInt(TAG_MIN_X, MinX)
-        Tag.putInt(TAG_MIN_Z, MinZ)
-        Tag.putInt(TAG_MAX_X, MaxX)
-        Tag.putInt(TAG_MAX_Z, MaxZ)
+    fun Save() = Nbt {
+        SaveXZRect(this)
+        set(TAG_NAME, Name)
 
         // Store flags as strings for robustness.
-        val FlagsTag = NbtCompound()
-        Flags.entries.forEach { FlagsTag.putBoolean(it.name.lowercase(), Test(it)) }
-        Tag.put(TAG_FLAGS, FlagsTag)
+        set(TAG_FLAGS, Nbt {
+            Flags.entries.forEach { set(it.name.lowercase(), Test(it)) }
+        })
 
-        return Tag
+        if (ColourOverride != null) set(TAG_COLOUR_OVERRIDE, ColourOverride!!)
+    }
+
+    /** Set the region colour. */
+    fun SetColour(S: MinecraftServer, Colour: Int) {
+        if (Colour == ColourOverride) return
+        ColourOverride = Colour
+        S.ProtectionManager.Sync(S)
     }
 
     /** Set a region flag. */
@@ -175,7 +192,7 @@ class ServerRegion(
 
     /** Tick this region. */
     fun TickPlayer(SP: ServerPlayerEntity) {
-        TickPlayer(SP, Contains(SP.blockPos))
+        TickPlayer(SP, SP.blockPos in this)
     }
 
     /**
@@ -201,21 +218,16 @@ class ServerRegion(
     /** Write this region to a packet. */
     fun Write(buf: RegistryByteBuf) {
         buf.writeString(Name)
-        buf.writeInt(MinX)
-        buf.writeInt(MinZ)
-        buf.writeInt(MaxX)
-        buf.writeInt(MaxZ)
+        WriteXZRect(buf)
         buf.writeLong(RegionFlags)
+        buf.writeInt(ColourOverride ?: COLOUR_OVERRIDE_NONE_ENC)
     }
 
     companion object {
         private val REGION_TRIGGER_TEXT: Text = Text.of("Region trigger")
-        private const val TAG_MIN_X = "MinX"
-        private const val TAG_MIN_Z = "MinZ"
-        private const val TAG_MAX_X = "MaxX"
-        private const val TAG_MAX_Z = "MaxZ"
         private const val TAG_FLAGS = "RegionFlags"
         private const val TAG_NAME = "Name"
+        private const val TAG_COLOUR_OVERRIDE = "ColourOverride"
     }
 }
 
@@ -328,10 +340,10 @@ class ServerRegionList(
         // already null or all remaining regions are fully contained in R), or it
         // is set to the first region that intersects R but is not fully contained
         // in R.
-        if (Intersecting != null && R.Contains(Intersecting)) {
+        if (Intersecting != null && Intersecting in R) {
             val I = Data.indexOf(Intersecting)
             var J = I + 1
-            while (J < Data.size && R.Contains(Data[J])) J++
+            while (J < Data.size && Data[J] in R) J++
             Intersecting = if (J == Data.size) null else Data[J]
         }
 
@@ -341,7 +353,7 @@ class ServerRegionList(
 
         // Case 2: The Intersecting region fully contains R, and it is the first
         // region to do so. Insert R directly before it.
-        else if (Intersecting.Contains(R)) Data.add(Data.indexOf(Intersecting), R)
+        else if (R in Intersecting) Data.add(Data.indexOf(Intersecting), R)
 
         // Case 4: This is always invalid, since neither region can reasonably be
         // given priority over any blocks that are in contained by both since there

@@ -1,7 +1,13 @@
 package org.nguh.nguhcraft.mixin.protect;
 
+import com.llamalad7.mixinextras.sugar.Local;
+import kotlin.Unit;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.damage.DamageSource;
+import net.minecraft.util.math.Box;
+import net.minecraft.util.shape.VoxelShape;
+import net.minecraft.world.World;
+import org.jetbrains.annotations.Nullable;
 import org.nguh.nguhcraft.protect.ProtectionManager;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -11,12 +17,37 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+import java.util.List;
+import com.google.common.collect.ImmutableList.Builder;
+
 @Mixin(Entity.class)
 public abstract class EntityMixin {
     @Shadow public abstract boolean isOnFire();
     @Shadow public abstract void extinguish();
 
     @Unique private Entity This() { return (Entity)(Object)this; }
+
+    /** Handle collisions with regions. */
+    @Inject(
+        method = "findCollisionsForMovement",
+        at = @At(
+            value = "INVOKE",
+            remap = false,
+            target = "Lcom/google/common/collect/ImmutableList$Builder;addAll(Ljava/lang/Iterable;)Lcom/google/common/collect/ImmutableList$Builder;",
+            ordinal = 1
+        )
+    )
+    static private void inject$findCollisionsForMovement(
+        @Nullable Entity E,
+        World W,
+        List<VoxelShape> Colls,
+        Box BB,
+        CallbackInfoReturnable<List<VoxelShape>> CIR,
+        @Local Builder<VoxelShape> Builder
+    ) {
+        if (E == null) return;
+        ProtectionManager.GetCollisionsForEntity(W, E, BB, Builder::addAll);
+    }
 
     /** Prevent damage to protected entities. */
     @Inject(method = "isAlwaysInvulnerableTo", at = @At("HEAD"), cancellable = true)

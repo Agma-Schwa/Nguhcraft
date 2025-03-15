@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "nguhcraft:slablet_1",
+    "nguhcraft:slablet_1"
+  ],
+  "result": {
+    "count": 1,
+    "id": "nguhcraft:slablet_2"
+  }
+}

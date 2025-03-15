@@ -8,36 +8,28 @@ import net.fabricmc.api.Environment
 import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource
-import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents
-import net.minecraft.client.gui.DrawContext
 import net.minecraft.client.render.RenderLayer
+import net.minecraft.client.render.item.property.select.SelectProperties
 import net.minecraft.item.ItemGroup
 import net.minecraft.item.ItemStack
 import net.minecraft.item.Items
 import net.minecraft.registry.Registries
 import net.minecraft.registry.Registry
 import net.minecraft.text.Text
-import net.minecraft.util.Colors
 import net.minecraft.util.Formatting
 import net.minecraft.util.math.BlockPos
-import org.nguh.nguhcraft.server.MCBASIC
 import org.nguh.nguhcraft.Nguhcraft.Companion.Id
+import org.nguh.nguhcraft.block.ChestVariantProperty
 import org.nguh.nguhcraft.block.NguhBlocks
-import org.nguh.nguhcraft.client.ClientUtils.Client
+import org.nguh.nguhcraft.client.render.Renderer
+import org.nguh.nguhcraft.client.render.WorldRendering
 
 @Environment(EnvType.CLIENT)
 class NguhcraftClient : ClientModInitializer {
     override fun onInitializeClient() {
         ClientNetworkHandler.Init()
-
-        WorldRenderEvents.BEFORE_DEBUG_RENDER.register { RegionRenderer.Render(it) }
-        HudRenderCallback.EVENT.register {
-            Ctx, _ ->
-            RegionRenderer.RenderHUD(Ctx)
-            RenderVanishedMessage(Ctx)
-        }
+        Renderer.Init()
 
         Registry.register(Registries.ITEM_GROUP, Id("treasures"), TREASURES_ITEM_GROUP)
 
@@ -54,7 +46,10 @@ class NguhcraftClient : ClientModInitializer {
             BypassesRegionProtection = false
             Vanished = false
             LastInteractedLecternPos = BlockPos.ORIGIN
+            Renderer.ActOnSessionStart()
         }
+
+        SelectProperties.ID_MAPPER.put(Id("chest_variant"), ChestVariantProperty.TYPE)
     }
 
     companion object {
@@ -63,8 +58,6 @@ class NguhcraftClient : ClientModInitializer {
             .displayName(Text.literal("Treasures"))
             .entries {  Ctx, Entries -> Treasures.AddAll(Ctx, Entries) }
             .build()
-
-        const val VANISH_MSG = "You are currently vanished"
 
         // FIXME: All of these should be attached to some singleton 'Session' object so
         //        they don’t accidentally persist across saves.
@@ -81,25 +74,12 @@ class NguhcraftClient : ClientModInitializer {
         fun RenderCommand(): LiteralArgumentBuilder<FabricClientCommandSource> = literal<FabricClientCommandSource>("render")
             .then(literal<FabricClientCommandSource>("regions")
                 .executes {
-                    RegionRenderer.ShouldRender = !RegionRenderer.ShouldRender
+                    WorldRendering.RenderRegions = !WorldRendering.RenderRegions
                     it.source.sendFeedback(Text.literal(
-                        "Region rendering is now ${if (RegionRenderer.ShouldRender) "enabled" else "disabled"}."
+                        "Region rendering is now ${if (WorldRendering.RenderRegions) "enabled" else "disabled"}."
                     ).formatted(Formatting.YELLOW))
                     0
                 }
             )
-
-        fun RenderVanishedMessage(Ctx: DrawContext) {
-            if (!Vanished) return
-            val TR = Client().textRenderer
-            Ctx.drawText(
-                TR,
-                VANISH_MSG,
-                Ctx.scaledWindowWidth  - TR.getWidth(VANISH_MSG) - 5,
-                TR.getWrappedLinesHeight(VANISH_MSG, 10000) - 5,
-                Colors.LIGHT_YELLOW,
-                true
-            )
-        }
     }
 }

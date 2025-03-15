@@ -3,6 +3,8 @@ package org.nguh.nguhcraft.protect
 import net.minecraft.block.Blocks
 import net.minecraft.block.LecternBlock
 import net.minecraft.entity.Entity
+import net.minecraft.entity.LivingEntity
+import net.minecraft.entity.SpawnReason
 import net.minecraft.entity.damage.DamageSource
 import net.minecraft.entity.mob.Monster
 import net.minecraft.entity.passive.VillagerEntity
@@ -17,10 +19,20 @@ import net.minecraft.registry.tag.BlockTags
 import net.minecraft.registry.tag.DamageTypeTags
 import net.minecraft.util.ActionResult
 import net.minecraft.util.math.BlockPos
+import net.minecraft.util.math.Box
+import net.minecraft.util.shape.VoxelShape
 import net.minecraft.world.World
 import org.nguh.nguhcraft.block.LockableBlockEntity
 import org.nguh.nguhcraft.isa
 import org.nguh.nguhcraft.item.KeyItem
+import java.util.function.Consumer
+
+/** Enum denotes if an entity can teleport somewhere, or why it can’t. */
+enum class TeleportResult {
+    OK,
+    EXIT_DISALLOWED,
+    ENTRY_DISALLOWED,
+}
 
 /**
  * Handler that contains common code paths related to world protection.
@@ -31,7 +43,7 @@ import org.nguh.nguhcraft.item.KeyItem
  * - ‘IsX’, which check whether an action is allowed in the absence of a player.
  * - ‘HandleX’, which does the above but may also modify an action to do something else instead.
  *
- * The most important of these are:
+ * For example:
  *
  * - [AllowBlockModify] checks if a player is allowed to interact with
  *   a block in a way that would modify it; this typically handles left
@@ -145,12 +157,62 @@ abstract class ProtectionManager(
         return true
     }
 
+    /**
+     * Check if an entity, especially a player, is allowed to teleport to a location.
+     *
+     * This is used for ender pearls, chorus fruit, /wild, /home, but NOT admin
+     * commands like /tp.
+     */
+    private fun _AllowTeleport(E: Entity, DestWorld: World, Pos: BlockPos): TeleportResult {
+        // Always allow non-players to teleport; this is necessary so we can
+        // move mobs and other entities with commands if need be.
+        if (E !is PlayerEntity || _BypassesRegionProtection(E)) return TeleportResult.OK
+
+        // Check if the player is allowed to leave their current region.
+        //
+        // Note that even if the source and destination region are the same, we still count
+        // this as exiting/entering, because there might just be a particular PART of the
+        // region that we don’t want people to be able to leave or enter.
+        FindRegionContainingBlock(E.world, E.blockPos)?.let {
+            if (!it.AllowsPlayerExit()) return TeleportResult.EXIT_DISALLOWED
+        }
+
+        // Check if the player is allowed to enter the destination region.
+        return _AllowTeleportToImpl(DestWorld, Pos)
+    }
+
+    /** Same as AllowTeleport(), but only cares about the destination region. */
+    private fun _AllowTeleportToFromAnywhere(E: Entity, DestWorld: World, Pos: BlockPos): Boolean {
+        // Always allow non-players to teleport; this is necessary so we can
+        // move mobs and other entities with commands if need be.
+        if (E !is PlayerEntity || _BypassesRegionProtection(E)) return true
+
+        // Check if the player is allowed to enter the destination region.
+        return _AllowTeleportToImpl(DestWorld, Pos) == TeleportResult.OK
+    }
+
+    private fun _AllowTeleportToImpl(DestWorld: World, Pos: BlockPos): TeleportResult {
+        val Dest = FindRegionContainingBlock(DestWorld, Pos) ?: return TeleportResult.OK
+        return if (Dest.AllowsPlayerEntry() && Dest.AllowsTeleportation()) TeleportResult.OK
+        else TeleportResult.ENTRY_DISALLOWED
+    }
+
     /** Check if a player bypasses region protection. */
     abstract fun _BypassesRegionProtection(PE: PlayerEntity): Boolean
 
     /** Find the region that contains a block. */
     private fun _FindRegionContainingBlock(W: World, Pos: BlockPos) =
-        RegionListFor(W).find { it.Contains(Pos) }
+        RegionListFor(W).find { Pos in it }
+
+    /** Get entity collisions. */
+    private fun _GetCollisionsForEntity(W: World, E: Entity, Consumer: Consumer<List<VoxelShape>>) {
+        if (E !is PlayerEntity || _BypassesRegionProtection(E)) return
+
+        // Find all regions that contain the entity.
+        val List = RegionListFor(W)
+        Consumer.accept(List.filter { !it.AllowsPlayerExit() && it.Contains(E.x, E.z) }.map { it.InsideShape })
+        Consumer.accept(List.filter { !it.AllowsPlayerEntry() && !it.Contains(E.x, E.z) }.map { it.OutsideShape })
+    }
 
     /**
      * Handle interaction (= right-click), optionally with a block.
@@ -221,18 +283,6 @@ abstract class ProtectionManager(
         return ActionResult.SUCCESS
     }
 
-    /**
-     * Check whether a position can be teleported to.
-     *
-     * This should only be used for ‘natural’ events, e.g. ender pearls,
-     * not commands. If you don’t want people to use commands to teleport
-     * somewhere they shouldn’t be, don’t give them access to those commands.
-     */
-    private fun _IsLegalTeleportTarget(W: World, Pos: BlockPos): Boolean {
-        val R = _FindRegionContainingBlock(W, Pos) ?: return true
-        return R.AllowsTeleportation()
-    }
-
     /** Check if a player is linked. */
     abstract fun IsLinked(PE: PlayerEntity): Boolean
 
@@ -290,20 +340,51 @@ abstract class ProtectionManager(
     }
 
     /** Check if the passed bounding box intersects a protected region. */
-    private fun _IsProtectedRegion(W: World, MinX: Int, MinZ: Int, MaxX: Int, MaxZ: Int): Boolean {
+    private fun _IsProtectedRegion(W: World, MinX: Double, MinZ: Double, MaxX: Double, MaxZ: Double): Boolean {
         val Regions = RegionListFor(W)
         return Regions.any { it.Intersects(MinX, MinZ, MaxX, MaxZ) }
     }
 
     /** Check whether an entity is allowed to spawn here. */
     fun _IsSpawningAllowed(E: Entity): Boolean {
+        // We currently only have restrictions on hostile mobs, so always allow
+        // friendly entities to spawn. Note the difference between 'Monster' and
+        // 'HostileEntity'; the former is what we want since it also includes e.g.
+        // hoglins and ghasts whereas the former does not.
         if (E !is Monster) return true
+
+        // If E is a living entity, then we will have saved the spawn reason for it;
+        // check that first so we always allow commands and spawn eggs to work properly.
+        //
+        // Note that this is a WHITELIST, i.e. the reasons here are always ALLOWED; only
+        // list things here that are absolutely required for the game to function properly,
+        // such as chunk loading, commands, and dimension travel.
+        when ((E as? LivingEntity)?.SpawnReason) {
+            // Command.
+            SpawnReason.COMMAND,
+
+            // Entity teleporting or travelling through a portal.
+            SpawnReason.DIMENSION_TRAVEL,
+
+            // Spawn eggs (and minecarts and boats, but those aren’t living entities) in
+            // dispensers.
+            SpawnReason.DISPENSER,
+
+            // Loading a saved entity. This is kind of required, else entities will
+            // be deleted on restarts.
+            SpawnReason.LOAD,
+
+            // Spawn eggs (and boats, but those still aren’t living entities).
+            SpawnReason.SPAWN_ITEM_USE -> return true
+
+            // Do nothing and fall through to the checks below.
+            else -> {}
+        }
+
+        // Otherwise, check region flags.
         val R = _FindRegionContainingBlock(E.world, E.blockPos) ?: return true
         return R.AllowsHostileMobSpawning()
     }
-
-    /** Check if an item stack is a vehicle. */
-    private fun IsVehicle(St: ItemStack?) = St != null && (St.item is MinecartItem || St.item is BoatItem)
 
     /**
      * Get the regions for a world.
@@ -316,17 +397,6 @@ abstract class ProtectionManager(
     /** Get the regions for a world by key. */
     protected fun RegionListFor(Key: RegistryKey<World>) = TryGetRegionList(Key)
         ?: throw IllegalArgumentException("No such world: ${Key.value}")
-
-    /**
-     * Attempt to get a region in a world.
-     *
-     * Prefer [GetRegion] over this if you already have a reference to the
-     * world; this is meant to be used for cases where you parsed a world
-     * registry key from somewhere w/o knowing whether it’s valid or not.
-     *
-     * @return null if the world or region does not exist.
-     */
-    fun TryGetRegion(W: RegistryKey<World>, Name: String): Region? = TryGetRegionList(W)?.find { it.Name == Name }
 
     /**
      * Attempt to get all region in a world.
@@ -401,6 +471,14 @@ abstract class ProtectionManager(
             Get(W)._AllowItemUse(PE, W, St)
 
         @JvmStatic
+        fun AllowTeleport(TeleportingEntity: Entity, DestWorld: World, Pos: BlockPos) =
+            GetTeleportResult(TeleportingEntity, DestWorld, Pos) == TeleportResult.OK
+
+        @JvmStatic
+        fun AllowTeleportToFromAnywhere(TeleportingEntity: Entity, DestWorld: World, Pos: BlockPos) =
+            Get(DestWorld)._AllowTeleportToFromAnywhere(TeleportingEntity, DestWorld, Pos)
+
+        @JvmStatic
         fun BypassesRegionProtection(PE: PlayerEntity) =
             Get(PE.world)._BypassesRegionProtection(PE)
 
@@ -408,6 +486,10 @@ abstract class ProtectionManager(
         @JvmStatic
         fun FindRegionContainingBlock(W: World, Pos: BlockPos) =
             Get(W)._FindRegionContainingBlock(W, Pos)
+
+        @JvmStatic
+        fun GetCollisionsForEntity(W: World, E: Entity, BB: Box, Consumer: Consumer<List<VoxelShape>>) =
+            Get(W)._GetCollisionsForEntity(W, E, Consumer)
 
         @JvmStatic
         fun GetRegions(W: World) =
@@ -418,12 +500,12 @@ abstract class ProtectionManager(
             Get(W).RegionListFor(W).find { it.Name == Name }
 
         @JvmStatic
-        fun HandleBlockInteract(PE: PlayerEntity, W: World, Pos: BlockPos, Stack: ItemStack?) =
-            Get(W)._HandleBlockInteract(PE, W, Pos, Stack)
+        fun GetTeleportResult(TeleportingEntity: Entity, DestWorld: World, Pos: BlockPos) =
+            Get(DestWorld)._AllowTeleport(TeleportingEntity, DestWorld, Pos)
 
         @JvmStatic
-        fun IsLegalTeleportTarget(W: World, Pos: BlockPos) =
-            Get(W)._IsLegalTeleportTarget(W, Pos)
+        fun HandleBlockInteract(PE: PlayerEntity, W: World, Pos: BlockPos, Stack: ItemStack?) =
+            Get(W)._HandleBlockInteract(PE, W, Pos, Stack)
 
         @JvmStatic
         fun IsPressurePlateEnabled(W: World, Pos: BlockPos) =
@@ -442,7 +524,7 @@ abstract class ProtectionManager(
             Get(E.world)._IsProtectedEntity(E, DS)
 
         @JvmStatic
-        fun IsProtectedRegion(W: World, MinX: Int, MinZ: Int, MaxX: Int, MaxZ: Int) =
+        fun IsProtectedRegion(W: World, MinX: Double, MinZ: Double, MaxX: Double, MaxZ: Double) =
             Get(W)._IsProtectedRegion(W, MinX, MinZ, MaxX, MaxZ)
 
         @JvmStatic

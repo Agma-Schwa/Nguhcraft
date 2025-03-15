@@ -28,8 +28,8 @@ public abstract class EnderPearlEntityMixin extends ThrownItemEntity  {
             ordinal = 0
         )
     )
-    private boolean inject$onCollision$0(Entity E, World W) {
-        if (!ProtectionManager.IsLegalTeleportTarget(W, this.getBlockPos())) return false;
-        return canTeleportEntityTo(E, W);
+    private boolean inject$onCollision$0(Entity Owner, World W) {
+        if (!ProtectionManager.AllowTeleport(Owner, W, this.getBlockPos())) return false;
+        return canTeleportEntityTo(Owner, W);
     }
 }

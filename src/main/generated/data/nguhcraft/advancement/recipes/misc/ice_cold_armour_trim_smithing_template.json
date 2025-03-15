@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_ice_cold_armour_trim_smithing_template": {
+      "conditions": {
+        "items": [
+          {
+            "items": "nguhcraft:ice_cold_armour_trim_smithing_template"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "nguhcraft:ice_cold_armour_trim_smithing_template"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_ice_cold_armour_trim_smithing_template"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "nguhcraft:ice_cold_armour_trim_smithing_template"
+    ]
+  }
+}

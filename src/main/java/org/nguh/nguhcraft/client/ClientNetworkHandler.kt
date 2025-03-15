@@ -14,8 +14,9 @@ import org.nguh.nguhcraft.Utils.LBRACK_COMPONENT
 import org.nguh.nguhcraft.Utils.RBRACK_COMPONENT
 import org.nguh.nguhcraft.client.ClientUtils.Client
 import org.nguh.nguhcraft.client.accessors.ClientPlayerListEntryAccessor
-import org.nguh.nguhcraft.protect.ProtectionManagerAccessor
+import org.nguh.nguhcraft.client.accessors.DisplayData
 import org.nguh.nguhcraft.network.*
+import org.nguh.nguhcraft.protect.ProtectionManagerAccessor
 import java.util.concurrent.CompletableFuture
 
 /** This runs on the network thread. */
@@ -97,6 +98,14 @@ object ClientNetworkHandler {
         }
     }
 
+    /** Sync display data. */
+    private fun HandleSyncDisplayPacket(Packet: ClientboundSyncDisplayPacket) {
+        Execute {
+            val D = Client().DisplayData ?: return@Execute
+            D.Lines = Packet.Lines
+        }
+    }
+
     /** Update the game rules. */
     private fun HandleSyncGameRulesPacket(Packet: ClientboundSyncGameRulesPacket) = SyncedGameRule.Update(Packet)
 
@@ -128,6 +137,7 @@ object ClientNetworkHandler {
         Register(ClientboundSyncGameRulesPacket.ID, ::HandleSyncGameRulesPacket)
         Register(ClientboundSyncFlagPacket.ID, ::HandleSyncProtectionBypassPacket)
         Register(ClientboundSyncProtectionMgrPacket.ID, ::HandleSyncProtectionMgrPacket)
+        Register(ClientboundSyncDisplayPacket.ID, ::HandleSyncDisplayPacket)
     }
 
     /** Register a packet handler. */

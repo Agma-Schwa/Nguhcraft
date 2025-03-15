@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "#": "minecraft:pearlescent_froglight",
+    "A": "minecraft:amethyst_shard",
+    "N": "minecraft:iron_nugget"
+  },
+  "pattern": [
+    "NAN",
+    "A#A",
+    "NNN"
+  ],
+  "result": {
+    "count": 1,
+    "id": "nguhcraft:pearlescent_lantern"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "i": "minecraft:iron_ingot"
+  },
+  "pattern": [
+    "i i",
+    "i i",
+    " i "
+  ],
+  "result": {
+    "count": 1,
+    "id": "nguhcraft:decorative_hopper"
+  }
+}

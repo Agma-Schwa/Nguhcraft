@@ -20,7 +20,13 @@ class ClientRegion(B: RegistryByteBuf, W: RegistryKey<World>): Region(
     ToX = B.readInt(),
     ToZ = B.readInt()
 ) {
-    init { RegionFlags = B.readLong() }
+    init {
+        RegionFlags = B.readLong()
+        ColourOverride = when (val c = B.readInt()) {
+            COLOUR_OVERRIDE_NONE_ENC -> null
+            else -> c
+        }
+    }
 }
 
 @Environment(EnvType.CLIENT)

@@ -1,5 +1,6 @@
 package org.nguh.nguhcraft.server.dedicated
 
+import com.mojang.authlib.GameProfile
 import com.mojang.brigadier.exceptions.CommandSyntaxException
 import com.mojang.brigadier.exceptions.DynamicCommandExceptionType
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType
@@ -52,10 +53,10 @@ import org.nguh.nguhcraft.server.IsVanished
 import org.nguh.nguhcraft.server.PlayerByUUID
 import org.nguh.nguhcraft.server.accessors.ServerPlayerAccessor
 import org.nguh.nguhcraft.server.accessors.ServerPlayerDiscordAccessor
-import org.nguh.nguhcraft.server.command.Commands
 import org.nguh.nguhcraft.server.command.Commands.Exn
+import org.nguh.nguhcraft.server.command.Error
+import org.nguh.nguhcraft.server.command.Reply
 import org.nguh.nguhcraft.server.dedicated.PlayerList.Companion.UpdateCacheEntry
-import org.nguh.nguhcraft.toUUID
 import org.slf4j.Logger
 import java.io.File
 import java.util.*
@@ -167,13 +168,18 @@ internal class Discord : ListenerAdapter() {
     override fun onMessageReceived(E: MessageReceivedEvent) {
         // Prevent infinite loops and only consider messages in the designated channel.
         if (!Ready) return
-        val A = E.author
-        if (E.isWebhookMessage || A.isBot || E.channel.idLong != MessageChannel.idLong) return
-        val M = E.member
-        val Name = A.effectiveName
-        val Colour = M?.colorRaw ?: Constants.Grey
+        val M = E.member ?: return
+        if (
+            E.isWebhookMessage ||
+            E.author.isSystem ||
+            E.author.isBot ||
+            E.channel.idLong != MessageChannel.idLong
+        ) return
+
+        val Name = SanitiseForMinecraft(M.effectiveName, "[Invalid Username]")
+        val Colour = M.colorRaw
         val Mess = E.message
-        val Content = Mess.contentDisplay
+        val Content = SanitiseForMinecraft(Mess.contentDisplay)
         val HasAttachments = Mess.attachments.isNotEmpty()
         val HasReference = Mess.messageReference != null
         Server.execute {
@@ -204,6 +210,9 @@ internal class Discord : ListenerAdapter() {
 
         private val MUST_ENABLE_DMS : SimpleCommandExceptionType
             = Exn("You must enable DMs from server members to link your account!")
+
+        private val PLEASE_WAIT : SimpleCommandExceptionType
+            = Exn("Bot is still starting; please wait a few seconds and try again.")
 
         private val LOGGER: Logger = LogUtils.getLogger()
         private const val BUTTON_ID_LINK = "ng_lnk:"
@@ -351,7 +360,6 @@ internal class Discord : ListenerAdapter() {
         }
 
         private fun BroadcastPlayerUpdate(SP: ServerPlayerEntity) {
-            UpdatePlayerName(SP)
             Vanish.BroadcastIfNotVanished(
                 SP,
                 ClientboundLinkUpdatePacket(
@@ -364,6 +372,30 @@ internal class Discord : ListenerAdapter() {
             )
         }
 
+        /**
+        * Check if a player is allowed to join the server.
+        *
+        * @return `null` If nothing is preventing them from joining on Discord’s end, or
+        * a message explaining why they can’t join.
+        */
+        @JvmStatic
+        fun CheckCanJoin(GP: GameProfile): Text? {
+            // If we have no record of that player, we can’t map them to
+            // a Discord profile, so give up.
+            val Entry = PlayerList.Player(GP) ?: return null
+
+            // Likewise, if the player is not linked, give up.
+            if (!Entry.isLinked) return null
+
+            // Get the member, if this fails, the rest of the code will just
+            // unlink them and put them in adventure mode on join, so there’s
+            // no reason to do that here.
+            val M = MemberByID(Entry.DiscordID) ?: return null
+
+            // Finally, check if they have the muted role.
+            if (M.roles.contains(MutedRole)) return Text.translatable("multiplayer.disconnect.muted")
+            return null
+        }
 
         /** Compute the name of a (linked) player. */
         private fun ComputePlayerName(
@@ -395,6 +427,27 @@ internal class Discord : ListenerAdapter() {
                 Character.MODIFIER_SYMBOL -> false
                 else -> true
             }
+        }
+
+        /**
+         * Force a member to link with a player, ignoring the
+         * usual permission checks.
+         */
+        fun ForceLink(S: ServerCommandSource, SP: ServerPlayerEntity, ID: Long) {
+            if (!Ready) throw PLEASE_WAIT.create()
+
+            // Fetch the member.
+            val Member = MemberByID(S, ID) ?: return
+
+            // Warn if they’re already linked and unlink them.
+            if (SP.isLinked) {
+                S.Reply("Warning: Member ${Member.effectiveName} is already linked to ${SP.nameForScoreboard}. Unlinking...")
+                PerformUnlink(SP)
+            }
+
+            // Finally, link them. No need for WithMember() here as this
+            // happens synchronously during the server tick.
+            PerformLink(SP, Member)
         }
 
         /**
@@ -510,6 +563,14 @@ internal class Discord : ListenerAdapter() {
         private fun LinkedPlayerForMember(ID: Long): ServerPlayerEntity?
             = Server.playerManager.playerList.find { it.discordId == ID }
 
+        private fun MemberByID(ID: Long): Member? {
+            return try {
+                AgmaSchwaGuild.retrieveMemberById(ID).complete()
+            } catch (_: ErrorResponseException) {
+                null
+            }
+        }
+
         private fun MemberByID(Source: ServerCommandSource, ID: Long): Member? {
             try {
                 return AgmaSchwaGuild.retrieveMemberById(ID).complete()
@@ -533,11 +594,7 @@ internal class Discord : ListenerAdapter() {
          */
         private fun MemberForPlayer(SP: ServerPlayerEntity): Member? {
             if (!SP.isLinked) return null
-            return try {
-                AgmaSchwaGuild.retrieveMemberById(SP.discordId).complete()
-            } catch (E: ErrorResponseException) {
-                null
-            }
+            return MemberByID(SP.discordId)
         }
 
         /**
@@ -603,15 +660,16 @@ internal class Discord : ListenerAdapter() {
         }
 
         /**
-         * An abbreviation of `Sanitise(SerialiseLegacyString(s))`
+         * Strip both Discord mentions and Minecraft colour codes.
          *
          * @param s a string
-         * @return the return value of `Sanitise(SerialiseLegacyString(s))`
+         * @return The string "null" if `s` is `null` and
+         * `SanitiseForDiscord(SanitiseForMinecraft(s))` otherwise.
          *
-         * @see .Sanitise
-         * @see .SerialiseLegacyString
+         * @see .SanitiseForDiscord
+         * @see .SanitiseForMinecraft
          */
-        private fun S(s: String?) = if (s == null) "null" else Sanitise(SerialiseLegacyString(s))!!
+        private fun S(s: String?) = if (s == null) "null" else SanitiseForDiscord(SanitiseForMinecraft(s))!!
 
         /**
          * Sanitise mentions by inserting a zero-width space after each @ sign in `s`
@@ -620,7 +678,28 @@ internal class Discord : ListenerAdapter() {
          * @return a copy of `s`, with all mentions sanitised
          */
         @Contract(value = "null -> null; !null -> !null")
-        fun Sanitise(s: String?) = s?.replace("@", "@\u200B")
+        fun SanitiseForDiscord(s: String?) = s?.replace("@", "@\u200B")
+
+        /**
+         * Remove all § colour codes from a String.
+         *
+         * Minecraft already strips those on input when you send a chat message, so this
+         * only needs to be used on strings that originate elsewhere, e.g. anything received
+         * from Discord.
+         *
+         * Note that the Discord display name of a member is sanitised on creation, so we
+         * don’t need to do that every time we send a chat message.
+         *
+         * @param S the string
+         * @param IfEmpty a string to be returned if the result is empty
+         * @return a copy of `S`, with all § colour codes removed
+         */
+        @Contract(value = "null -> null; !null -> !null")
+        fun SanitiseForMinecraft(S: String, IfEmpty: String = ""): String {
+            var Name = Formatting.strip(S) ?: ""
+            Name = Name.replace("§", "")
+            return Name.ifBlank { IfEmpty }
+        }
 
         /**
          * Sanitise a username for use as the author of a webhook.
@@ -675,15 +754,6 @@ internal class Discord : ListenerAdapter() {
             )
         }
 
-        /**
-         * Remove all § colour codes from a String
-         *
-         * @param s the string
-         * @return a copy of `s`, with all § colour codes removed
-         */
-        @Contract(value = "null -> null; !null -> !null")
-        fun SerialiseLegacyString(s: String?) = s?.replace("§.".toRegex(), "")
-
         fun Unlink(S: ServerCommandSource, SP: ServerPlayerEntity) {
             if (!Ready) return
             PerformUnlink(SP)
@@ -729,9 +799,10 @@ internal class Discord : ListenerAdapter() {
 
             // Dew it.
             SP.discordId = ID
-            SP.discordName = DisplayName ?: ""
+            SP.discordName = SanitiseForMinecraft(DisplayName ?: "", "[Invalid Username]")
             SP.discordColour = NameColour
             SP.discordAvatarURL = AvatarURL ?: ""
+            UpdatePlayerName(SP)
 
             // Broadcast this player’s info to everyone.
             if (!SP.isDisconnected) {
@@ -755,6 +826,9 @@ internal class Discord : ListenerAdapter() {
                 M.effectiveAvatarUrl,
                 M.colorRaw
             )
+
+            // Kick them if they are now muted.
+            if (SP.isMuted) SP.networkHandler.disconnect(Text.translatable("multiplayer.disconnect.muted"))
         }
 
         /**
@@ -899,7 +973,7 @@ class PlayerList private constructor(private val ByID: HashMap<UUID, Entry>) : I
             return PlayerList(PlayerData)
         }
 
-        /** Retrieve Nguhcraft-specific data for a player that is online.  */
+        /** Retrieve Nguhcraft-specific data for a player that is online. */
         fun Player(SP: ServerPlayerEntity): Entry {
             // Should always be a cache hit if they’re online.
             val Data = CACHE[SP.uuid]
@@ -909,7 +983,10 @@ class PlayerList private constructor(private val ByID: HashMap<UUID, Entry>) : I
             return UpdateCacheEntry(SP)
         }
 
-        /** Override the cache entry for a player that is online.  */
+        /** Retrieve Nguhcraft-specific data for a game profile. */
+        fun Player(GP: GameProfile) = GetPlayerData(GP.id)
+
+        /** Override the cache entry for a player that is online. */
         @JvmStatic
         fun UpdateCacheEntry(SP: ServerPlayerEntity): Entry {
             val NewData = Entry(
@@ -925,21 +1002,21 @@ class PlayerList private constructor(private val ByID: HashMap<UUID, Entry>) : I
         }
 
         /** Add a player’s data to a set, fetching it from wherever appropriate.  */
-        private fun AddPlayerData(Map: HashMap<UUID, Entry>, PlayerID: UUID) {
-            if (Map.containsKey(PlayerID)) return
+        private fun AddPlayerData(Map: HashMap<UUID, Entry>, PlayerId: UUID) {
+            if (Map.containsKey(PlayerId)) return
+            GetPlayerData(PlayerId)?.let { Map[PlayerId] = it }
+        }
 
+        private fun GetPlayerData(PlayerId: UUID): Entry? {
             // If we’ve cached their data, use that.
-            val Data = CACHE[PlayerID]
-            if (Data != null) {
-                if (Data != NULL_ENTRY) Map[PlayerID] = Data
-                return
-            }
+            val Data = CACHE[PlayerId]
+            if (Data != null) return if (Data != NULL_ENTRY) Data else null
 
             // Otherwise, load the player from disk. If this fails, there is nothing we can do.
-            val Nbt = ReadPlayerData(PlayerID)
+            val Nbt = ReadPlayerData(PlayerId)
             if (Nbt == null) {
-                CACHE[PlayerID] = NULL_ENTRY
-                return
+                CACHE[PlayerId] = NULL_ENTRY
+                return null
             }
 
             // There no longer is a way to get a player’s name from their UUID (thanks
@@ -964,7 +1041,7 @@ class PlayerList private constructor(private val ByID: HashMap<UUID, Entry>) : I
 
             // Get the rest of the data from the tag and cache it.
             val NewData = Entry(
-                PlayerID,
+                PlayerId,
                 DiscordID,
                 RoleColour,
                 Name,
@@ -972,8 +1049,8 @@ class PlayerList private constructor(private val ByID: HashMap<UUID, Entry>) : I
             )
 
             // Save the data and add it to the map.
-            CACHE[PlayerID] = NewData
-            Map[PlayerID] = NewData
+            CACHE[PlayerId] = NewData
+            return NewData
         }
 
         private fun ReadPlayerData(PlayerID: UUID): NbtCompound? {
@@ -994,13 +1071,29 @@ class PlayerList private constructor(private val ByID: HashMap<UUID, Entry>) : I
 object DiscordCommand {
     private val NOT_LINKED: SimpleCommandExceptionType = Exn("Player is not linked to a Discord account!")
     private val ALREADY_LINKED: SimpleCommandExceptionType = Exn("Player is already linked to a Discord account!")
-    private val LIST_ENTRY = Text.literal("\n  - ")
-    private val IS_LINKED_TO = Text.literal(" → ")
-    private val LPAREN = Text.literal(" (")
-    private val RPAREN = Text.literal(")")
-    private val ERR_EMPTY_FILTER = Text.literal("Filter may not be empty!")
-    private val ERR_EMPTY_QUERY = Text.literal("Query must not be empty!")
-    private val ERR_LIST_SYNTAX = Text.literal("Syntax: /discord list (all|linked|<regex>)")
+    private val LIST_ENTRY = Text.of("\n  - ")
+    private val IS_LINKED_TO = Text.of(" → ")
+    private val LPAREN = Text.of(" (")
+    private val RPAREN = Text.of(")")
+    private val IS_NOT_LINKED: Text = Text.literal("not linked").formatted(Formatting.GRAY)
+    private val ERR_EMPTY_FILTER = Text.of("Filter may not be empty!")
+    private val ERR_LIST_SYNTAX = Text.of("""
+        Syntax:
+          (1) /discord list all
+          (2) /discord list linked
+          (3) /discord list <regex>
+
+        Description:
+          (1) List all players, linked or not.
+          (2) List only linked players.
+          (3) List players whose data (name, id, ...) matches the regex.
+
+        Example:
+          /discord list 123
+
+          This lists all players with minecraft name, discord name,
+          uuid, or discord id containing '123'.
+    """.trimIndent())
 
     private fun AddPlayer(List: MutableText, PD: PlayerList.Entry) {
         if (PD.isLinked) {
@@ -1014,6 +1107,17 @@ object DiscordCommand {
         } else {
             List.append(LIST_ENTRY)
                 .append(Text.literal(PD.toString()).withColor(Constants.Lavender))
+                .append(LPAREN)
+                .append(IS_NOT_LINKED)
+                .append(RPAREN)
+        }
+    }
+
+    @Throws(CommandSyntaxException::class)
+    fun ForceLink(S: ServerCommandSource, SP: ServerPlayerEntity, ID: Long): Int {
+        return Try(S) {
+            Discord.ForceLink(S, SP, ID)
+            1
         }
     }
 
@@ -1025,7 +1129,7 @@ object DiscordCommand {
         for (PD in Players) if (All || PD.isLinked) AddPlayer(List, PD)
 
         // Send the list to the player.
-        S.sendMessage(List.formatted(Formatting.YELLOW))
+        S.Reply(List)
         return 1
     }
 
@@ -1036,23 +1140,21 @@ object DiscordCommand {
                 return 0
             }
 
+            // Find all players that match the filter.
             val Pat = Regex(Filter, RegexOption.IGNORE_CASE)
-
-            // Get ALL players, not just online ones.
-            val Players = PlayerList.AllPlayers()
-
-            // List all players that match the condition.
-            val List = Text.literal("Players: ")
-            for (PD in Players) {
-                if (!Pat.containsMatchIn(PD.toString())) continue
-                AddPlayer(List, PD)
+            val Players = PlayerList.AllPlayers().filter { Pat.containsMatchIn(NormaliseNFKCLower(it.toString())) }
+            if (Players.isEmpty()) {
+                S.Reply("No players matching '$Filter' were found.")
+                return 0
             }
 
-            // Send the list to the player.
-            S.sendMessage(List.formatted(Formatting.YELLOW))
-            return 1
+            // List all players that match the filter.
+            val List = Text.literal("Players: ")
+            for (PD in Players) AddPlayer(List, PD)
+            S.Reply(List)
+            return Players.size
         } catch (E: PatternSyntaxException) {
-            S.sendError(Text.literal("Invalid regular expression: '${E.message}'"))
+            S.Error("Invalid regular expression: ${E.message}")
             return 0
         }
     }
@@ -1060,54 +1162,6 @@ object DiscordCommand {
     fun ListSyntaxError(S: ServerCommandSource): Int {
         S.sendError(ERR_LIST_SYNTAX)
         return 0
-    }
-
-    fun QueryMemberInfo(S: ServerCommandSource, Message: String): Int {
-        val M = Message.trim()
-        val Players = PlayerList.AllPlayers()
-
-        // Message must not be empty.
-        if (M.isEmpty()) {
-            S.sendError(ERR_EMPTY_QUERY)
-            return 0
-        }
-
-        // We iterate separately each time to correctly handle the case of e.g. someone
-        // setting their name to someone else’s ID, in which case we still return the
-        // member whose *ID* matches the query, if there is one.
-        val Data = M.toLongOrNull()?.let { ID -> Players.find { it.DiscordID == ID }  }
-            ?: M.toUUID()?.let { Players.find(it) }
-            ?: NormaliseNFKCLower(M).let { Norm -> Players.find { it.NormalisedDiscordName == Norm } }
-            ?: Players.find { M.equals(it.MinecraftName, ignoreCase = true) }
-
-        // No player found.
-        if (Data == null) {
-            S.sendError(Text.literal("No player found for query: $Message"))
-            return 0
-        }
-
-        // We found a player.
-        return ShowLinkInfoForPlayer(S, Data)
-    }
-
-    fun ShowLinkInfoForPlayer(S: ServerCommandSource, SP: ServerPlayerEntity)
-            = ShowLinkInfoForPlayer(S, PlayerList.Player(SP), SP.discordAvatarURL)
-
-    fun ShowLinkInfoForPlayer(S: ServerCommandSource, PD: PlayerList.Entry, AvatarURL: String? = null): Int {
-        if (!PD.isLinked) {
-            S.sendMessage(Text.literal("Player '$PD' is not linked to a Discord account."))
-            return 1
-        }
-
-        val Msg = Text.literal("""
-                Player '$PD' is linked to ID ${PD.DiscordID}
-                  Discord Name: ${PD.DiscordName}
-                  Name Colour:  
-                """.trimIndent()
-        ).append(Text.literal("#${PD.DiscordColour.toString(16)}").withColor(PD.DiscordColour))
-        if (AvatarURL != null) Msg.append("\n  Avatar URL:   $AvatarURL")
-        S.sendMessage(Msg)
-        return 1
     }
 
     @Throws(CommandSyntaxException::class)
@@ -1119,7 +1173,7 @@ object DiscordCommand {
         } catch (E: Exception) {
             val Message = "Failed to send (un)link request: ${E.message}"
             E.printStackTrace()
-            S.sendError(Text.literal("$Message\nPlease report this to the server administrator."))
+            S.Error("$Message\nPlease report this to the server administrator.")
             return 0
         }
     }

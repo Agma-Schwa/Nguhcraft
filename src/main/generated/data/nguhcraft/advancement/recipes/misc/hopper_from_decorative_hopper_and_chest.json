@@ -1,0 +1,43 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_chest": {
+      "conditions": {
+        "items": [
+          {
+            "items": "minecraft:chest"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_decorative_hopper": {
+      "conditions": {
+        "items": [
+          {
+            "items": "nguhcraft:decorative_hopper"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "minecraft:hopper_from_decorative_hopper_and_chest"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_decorative_hopper",
+      "has_chest"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "minecraft:hopper_from_decorative_hopper_and_chest"
+    ]
+  }
+}
