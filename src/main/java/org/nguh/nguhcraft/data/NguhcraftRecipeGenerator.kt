@@ -118,9 +118,8 @@ class NguhcraftRecipeGenerator(
         }
 
         offerShaped(NguhBlocks.GILDED_CALCITE, 2) {
-            pattern("GC ")
-            pattern("CG ")
-            pattern("   ")
+            pattern("GC")
+            pattern("CG")
             cinput('C', Items.CALCITE)
             cinput('G', Items.GOLD_INGOT)
         }

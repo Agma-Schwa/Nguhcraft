@@ -227,7 +227,9 @@ object NguhBlocks {
             .mapColor(MapColor.STONE_GRAY)
     )
 
+    // =========================================================================
     // Cinnabar blocks
+    // =========================================================================
     val CINNABAR = Register(
         "cinnabar",
         ::Block,
@@ -248,8 +250,6 @@ object NguhBlocks {
     val POLISHED_CINNABAR_SLAB = RegisterVariant(POLISHED_CINNABAR, "slab", ::SlabBlock)
     val POLISHED_CINNABAR_STAIRS = RegisterStairs(POLISHED_CINNABAR)
     val POLISHED_CINNABAR_WALL = RegisterVariant(POLISHED_CINNABAR, "wall", ::WallBlock)
-    val POLISHED_CINNABAR_BUTTON = RegisterVariant(POLISHED_CINNABAR, "button", ::ButtonBlock)
-    val POLISHED_CINNABAR_PRESSURE_PLATE = RegisterVariant(POLISHED_CINNABAR, "pressure_plate", ::PressurePlateBlock)
 
     val CINNABAR_BRICKS = Register(
         "cinnabar_bricks",
@@ -262,10 +262,9 @@ object NguhBlocks {
     val CINNABAR_BRICK_STAIRS = RegisterStairs(CINNABAR_BRICKS)
     val CINNABAR_BRICK_WALL = RegisterVariant(CINNABAR_BRICKS, "wall", ::WallBlock)
 
+    // =========================================================================
     // Calcite blocks
-    val CALCITE_SLAB = RegisterVariant(Blocks.CALCITE, "slab", ::SlabBlock)
-    val CALCITE_STAIRS = RegisterStairs(Blocks.CALCITE)
-
+    // =========================================================================
     val POLISHED_CALCITE = Register(
         "polished_calcite",
         ::Block,
@@ -276,8 +275,6 @@ object NguhBlocks {
     val POLISHED_CALCITE_SLAB = RegisterVariant(POLISHED_CALCITE, "slab", ::SlabBlock)
     val POLISHED_CALCITE_STAIRS = RegisterStairs(POLISHED_CALCITE)
     val POLISHED_CALCITE_WALL = RegisterVariant(POLISHED_CALCITE, "wall", ::WallBlock)
-    val POLISHED_CALCITE_BUTTON = RegisterVariant(POLISHED_CALCITE, "button", ::ButtonBlock)
-    val POLISHED_CALCITE_PRESSURE_PLATE = RegisterVariant(POLISHED_CALCITE, "pressure_plate", ::PressurePlateBlock)
 
     val CHISELED_CALCITE = Register(
         "chiseled_calcite",
@@ -304,7 +301,9 @@ object NguhBlocks {
             .mapColor(MapColor.TERRACOTTA_WHITE)
     )
 
+    // =========================================================================
     // Gilded calcite
+    // =========================================================================
     val GILDED_CALCITE = Register(
         "gilded_calcite",
         ::Block,
@@ -325,8 +324,6 @@ object NguhBlocks {
     val GILDED_POLISHED_CALCITE_SLAB = RegisterVariant(GILDED_POLISHED_CALCITE, "slab", ::SlabBlock)
     val GILDED_POLISHED_CALCITE_STAIRS = RegisterStairs(GILDED_POLISHED_CALCITE)
     val GILDED_POLISHED_CALCITE_WALL = RegisterVariant(GILDED_POLISHED_CALCITE, "wall", ::WallBlock)
-    val GILDED_POLISHED_CALCITE_BUTTON = RegisterVariant(GILDED_POLISHED_CALCITE, "button", ::ButtonBlock)
-    val GILDED_POLISHED_CALCITE_PRESSURE_PLATE = RegisterVariant(GILDED_POLISHED_CALCITE, "pressure_plate", ::PressurePlateBlock)
 
     val GILDED_CHISELED_CALCITE = Register(
         "gilded_chiseled_calcite",
@@ -353,7 +350,9 @@ object NguhBlocks {
             .mapColor(MapColor.TERRACOTTA_WHITE)
     )
 
+    // =========================================================================
     // Block entities.
+    // =========================================================================
     val LOCKED_DOOR_BLOCK_ENTITY = RegisterEntity(
         "lockable_door",
         FabricBlockEntityTypeBuilder
@@ -361,57 +360,53 @@ object NguhBlocks {
             .build()
     )
 
+    // =========================================================================
     // Block families
-    val CINNABAR_BLOCKTYPE = BlockFamilies.register(NguhBlocks.CINNABAR)
+    // =========================================================================
+    val CINNABAR_FAMILY = BlockFamilies.register(NguhBlocks.CINNABAR)
         .polished(NguhBlocks.POLISHED_CINNABAR)
         .slab(NguhBlocks.CINNABAR_SLAB)
         .stairs(NguhBlocks.CINNABAR_STAIRS)
         .build()
-    val POLISHED_CINNABAR_BLOCKTYPE = BlockFamilies.register(NguhBlocks.POLISHED_CINNABAR)
+    val POLISHED_CINNABAR_FAMILY = BlockFamilies.register(NguhBlocks.POLISHED_CINNABAR)
         .polished(NguhBlocks.CINNABAR_BRICKS)
         .slab(NguhBlocks.POLISHED_CINNABAR_SLAB)
         .stairs(NguhBlocks.POLISHED_CINNABAR_STAIRS)
         .wall(NguhBlocks.POLISHED_CINNABAR_WALL)
-        .button(NguhBlocks.POLISHED_CINNABAR_BUTTON)
-        .pressurePlate(NguhBlocks.POLISHED_CINNABAR_PRESSURE_PLATE)
         .build()
-    val CINNABAR_BRICK_BLOCKTYPE = BlockFamilies.register(NguhBlocks.CINNABAR_BRICKS)
+    val CINNABAR_BRICK_FAMILY = BlockFamilies.register(CINNABAR_BRICKS)
         .slab(NguhBlocks.CINNABAR_BRICK_SLAB)
         .stairs(NguhBlocks.CINNABAR_BRICK_STAIRS)
         .wall(NguhBlocks.CINNABAR_BRICK_WALL)
         .build()
-    val CALCITE_BLOCKTYPE = BlockFamilies.register(Blocks.CALCITE)
+    val CALCITE_FAMILY = BlockFamilies.register(Blocks.CALCITE)
         .polished(NguhBlocks.POLISHED_CALCITE)
         .slab(NguhBlocks.CALCITE_SLAB)
         .stairs(NguhBlocks.CALCITE_STAIRS)
         .build()
-    val POLISHED_CALCITE_BLOCKTYPE = BlockFamilies.register(NguhBlocks.POLISHED_CALCITE)
+    val POLISHED_CALCITE_FAMILY = BlockFamilies.register(POLISHED_CALCITE)
         .polished(NguhBlocks.CALCITE_BRICKS)
         .slab(NguhBlocks.POLISHED_CALCITE_SLAB)
         .stairs(NguhBlocks.POLISHED_CALCITE_STAIRS)
         .wall(NguhBlocks.POLISHED_CALCITE_WALL)
-        .button(NguhBlocks.POLISHED_CALCITE_BUTTON)
-        .pressurePlate(NguhBlocks.POLISHED_CALCITE_PRESSURE_PLATE)
         .build()
-    val CALCITE_BRICK_BLOCKTYPE = BlockFamilies.register(NguhBlocks.CALCITE_BRICKS)
+    val CALCITE_BRICK_FAMILY = BlockFamilies.register(CALCITE_BRICKS)
         .slab(NguhBlocks.CALCITE_BRICK_SLAB)
         .stairs(NguhBlocks.CALCITE_BRICK_STAIRS)
         .wall(NguhBlocks.CALCITE_BRICK_WALL)
         .build()
-    val GILDED_CALCITE_BLOCKTYPE = BlockFamilies.register(NguhBlocks.GILDED_CALCITE)
+    val GILDED_CALCITE_FAMILY = BlockFamilies.register(GILDED_CALCITE)
         .polished(NguhBlocks.GILDED_POLISHED_CALCITE)
         .slab(NguhBlocks.GILDED_CALCITE_SLAB)
         .stairs(NguhBlocks.GILDED_CALCITE_STAIRS)
         .build()
-    val GILDED_POLISHED_CALCITE_BLOCKTYPE = BlockFamilies.register(NguhBlocks.GILDED_POLISHED_CALCITE)
+    val GILDED_POLISHED_CALCITE_FAMILY = BlockFamilies.register(GILDED_POLISHED_CALCITE)
         .polished(NguhBlocks.GILDED_CALCITE_BRICKS)
         .slab(NguhBlocks.GILDED_POLISHED_CALCITE_SLAB)
         .stairs(NguhBlocks.GILDED_POLISHED_CALCITE_STAIRS)
         .wall(NguhBlocks.GILDED_POLISHED_CALCITE_WALL)
-        .button(NguhBlocks.GILDED_POLISHED_CALCITE_BUTTON)
-        .pressurePlate(NguhBlocks.GILDED_POLISHED_CALCITE_PRESSURE_PLATE)
         .build()
-    val GILDED_CALCITE_BRICK_BLOCKTYPE = BlockFamilies.register(NguhBlocks.GILDED_CALCITE_BRICKS)
+    val GILDED_CALCITE_BRICK_FAMILY = BlockFamilies.register(GILDED_CALCITE_BRICKS)
         .slab(NguhBlocks.GILDED_CALCITE_BRICK_SLAB)
         .stairs(NguhBlocks.GILDED_CALCITE_BRICK_STAIRS)
         .wall(NguhBlocks.GILDED_CALCITE_BRICK_WALL)
