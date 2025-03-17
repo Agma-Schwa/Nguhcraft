@@ -444,6 +444,7 @@ object NguhBlocks {
         WROUGHT_IRON_BARS,
         GOLD_BARS,
         COMPRESSED_STONE,
+        CHISELED_CALCITE,
     ).also { it.addAll(STONE_VARIANT_FAMILY_BLOCKS) }.toTypedArray()
 
     val DROPS_SELF = mutableSetOf(
@@ -454,6 +455,7 @@ object NguhBlocks {
         WROUGHT_IRON_BARS,
         GOLD_BARS,
         COMPRESSED_STONE,
+        CHISELED_CALCITE,
     ).also { it.addAll(STONE_VARIANT_FAMILY_BLOCKS) }.toTypedArray()
 
     // =========================================================================
@@ -511,6 +513,7 @@ object NguhBlocks {
             it.add(WROUGHT_IRON_BLOCK)
             it.add(WROUGHT_IRON_BARS)
             it.add(GOLD_BARS)
+            it.add(CHISELED_CALCITE)
             for (B in STONE_VARIANT_FAMILY_BLOCKS) it.add(B)
         }
 

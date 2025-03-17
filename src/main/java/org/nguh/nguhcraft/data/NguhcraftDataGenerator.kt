@@ -10,6 +10,9 @@ import net.fabricmc.fabric.api.datagen.v1.provider.FabricRecipeProvider
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricTagProvider
 import net.minecraft.block.Block
 import net.minecraft.block.Blocks
+import net.minecraft.block.SlabBlock
+import net.minecraft.block.StairsBlock
+import net.minecraft.block.WallBlock
 import net.minecraft.client.data.BlockStateModelGenerator
 import net.minecraft.client.data.ItemModelGenerator
 import net.minecraft.component.DataComponentTypes
@@ -47,6 +50,25 @@ class NguhcraftBlockTagProvider(
         }
 
         getOrCreateTagBuilder(BlockTags.DOORS).add(NguhBlocks.LOCKED_DOOR)
+
+        // Add blocks from families.
+        getOrCreateTagBuilder(BlockTags.WALLS).let {
+            for (B in NguhBlocks.STONE_VARIANT_FAMILY_BLOCKS)
+                if (B is WallBlock)
+                    it.add(B)
+        }
+
+        getOrCreateTagBuilder(BlockTags.STAIRS).let {
+            for (B in NguhBlocks.STONE_VARIANT_FAMILY_BLOCKS)
+                if (B is StairsBlock)
+                    it.add(B)
+        }
+
+        getOrCreateTagBuilder(BlockTags.SLABS).let {
+            for (B in NguhBlocks.STONE_VARIANT_FAMILY_BLOCKS)
+                if (B is SlabBlock)
+                    it.add(B)
+        }
     }
 }
 
