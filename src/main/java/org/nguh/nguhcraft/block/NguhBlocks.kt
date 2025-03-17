@@ -143,7 +143,7 @@ class ChestVariantProperty : SelectProperty<ChestVariant> {
         LE: LivingEntity?,
         Seed: Int,
         MTM: ModelTransformationMode
-    ) = St.get(NguhBlocks.CHEST_VARIANT_COMPONENT)
+    ) = St.get(CHEST_VARIANT_COMPONENT)
 
     override fun getType() = TYPE
     companion object {
@@ -363,51 +363,48 @@ object NguhBlocks {
     // =========================================================================
     // Block families
     // =========================================================================
-    val CINNABAR_FAMILY = BlockFamilies.register(NguhBlocks.CINNABAR)
-        .polished(NguhBlocks.POLISHED_CINNABAR)
-        .slab(NguhBlocks.CINNABAR_SLAB)
-        .stairs(NguhBlocks.CINNABAR_STAIRS)
+    val CINNABAR_FAMILY = BlockFamilies.register(CINNABAR)
+        .polished(POLISHED_CINNABAR)
+        .slab(CINNABAR_SLAB)
+        .stairs(CINNABAR_STAIRS)
         .build()
-    val POLISHED_CINNABAR_FAMILY = BlockFamilies.register(NguhBlocks.POLISHED_CINNABAR)
-        .polished(NguhBlocks.CINNABAR_BRICKS)
-        .slab(NguhBlocks.POLISHED_CINNABAR_SLAB)
-        .stairs(NguhBlocks.POLISHED_CINNABAR_STAIRS)
-        .wall(NguhBlocks.POLISHED_CINNABAR_WALL)
+    val POLISHED_CINNABAR_FAMILY = BlockFamilies.register(POLISHED_CINNABAR)
+        .polished(CINNABAR_BRICKS)
+        .slab(POLISHED_CINNABAR_SLAB)
+        .stairs(POLISHED_CINNABAR_STAIRS)
+        .wall(POLISHED_CINNABAR_WALL)
         .build()
     val CINNABAR_BRICK_FAMILY = BlockFamilies.register(CINNABAR_BRICKS)
-        .slab(NguhBlocks.CINNABAR_BRICK_SLAB)
-        .stairs(NguhBlocks.CINNABAR_BRICK_STAIRS)
-        .wall(NguhBlocks.CINNABAR_BRICK_WALL)
-        .build()
-    val CALCITE_FAMILY = BlockFamilies.register(Blocks.CALCITE)
-        .polished(NguhBlocks.POLISHED_CALCITE)
+        .slab(CINNABAR_BRICK_SLAB)
+        .stairs(CINNABAR_BRICK_STAIRS)
+        .wall(CINNABAR_BRICK_WALL)
         .build()
     val POLISHED_CALCITE_FAMILY = BlockFamilies.register(POLISHED_CALCITE)
-        .polished(NguhBlocks.CALCITE_BRICKS)
-        .slab(NguhBlocks.POLISHED_CALCITE_SLAB)
-        .stairs(NguhBlocks.POLISHED_CALCITE_STAIRS)
-        .wall(NguhBlocks.POLISHED_CALCITE_WALL)
+        .polished(CALCITE_BRICKS)
+        .slab(POLISHED_CALCITE_SLAB)
+        .stairs(POLISHED_CALCITE_STAIRS)
+        .wall(POLISHED_CALCITE_WALL)
         .build()
     val CALCITE_BRICK_FAMILY = BlockFamilies.register(CALCITE_BRICKS)
-        .slab(NguhBlocks.CALCITE_BRICK_SLAB)
-        .stairs(NguhBlocks.CALCITE_BRICK_STAIRS)
-        .wall(NguhBlocks.CALCITE_BRICK_WALL)
+        .slab(CALCITE_BRICK_SLAB)
+        .stairs(CALCITE_BRICK_STAIRS)
+        .wall(CALCITE_BRICK_WALL)
         .build()
     val GILDED_CALCITE_FAMILY = BlockFamilies.register(GILDED_CALCITE)
-        .polished(NguhBlocks.GILDED_POLISHED_CALCITE)
-        .slab(NguhBlocks.GILDED_CALCITE_SLAB)
-        .stairs(NguhBlocks.GILDED_CALCITE_STAIRS)
+        .polished(GILDED_POLISHED_CALCITE)
+        .slab(GILDED_CALCITE_SLAB)
+        .stairs(GILDED_CALCITE_STAIRS)
         .build()
     val GILDED_POLISHED_CALCITE_FAMILY = BlockFamilies.register(GILDED_POLISHED_CALCITE)
-        .polished(NguhBlocks.GILDED_CALCITE_BRICKS)
-        .slab(NguhBlocks.GILDED_POLISHED_CALCITE_SLAB)
-        .stairs(NguhBlocks.GILDED_POLISHED_CALCITE_STAIRS)
-        .wall(NguhBlocks.GILDED_POLISHED_CALCITE_WALL)
+        .polished(GILDED_CALCITE_BRICKS)
+        .slab(GILDED_POLISHED_CALCITE_SLAB)
+        .stairs(GILDED_POLISHED_CALCITE_STAIRS)
+        .wall(GILDED_POLISHED_CALCITE_WALL)
         .build()
     val GILDED_CALCITE_BRICK_FAMILY = BlockFamilies.register(GILDED_CALCITE_BRICKS)
-        .slab(NguhBlocks.GILDED_CALCITE_BRICK_SLAB)
-        .stairs(NguhBlocks.GILDED_CALCITE_BRICK_STAIRS)
-        .wall(NguhBlocks.GILDED_CALCITE_BRICK_WALL)
+        .slab(GILDED_CALCITE_BRICK_SLAB)
+        .stairs(GILDED_CALCITE_BRICK_STAIRS)
+        .wall(GILDED_CALCITE_BRICK_WALL)
         .build()
 
     // Tags
@@ -426,20 +423,14 @@ object NguhBlocks {
         POLISHED_CINNABAR,
         POLISHED_CINNABAR_SLAB,
         POLISHED_CINNABAR_STAIRS,
-        POLISHED_CINNABAR_PRESSURE_PLATE,
-        POLISHED_CINNABAR_BUTTON,
         CINNABAR_BRICKS,
         CINNABAR_BRICK_SLAB,
         CINNABAR_BRICK_STAIRS,
         CINNABAR_BRICK_WALL,
-        CALCITE_SLAB,
-        CALCITE_STAIRS,
         POLISHED_CALCITE,
         POLISHED_CALCITE_SLAB,
         POLISHED_CALCITE_STAIRS,
         POLISHED_CALCITE_WALL,
-        POLISHED_CALCITE_PRESSURE_PLATE,
-        POLISHED_CALCITE_BUTTON,
         CALCITE_BRICKS,
         CALCITE_BRICK_SLAB,
         CALCITE_BRICK_STAIRS,
@@ -453,8 +444,6 @@ object NguhBlocks {
         GILDED_POLISHED_CALCITE_SLAB,
         GILDED_POLISHED_CALCITE_STAIRS,
         GILDED_POLISHED_CALCITE_WALL,
-        GILDED_POLISHED_CALCITE_PRESSURE_PLATE,
-        GILDED_POLISHED_CALCITE_BUTTON,
         GILDED_CALCITE_BRICKS,
         GILDED_CALCITE_BRICK_SLAB,
         GILDED_CALCITE_BRICK_STAIRS,
@@ -477,20 +466,14 @@ object NguhBlocks {
         POLISHED_CINNABAR,
         POLISHED_CINNABAR_SLAB,
         POLISHED_CINNABAR_STAIRS,
-        POLISHED_CINNABAR_PRESSURE_PLATE,
-        POLISHED_CINNABAR_BUTTON,
         CINNABAR_BRICKS,
         CINNABAR_BRICK_SLAB,
         CINNABAR_BRICK_STAIRS,
         CINNABAR_BRICK_WALL,
-        CALCITE_SLAB,
-        CALCITE_STAIRS,
         POLISHED_CALCITE,
         POLISHED_CALCITE_SLAB,
         POLISHED_CALCITE_STAIRS,
         POLISHED_CALCITE_WALL,
-        POLISHED_CALCITE_PRESSURE_PLATE,
-        POLISHED_CALCITE_BUTTON,
         CALCITE_BRICKS,
         CALCITE_BRICK_SLAB,
         CALCITE_BRICK_STAIRS,
@@ -504,8 +487,6 @@ object NguhBlocks {
         GILDED_POLISHED_CALCITE_SLAB,
         GILDED_POLISHED_CALCITE_STAIRS,
         GILDED_POLISHED_CALCITE_WALL,
-        GILDED_POLISHED_CALCITE_PRESSURE_PLATE,
-        GILDED_POLISHED_CALCITE_BUTTON,
         GILDED_CALCITE_BRICKS,
         GILDED_CALCITE_BRICK_SLAB,
         GILDED_CALCITE_BRICK_STAIRS,
@@ -544,7 +525,6 @@ object NguhBlocks {
     }
 
     fun Init() {
-
         ItemGroupEvents.modifyEntriesEvent(ItemGroups.REDSTONE).register {
             it.add(DECORATIVE_HOPPER)
         }
@@ -561,20 +541,14 @@ object NguhBlocks {
             it.add(POLISHED_CINNABAR)
             it.add(POLISHED_CINNABAR_SLAB)
             it.add(POLISHED_CINNABAR_STAIRS)
-            it.add(POLISHED_CINNABAR_BUTTON)
-            it.add(POLISHED_CINNABAR_PRESSURE_PLATE)
             it.add(CINNABAR_BRICKS)
             it.add(CINNABAR_BRICK_SLAB)
             it.add(CINNABAR_BRICK_STAIRS)
             it.add(CINNABAR_BRICK_WALL)
-            it.add(CALCITE_SLAB)
-            it.add(CALCITE_STAIRS)
             it.add(POLISHED_CALCITE)
             it.add(POLISHED_CALCITE_SLAB)
             it.add(POLISHED_CALCITE_STAIRS)
             it.add(POLISHED_CALCITE_WALL)
-            it.add(POLISHED_CALCITE_BUTTON)
-            it.add(POLISHED_CALCITE_PRESSURE_PLATE)
             it.add(CALCITE_BRICKS)
             it.add(CALCITE_BRICK_SLAB)
             it.add(CALCITE_BRICK_STAIRS)
@@ -588,8 +562,6 @@ object NguhBlocks {
             it.add(GILDED_POLISHED_CALCITE_SLAB)
             it.add(GILDED_POLISHED_CALCITE_STAIRS)
             it.add(GILDED_POLISHED_CALCITE_WALL)
-            it.add(GILDED_POLISHED_CALCITE_BUTTON)
-            it.add(GILDED_POLISHED_CALCITE_PRESSURE_PLATE)
             it.add(GILDED_CALCITE_BRICKS)
             it.add(GILDED_CALCITE_BRICK_SLAB)
             it.add(GILDED_CALCITE_BRICK_STAIRS)
