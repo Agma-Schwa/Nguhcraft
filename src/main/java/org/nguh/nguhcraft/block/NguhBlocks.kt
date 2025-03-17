@@ -381,8 +381,6 @@ object NguhBlocks {
         .build()
     val CALCITE_FAMILY = BlockFamilies.register(Blocks.CALCITE)
         .polished(NguhBlocks.POLISHED_CALCITE)
-        .slab(NguhBlocks.CALCITE_SLAB)
-        .stairs(NguhBlocks.CALCITE_STAIRS)
         .build()
     val POLISHED_CALCITE_FAMILY = BlockFamilies.register(POLISHED_CALCITE)
         .polished(NguhBlocks.CALCITE_BRICKS)
