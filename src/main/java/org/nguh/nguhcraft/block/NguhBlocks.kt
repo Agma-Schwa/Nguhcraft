@@ -143,7 +143,7 @@ class ChestVariantProperty : SelectProperty<ChestVariant> {
         LE: LivingEntity?,
         Seed: Int,
         MTM: ModelTransformationMode
-    ) = St.get(CHEST_VARIANT_COMPONENT)
+    ) = St.get(NguhBlocks.CHEST_VARIANT_COMPONENT)
 
     override fun getType() = TYPE
     companion object {
@@ -363,52 +363,79 @@ object NguhBlocks {
     // =========================================================================
     // Block families
     // =========================================================================
-    val CINNABAR_FAMILY = BlockFamilies.register(CINNABAR)
+    val CINNABAR_FAMILY: BlockFamily = BlockFamilies.register(CINNABAR)
         .polished(POLISHED_CINNABAR)
         .slab(CINNABAR_SLAB)
         .stairs(CINNABAR_STAIRS)
         .build()
-    val POLISHED_CINNABAR_FAMILY = BlockFamilies.register(POLISHED_CINNABAR)
-        .polished(CINNABAR_BRICKS)
+
+    val POLISHED_CINNABAR_FAMILY: BlockFamily = BlockFamilies.register(POLISHED_CINNABAR)
         .slab(POLISHED_CINNABAR_SLAB)
         .stairs(POLISHED_CINNABAR_STAIRS)
         .wall(POLISHED_CINNABAR_WALL)
         .build()
-    val CINNABAR_BRICK_FAMILY = BlockFamilies.register(CINNABAR_BRICKS)
+
+    val CINNABAR_BRICK_FAMILY: BlockFamily = BlockFamilies.register(CINNABAR_BRICKS)
         .slab(CINNABAR_BRICK_SLAB)
         .stairs(CINNABAR_BRICK_STAIRS)
         .wall(CINNABAR_BRICK_WALL)
         .build()
-    val POLISHED_CALCITE_FAMILY = BlockFamilies.register(POLISHED_CALCITE)
-        .polished(CALCITE_BRICKS)
+
+    val POLISHED_CALCITE_FAMILY: BlockFamily = BlockFamilies.register(POLISHED_CALCITE)
         .slab(POLISHED_CALCITE_SLAB)
         .stairs(POLISHED_CALCITE_STAIRS)
         .wall(POLISHED_CALCITE_WALL)
         .build()
-    val CALCITE_BRICK_FAMILY = BlockFamilies.register(CALCITE_BRICKS)
+
+    val CALCITE_BRICK_FAMILY: BlockFamily = BlockFamilies.register(CALCITE_BRICKS)
         .slab(CALCITE_BRICK_SLAB)
         .stairs(CALCITE_BRICK_STAIRS)
         .wall(CALCITE_BRICK_WALL)
+        .chiseled(CHISELED_CALCITE_BRICKS)
         .build()
-    val GILDED_CALCITE_FAMILY = BlockFamilies.register(GILDED_CALCITE)
+
+    val GILDED_CALCITE_FAMILY: BlockFamily = BlockFamilies.register(GILDED_CALCITE)
         .polished(GILDED_POLISHED_CALCITE)
         .slab(GILDED_CALCITE_SLAB)
         .stairs(GILDED_CALCITE_STAIRS)
+        .chiseled(GILDED_CHISELED_CALCITE)
         .build()
-    val GILDED_POLISHED_CALCITE_FAMILY = BlockFamilies.register(GILDED_POLISHED_CALCITE)
-        .polished(GILDED_CALCITE_BRICKS)
+
+    val GILDED_POLISHED_CALCITE_FAMILY: BlockFamily = BlockFamilies.register(GILDED_POLISHED_CALCITE)
         .slab(GILDED_POLISHED_CALCITE_SLAB)
         .stairs(GILDED_POLISHED_CALCITE_STAIRS)
         .wall(GILDED_POLISHED_CALCITE_WALL)
         .build()
-    val GILDED_CALCITE_BRICK_FAMILY = BlockFamilies.register(GILDED_CALCITE_BRICKS)
+
+    val GILDED_CALCITE_BRICK_FAMILY: BlockFamily = BlockFamilies.register(GILDED_CALCITE_BRICKS)
         .slab(GILDED_CALCITE_BRICK_SLAB)
         .stairs(GILDED_CALCITE_BRICK_STAIRS)
         .wall(GILDED_CALCITE_BRICK_WALL)
+        .chiseled(GILDED_CHISELED_CALCITE_BRICKS)
         .build()
 
+    val STONE_VARIANT_FAMILIES = arrayOf(
+        CINNABAR_FAMILY,
+        POLISHED_CINNABAR_FAMILY,
+        CINNABAR_BRICK_FAMILY,
+        POLISHED_CALCITE_FAMILY,
+        CALCITE_BRICK_FAMILY,
+        GILDED_CALCITE_FAMILY,
+        GILDED_POLISHED_CALCITE_FAMILY,
+        GILDED_CALCITE_BRICK_FAMILY
+    )
+
+    val STONE_VARIANT_FAMILY_BLOCKS = mutableSetOf<Block>().also {
+        for (F in STONE_VARIANT_FAMILIES) {
+            it.add(F.baseBlock)
+            it.addAll(F.variants.values)
+        }
+    }.toTypedArray()
+
+    // =========================================================================
     // Tags
-    val PICKAXE_MINEABLE = arrayOf(
+    // =========================================================================
+    val PICKAXE_MINEABLE = mutableListOf(
         DECORATIVE_HOPPER,
         LOCKED_DOOR,
         PEARLESCENT_LANTERN,
@@ -417,42 +444,9 @@ object NguhBlocks {
         WROUGHT_IRON_BARS,
         GOLD_BARS,
         COMPRESSED_STONE,
-        CINNABAR,
-        CINNABAR_SLAB,
-        CINNABAR_STAIRS,
-        POLISHED_CINNABAR,
-        POLISHED_CINNABAR_SLAB,
-        POLISHED_CINNABAR_STAIRS,
-        CINNABAR_BRICKS,
-        CINNABAR_BRICK_SLAB,
-        CINNABAR_BRICK_STAIRS,
-        CINNABAR_BRICK_WALL,
-        POLISHED_CALCITE,
-        POLISHED_CALCITE_SLAB,
-        POLISHED_CALCITE_STAIRS,
-        POLISHED_CALCITE_WALL,
-        CALCITE_BRICKS,
-        CALCITE_BRICK_SLAB,
-        CALCITE_BRICK_STAIRS,
-        CALCITE_BRICK_WALL,
-        CHISELED_CALCITE,
-        CHISELED_CALCITE_BRICKS,
-        GILDED_CALCITE,
-        GILDED_CALCITE_SLAB,
-        GILDED_CALCITE_STAIRS,
-        GILDED_POLISHED_CALCITE,
-        GILDED_POLISHED_CALCITE_SLAB,
-        GILDED_POLISHED_CALCITE_STAIRS,
-        GILDED_POLISHED_CALCITE_WALL,
-        GILDED_CALCITE_BRICKS,
-        GILDED_CALCITE_BRICK_SLAB,
-        GILDED_CALCITE_BRICK_STAIRS,
-        GILDED_CALCITE_BRICK_WALL,
-        GILDED_CHISELED_CALCITE,
-        GILDED_CHISELED_CALCITE_BRICKS,
-    )
+    ).also { it.addAll(STONE_VARIANT_FAMILY_BLOCKS) }.toTypedArray()
 
-    val DROPS_SELF = arrayOf(
+    val DROPS_SELF = mutableSetOf(
         DECORATIVE_HOPPER,
         PEARLESCENT_LANTERN,
         PEARLESCENT_CHAIN,
@@ -460,55 +454,37 @@ object NguhBlocks {
         WROUGHT_IRON_BARS,
         GOLD_BARS,
         COMPRESSED_STONE,
-        CINNABAR,
-        CINNABAR_SLAB,
-        CINNABAR_STAIRS,
-        POLISHED_CINNABAR,
-        POLISHED_CINNABAR_SLAB,
-        POLISHED_CINNABAR_STAIRS,
-        CINNABAR_BRICKS,
-        CINNABAR_BRICK_SLAB,
-        CINNABAR_BRICK_STAIRS,
-        CINNABAR_BRICK_WALL,
-        POLISHED_CALCITE,
-        POLISHED_CALCITE_SLAB,
-        POLISHED_CALCITE_STAIRS,
-        POLISHED_CALCITE_WALL,
-        CALCITE_BRICKS,
-        CALCITE_BRICK_SLAB,
-        CALCITE_BRICK_STAIRS,
-        CALCITE_BRICK_WALL,
-        CHISELED_CALCITE,
-        CHISELED_CALCITE_BRICKS,
-        GILDED_CALCITE,
-        GILDED_CALCITE_SLAB,
-        GILDED_CALCITE_STAIRS,
-        GILDED_POLISHED_CALCITE,
-        GILDED_POLISHED_CALCITE_SLAB,
-        GILDED_POLISHED_CALCITE_STAIRS,
-        GILDED_POLISHED_CALCITE_WALL,
-        GILDED_CALCITE_BRICKS,
-        GILDED_CALCITE_BRICK_SLAB,
-        GILDED_CALCITE_BRICK_STAIRS,
-        GILDED_CALCITE_BRICK_WALL,
-        GILDED_CHISELED_CALCITE,
-        GILDED_CHISELED_CALCITE_BRICKS,
-    )
+    ).also { it.addAll(STONE_VARIANT_FAMILY_BLOCKS) }.toTypedArray()
 
+    // =========================================================================
+    // Models
+    // =========================================================================
     fun BootstrapModels(G: BlockStateModelGenerator) {
         // The door and hopper block state models are very complicated and not exposed
         // as helper functions (the door is actually exposed but our door has an extra
         // block state), so those are currently hard-coded as JSON files instead of being
         // generated here.
-        G.registerLantern(PEARLESCENT_LANTERN)
-        G.registerItemModel(PEARLESCENT_CHAIN.asItem())
         G.registerItemModel(DECORATIVE_HOPPER.asItem())
         G.registerItemModel(LOCKED_DOOR.asItem())
+
+        // Simple blocks.
+        G.registerLantern(PEARLESCENT_LANTERN)
+        G.registerItemModel(PEARLESCENT_CHAIN.asItem())
         G.registerSimpleCubeAll(WROUGHT_IRON_BLOCK)
         G.registerSimpleCubeAll(COMPRESSED_STONE)
         G.registerAxisRotated(PEARLESCENT_CHAIN, ModelIds.getBlockModelId(PEARLESCENT_CHAIN))
+
+        // Bars.
         RegisterBarsModel(G, WROUGHT_IRON_BARS)
         RegisterBarsModel(G, GOLD_BARS)
+
+        // Block families.
+        STONE_VARIANT_FAMILIES
+            .filter(BlockFamily::shouldGenerateModels)
+            .forEach { G.registerCubeAllModelTexturePool(it.baseBlock).family(it) }
+
+        // We can’t modify builtin families, so we just have to handle these manually.
+        G.registerSimpleCubeAll(CHISELED_CALCITE)
 
         // Chest variants. Copied from registerChest().
         val Template = Models.TEMPLATE_CHEST.upload(Items.CHEST, TextureMap.particle(Blocks.OAK_PLANKS), G.modelCollector)
@@ -535,39 +511,7 @@ object NguhBlocks {
             it.add(WROUGHT_IRON_BLOCK)
             it.add(WROUGHT_IRON_BARS)
             it.add(GOLD_BARS)
-            it.add(CINNABAR)
-            it.add(CINNABAR_SLAB)
-            it.add(CINNABAR_STAIRS)
-            it.add(POLISHED_CINNABAR)
-            it.add(POLISHED_CINNABAR_SLAB)
-            it.add(POLISHED_CINNABAR_STAIRS)
-            it.add(CINNABAR_BRICKS)
-            it.add(CINNABAR_BRICK_SLAB)
-            it.add(CINNABAR_BRICK_STAIRS)
-            it.add(CINNABAR_BRICK_WALL)
-            it.add(POLISHED_CALCITE)
-            it.add(POLISHED_CALCITE_SLAB)
-            it.add(POLISHED_CALCITE_STAIRS)
-            it.add(POLISHED_CALCITE_WALL)
-            it.add(CALCITE_BRICKS)
-            it.add(CALCITE_BRICK_SLAB)
-            it.add(CALCITE_BRICK_STAIRS)
-            it.add(CALCITE_BRICK_WALL)
-            it.add(CHISELED_CALCITE)
-            it.add(CHISELED_CALCITE_BRICKS)
-            it.add(GILDED_CALCITE)
-            it.add(GILDED_CALCITE_SLAB)
-            it.add(GILDED_CALCITE_STAIRS)
-            it.add(GILDED_POLISHED_CALCITE)
-            it.add(GILDED_POLISHED_CALCITE_SLAB)
-            it.add(GILDED_POLISHED_CALCITE_STAIRS)
-            it.add(GILDED_POLISHED_CALCITE_WALL)
-            it.add(GILDED_CALCITE_BRICKS)
-            it.add(GILDED_CALCITE_BRICK_SLAB)
-            it.add(GILDED_CALCITE_BRICK_STAIRS)
-            it.add(GILDED_CALCITE_BRICK_WALL)
-            it.add(GILDED_CHISELED_CALCITE)
-            it.add(GILDED_CHISELED_CALCITE_BRICKS)
+            for (B in STONE_VARIANT_FAMILY_BLOCKS) it.add(B)
         }
 
         ItemGroupEvents.modifyEntriesEvent(ItemGroups.FUNCTIONAL).register {
