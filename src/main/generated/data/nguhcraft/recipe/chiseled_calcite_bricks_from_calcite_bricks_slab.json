@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "nguhcraft:calcite_bricks_slab",
+    "nguhcraft:calcite_bricks_slab"
+  ],
+  "result": {
+    "count": 2,
+    "id": "nguhcraft:chiseled_calcite_bricks"
+  }
+}

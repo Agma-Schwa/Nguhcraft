@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:block/wall_inventory",
+  "textures": {
+    "wall": "nguhcraft:block/gilded_polished_calcite"
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/slab_top",
+  "textures": {
+    "bottom": "nguhcraft:block/calcite_bricks",
+    "side": "nguhcraft:block/calcite_bricks",
+    "top": "nguhcraft:block/calcite_bricks"
+  }
+}
