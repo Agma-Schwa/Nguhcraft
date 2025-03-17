@@ -29,6 +29,7 @@ import net.minecraft.client.render.item.property.select.SelectProperty
 import net.minecraft.client.util.SpriteIdentifier
 import net.minecraft.client.world.ClientWorld
 import net.minecraft.component.ComponentType
+import net.minecraft.data.family.BlockFamily
 import net.minecraft.entity.LivingEntity
 import net.minecraft.item.*
 import net.minecraft.network.codec.PacketCodec
@@ -220,12 +221,21 @@ object NguhBlocks {
             .mapColor(MapColor.GRAY)
     )
 
+    val GOLD_BARS = Register(
+        "gold_bars",
+        ::PaneBlock,
+        AbstractBlock.Settings.copy(Blocks.IRON_BARS)
+            .mapColor(MapColor.YELLOW)
+    )
+
     val COMPRESSED_STONE = Register(
         "compressed_stone",
         ::Block,
         AbstractBlock.Settings.copy(Blocks.STONE)
             .mapColor(MapColor.STONE_GRAY)
     )
+
+    val CALCITE_BLOCKTYPE = BlockFamily.Builder(Blocks.CALCITE);
 
     // Block entities.
     val LOCKED_DOOR_BLOCK_ENTITY = RegisterEntity(
@@ -242,6 +252,7 @@ object NguhBlocks {
         PEARLESCENT_CHAIN,
         WROUGHT_IRON_BLOCK,
         WROUGHT_IRON_BARS,
+        GOLD_BARS,
         COMPRESSED_STONE,
     )
 
@@ -251,6 +262,7 @@ object NguhBlocks {
         PEARLESCENT_CHAIN,
         WROUGHT_IRON_BLOCK,
         WROUGHT_IRON_BARS,
+        GOLD_BARS,
         COMPRESSED_STONE,
     )
 
@@ -267,6 +279,7 @@ object NguhBlocks {
         G.registerSimpleCubeAll(COMPRESSED_STONE)
         G.registerAxisRotated(PEARLESCENT_CHAIN, ModelIds.getBlockModelId(PEARLESCENT_CHAIN))
         RegisterBarsModel(G, WROUGHT_IRON_BARS)
+        RegisterBarsModel(G, GOLD_BARS)
 
         // Chest variants. Copied from registerChest().
         val Template = Models.TEMPLATE_CHEST.upload(Items.CHEST, TextureMap.particle(Blocks.OAK_PLANKS), G.modelCollector)
@@ -292,6 +305,7 @@ object NguhBlocks {
             it.add(COMPRESSED_STONE)
             it.add(WROUGHT_IRON_BLOCK)
             it.add(WROUGHT_IRON_BARS)
+            it.add(GOLD_BARS)
         }
 
         ItemGroupEvents.modifyEntriesEvent(ItemGroups.FUNCTIONAL).register {
@@ -308,6 +322,7 @@ object NguhBlocks {
         BlockRenderLayerMap.INSTANCE.putBlock(PEARLESCENT_LANTERN, Cutout)
         BlockRenderLayerMap.INSTANCE.putBlock(PEARLESCENT_CHAIN, Cutout)
         BlockRenderLayerMap.INSTANCE.putBlock(WROUGHT_IRON_BARS, CutoutMipped)
+        BlockRenderLayerMap.INSTANCE.putBlock(GOLD_BARS, CutoutMipped)
     }
 
     private fun Register(

@@ -104,6 +104,12 @@ class NguhcraftRecipeGenerator(
             cinput('#', NguhBlocks.WROUGHT_IRON_BLOCK)
         }
 
+        offerShaped(NguhBlocks.GOLD_BARS, 16) {
+            pattern("###")
+            pattern("###")
+            cinput('#', Items.GOLD_INGOT)
+        }
+
         offerShaped(NguhBlocks.COMPRESSED_STONE, 4) {
             pattern("###")
             pattern("# #")
