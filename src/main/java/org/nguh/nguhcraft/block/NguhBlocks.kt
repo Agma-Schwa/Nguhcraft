@@ -235,8 +235,6 @@ object NguhBlocks {
             .mapColor(MapColor.STONE_GRAY)
     )
 
-    val CALCITE_BLOCKTYPE = BlockFamily.Builder(Blocks.CALCITE);
-
     // Block entities.
     val LOCKED_DOOR_BLOCK_ENTITY = RegisterEntity(
         "lockable_door",
