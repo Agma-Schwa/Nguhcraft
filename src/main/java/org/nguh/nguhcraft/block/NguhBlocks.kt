@@ -235,19 +235,8 @@ object NguhBlocks {
             .mapColor(MapColor.DARK_RED)
     )
 
-    val CINNABAR_SLAB = Register(
-        "cinnabar_slab",
-        ::SlabBlock,
-        AbstractBlock.Settings.copy(Blocks.TUFF)
-            .mapColor(MapColor.DARK_RED)
-    )
-
-    val CINNABAR_STAIRS = Register(
-        "cinnabar_stairs",
-        ::StairsBlock,
-        AbstractBlock.Settings.copy(Blocks.TUFF)
-            .mapColor(MapColor.DARK_RED)
-    )
+    val CINNABAR_SLAB = RegisterVariant(CINNABAR, "slab", ::SlabBlock)
+    val CINNABAR_STAIRS = RegisterStairs(CINNABAR)
 
     val POLISHED_CINNABAR = Register(
         "polished_cinnabar",
@@ -787,6 +776,24 @@ object NguhBlocks {
         BlockRenderLayerMap.INSTANCE.putBlock(WROUGHT_IRON_BARS, CutoutMipped)
         BlockRenderLayerMap.INSTANCE.putBlock(GOLD_BARS, CutoutMipped)
     }
+
+    @Suppress("DEPRECATION")
+    private fun RegisterVariant(
+        Parent: Block,
+        Suffix: String,
+        Ctor: (AbstractBlock.Settings) -> Block
+    ) = Register(
+        "${Registries.BLOCK.getKey(Parent).get().value.path}_$Suffix",
+        Ctor,
+        AbstractBlock.Settings.copyShallow(Parent)
+    )
+
+    @Suppress("DEPRECATION")
+    private fun RegisterStairs(Parent: Block) = Register(
+        "${Registries.BLOCK.getKey(Parent).get().value.path}_stairs",
+        { StairsBlock(Parent.defaultState, it) },
+        AbstractBlock.Settings.copyShallow(Parent)
+    )
 
     private fun Register(
         Key: String,
