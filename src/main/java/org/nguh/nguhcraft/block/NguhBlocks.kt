@@ -435,7 +435,9 @@ object NguhBlocks {
     // =========================================================================
     // Tags
     // =========================================================================
-    val PICKAXE_MINEABLE = mutableListOf(
+    // Note: These are seemingly randomly shuffled everytime datagen runs; I have
+    // no idea why, but they all seem to be there so I don’t care.
+    val PICKAXE_MINEABLE = mutableSetOf(
         DECORATIVE_HOPPER,
         LOCKED_DOOR,
         PEARLESCENT_LANTERN,
