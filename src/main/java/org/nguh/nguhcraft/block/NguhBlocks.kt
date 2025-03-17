@@ -245,40 +245,11 @@ object NguhBlocks {
             .mapColor(MapColor.DARK_RED)
     )
 
-    val POLISHED_CINNABAR_SLAB = Register(
-        "polished_cinnabar_slab",
-        ::SlabBlock,
-        AbstractBlock.Settings.copy(Blocks.TUFF)
-            .mapColor(MapColor.DARK_RED)
-    )
-
-    val POLISHED_CINNABAR_STAIRS = Register(
-        "polished_cinnabar_stairs",
-        ::StairsBlock,
-        AbstractBlock.Settings.copy(Blocks.TUFF)
-            .mapColor(MapColor.DARK_RED)
-    )
-
-    val POLISHED_CINNABAR_WALL = Register(
-        "polished_cinnabar_wall",
-        ::WallBlock,
-        AbstractBlock.Settings.copy(Blocks.TUFF)
-            .mapColor(MapColor.DARK_RED)
-    )
-
-    val POLISHED_CINNABAR_BUTTON = Register(
-        "polished_cinnabar_button",
-        ::Block,
-        AbstractBlock.Settings.copy(Blocks.CALCITE)
-            .mapColor(MapColor.TERRACOTTA_WHITE)
-    )
-
-    val POLISHED_CINNABAR_PRESSURE_PLATE = Register(
-        "polished_cinnabar_pressure_plate",
-        ::Block,
-        AbstractBlock.Settings.copy(Blocks.CALCITE)
-            .mapColor(MapColor.TERRACOTTA_WHITE)
-    )
+    val POLISHED_CINNABAR_SLAB = RegisterVariant(POLISHED_CINNABAR, "slab", ::SlabBlock)
+    val POLISHED_CINNABAR_STAIRS = RegisterStairs(POLISHED_CINNABAR)
+    val POLISHED_CINNABAR_WALL = RegisterVariant(POLISHED_CINNABAR, "wall", ::WallBlock)
+    val POLISHED_CINNABAR_BUTTON = RegisterVariant(POLISHED_CINNABAR, "button", ::ButtonBlock)
+    val POLISHED_CINNABAR_PRESSURE_PLATE = RegisterVariant(POLISHED_CINNABAR, "pressure_plate", ::PressurePlateBlock)
 
     val CINNABAR_BRICKS = Register(
         "cinnabar_bricks",
@@ -287,41 +258,13 @@ object NguhBlocks {
             .mapColor(MapColor.DARK_RED)
     )
 
-    val CINNABAR_BRICK_SLAB = Register(
-        "cinnabar_brick_slab",
-        ::SlabBlock,
-        AbstractBlock.Settings.copy(Blocks.TUFF)
-            .mapColor(MapColor.DARK_RED)
-    )
-
-    val CINNABAR_BRICK_STAIRS = Register(
-        "cinnabar_brick_stairs",
-        ::StairsBlock,
-        AbstractBlock.Settings.copy(Blocks.TUFF)
-            .mapColor(MapColor.DARK_RED)
-    )
-
-    val CINNABAR_BRICK_WALL = Register(
-        "cinnabar_brick_wall",
-        ::WallBlock,
-        AbstractBlock.Settings.copy(Blocks.TUFF)
-            .mapColor(MapColor.DARK_RED)
-    )
+    val CINNABAR_BRICK_SLAB = RegisterVariant(CINNABAR_BRICKS, "slab", ::SlabBlock)
+    val CINNABAR_BRICK_STAIRS = RegisterStairs(CINNABAR_BRICKS)
+    val CINNABAR_BRICK_WALL = RegisterVariant(CINNABAR_BRICKS, "wall", ::WallBlock)
 
     // Calcite blocks
-    val CALCITE_SLAB = Register(
-        "calcite_slab",
-        ::SlabBlock,
-        AbstractBlock.Settings.copy(Blocks.CALCITE)
-            .mapColor(MapColor.TERRACOTTA_WHITE)
-    )
-
-    val CALCITE_STAIRS = Register(
-        "calcite_stairs",
-        ::StairsBlock,
-        AbstractBlock.Settings.copy(Blocks.CALCITE)
-            .mapColor(MapColor.TERRACOTTA_WHITE)
-    )
+    val CALCITE_SLAB = RegisterVariant(Blocks.CALCITE, "slab", ::SlabBlock)
+    val CALCITE_STAIRS = RegisterStairs(Blocks.CALCITE)
 
     val POLISHED_CALCITE = Register(
         "polished_calcite",
@@ -330,40 +273,11 @@ object NguhBlocks {
             .mapColor(MapColor.TERRACOTTA_WHITE)
     )
 
-    val POLISHED_CALCITE_SLAB = Register(
-        "polished_calcite_slab",
-        ::SlabBlock,
-        AbstractBlock.Settings.copy(Blocks.CALCITE)
-            .mapColor(MapColor.TERRACOTTA_WHITE)
-    )
-
-    val POLISHED_CALCITE_STAIRS = Register(
-        "polished_calcite_stairs",
-        ::StairsBlock,
-        AbstractBlock.Settings.copy(Blocks.CALCITE)
-            .mapColor(MapColor.TERRACOTTA_WHITE)
-    )
-
-    val POLISHED_CALCITE_WALL = Register(
-        "polished_calcite_wall",
-        ::WallBlock,
-        AbstractBlock.Settings.copy(Blocks.CALCITE)
-            .mapColor(MapColor.TERRACOTTA_WHITE)
-    )
-
-    val POLISHED_CALCITE_BUTTON = Register(
-        "polished_calcite_button",
-        ::Block,
-        AbstractBlock.Settings.copy(Blocks.CALCITE)
-            .mapColor(MapColor.TERRACOTTA_WHITE)
-    )
-
-    val POLISHED_CALCITE_PRESSURE_PLATE = Register(
-        "polished_calcite_pressure_plate",
-        ::Block,
-        AbstractBlock.Settings.copy(Blocks.CALCITE)
-            .mapColor(MapColor.TERRACOTTA_WHITE)
-    )
+    val POLISHED_CALCITE_SLAB = RegisterVariant(POLISHED_CALCITE, "slab", ::SlabBlock)
+    val POLISHED_CALCITE_STAIRS = RegisterStairs(POLISHED_CALCITE)
+    val POLISHED_CALCITE_WALL = RegisterVariant(POLISHED_CALCITE, "wall", ::WallBlock)
+    val POLISHED_CALCITE_BUTTON = RegisterVariant(POLISHED_CALCITE, "button", ::ButtonBlock)
+    val POLISHED_CALCITE_PRESSURE_PLATE = RegisterVariant(POLISHED_CALCITE, "pressure_plate", ::PressurePlateBlock)
 
     val CHISELED_CALCITE = Register(
         "chiseled_calcite",
@@ -379,26 +293,9 @@ object NguhBlocks {
             .mapColor(MapColor.TERRACOTTA_WHITE)
     )
 
-    val CALCITE_BRICK_SLAB = Register(
-        "calcite_brick_slab",
-        ::SlabBlock,
-        AbstractBlock.Settings.copy(Blocks.CALCITE)
-            .mapColor(MapColor.TERRACOTTA_WHITE)
-    )
-
-    val CALCITE_BRICK_STAIRS = Register(
-        "calcite_brick_stairs",
-        ::StairsBlock,
-        AbstractBlock.Settings.copy(Blocks.CALCITE)
-            .mapColor(MapColor.TERRACOTTA_WHITE)
-    )
-
-    val CALCITE_BRICK_WALL = Register(
-        "calcite_brick_wall",
-        ::WallBlock,
-        AbstractBlock.Settings.copy(Blocks.CALCITE)
-            .mapColor(MapColor.TERRACOTTA_WHITE)
-    )
+    val CALCITE_BRICK_SLAB = RegisterVariant(CALCITE_BRICKS, "slab", ::SlabBlock)
+    val CALCITE_BRICK_STAIRS = RegisterStairs(CALCITE_BRICKS)
+    val CALCITE_BRICK_WALL = RegisterVariant(CALCITE_BRICKS, "wall", ::WallBlock)
 
     val CHISELED_CALCITE_BRICKS = Register(
         "chiseled_calcite_bricks",
@@ -415,20 +312,8 @@ object NguhBlocks {
             .mapColor(MapColor.TERRACOTTA_WHITE)
     )
 
-
-    val GILDED_CALCITE_SLAB = Register(
-        "gilded_calcite_slab",
-        ::SlabBlock,
-        AbstractBlock.Settings.copy(Blocks.CALCITE)
-            .mapColor(MapColor.TERRACOTTA_WHITE)
-    )
-
-    val GILDED_CALCITE_STAIRS = Register(
-        "gilded_calcite_stairs",
-        ::StairsBlock,
-        AbstractBlock.Settings.copy(Blocks.CALCITE)
-            .mapColor(MapColor.TERRACOTTA_WHITE)
-    )
+    val GILDED_CALCITE_SLAB = RegisterVariant(GILDED_CALCITE, "slab", ::SlabBlock)
+    val GILDED_CALCITE_STAIRS = RegisterStairs(GILDED_CALCITE)
 
     val GILDED_POLISHED_CALCITE = Register(
         "gilded_polished_calcite",
@@ -437,40 +322,11 @@ object NguhBlocks {
             .mapColor(MapColor.TERRACOTTA_WHITE)
     )
 
-    val GILDED_POLISHED_CALCITE_SLAB = Register(
-        "gilded_polished_calcite_slab",
-        ::SlabBlock,
-        AbstractBlock.Settings.copy(Blocks.CALCITE)
-            .mapColor(MapColor.TERRACOTTA_WHITE)
-    )
-
-    val GILDED_POLISHED_CALCITE_STAIRS = Register(
-        "gilded_polished_calcite_stairs",
-        ::StairsBlock,
-        AbstractBlock.Settings.copy(Blocks.CALCITE)
-            .mapColor(MapColor.TERRACOTTA_WHITE)
-    )
-
-    val GILDED_POLISHED_CALCITE_WALL = Register(
-        "gilded_polished_calcite_wall",
-        ::WallBlock,
-        AbstractBlock.Settings.copy(Blocks.CALCITE)
-            .mapColor(MapColor.TERRACOTTA_WHITE)
-    )
-
-    val GILDED_POLISHED_CALCITE_BUTTON = Register(
-        "gilded_polished_calcite_button",
-        ::Block,
-        AbstractBlock.Settings.copy(Blocks.CALCITE)
-            .mapColor(MapColor.TERRACOTTA_WHITE)
-    )
-
-    val GILDED_POLISHED_CALCITE_PRESSURE_PLATE = Register(
-        "gilded_polished_calcite_pressure_plate",
-        ::Block,
-        AbstractBlock.Settings.copy(Blocks.CALCITE)
-            .mapColor(MapColor.TERRACOTTA_WHITE)
-    )
+    val GILDED_POLISHED_CALCITE_SLAB = RegisterVariant(GILDED_POLISHED_CALCITE, "slab", ::SlabBlock)
+    val GILDED_POLISHED_CALCITE_STAIRS = RegisterStairs(GILDED_POLISHED_CALCITE)
+    val GILDED_POLISHED_CALCITE_WALL = RegisterVariant(GILDED_POLISHED_CALCITE, "wall", ::WallBlock)
+    val GILDED_POLISHED_CALCITE_BUTTON = RegisterVariant(GILDED_POLISHED_CALCITE, "button", ::ButtonBlock)
+    val GILDED_POLISHED_CALCITE_PRESSURE_PLATE = RegisterVariant(GILDED_POLISHED_CALCITE, "pressure_plate", ::PressurePlateBlock)
 
     val GILDED_CHISELED_CALCITE = Register(
         "gilded_chiseled_calcite",
@@ -486,26 +342,9 @@ object NguhBlocks {
             .mapColor(MapColor.TERRACOTTA_WHITE)
     )
 
-    val GILDED_CALCITE_BRICK_SLAB = Register(
-        "gilded_calcite_brick_slab",
-        ::SlabBlock,
-        AbstractBlock.Settings.copy(Blocks.CALCITE)
-            .mapColor(MapColor.TERRACOTTA_WHITE)
-    )
-
-    val GILDED_CALCITE_BRICK_STAIRS = Register(
-        "gilded_calcite_brick_stairs",
-        ::StairsBlock,
-        AbstractBlock.Settings.copy(Blocks.CALCITE)
-            .mapColor(MapColor.TERRACOTTA_WHITE)
-    )
-
-    val GILDED_CALCITE_BRICK_WALL = Register(
-        "gilded_calcite_brick_wall",
-        ::WallBlock,
-        AbstractBlock.Settings.copy(Blocks.CALCITE)
-            .mapColor(MapColor.TERRACOTTA_WHITE)
-    )
+    val GILDED_CALCITE_BRICK_SLAB = RegisterVariant(GILDED_CALCITE_BRICKS, "slab", ::SlabBlock)
+    val GILDED_CALCITE_BRICK_STAIRS = RegisterStairs(GILDED_CALCITE_BRICKS)
+    val GILDED_CALCITE_BRICK_WALL = RegisterVariant(GILDED_CALCITE_BRICKS, "wall", ::WallBlock)
 
     val GILDED_CHISELED_CALCITE_BRICKS = Register(
         "gilded_chiseled_calcite_bricks",
@@ -729,6 +568,8 @@ object NguhBlocks {
             it.add(POLISHED_CINNABAR)
             it.add(POLISHED_CINNABAR_SLAB)
             it.add(POLISHED_CINNABAR_STAIRS)
+            it.add(POLISHED_CINNABAR_BUTTON)
+            it.add(POLISHED_CINNABAR_PRESSURE_PLATE)
             it.add(CINNABAR_BRICKS)
             it.add(CINNABAR_BRICK_SLAB)
             it.add(CINNABAR_BRICK_STAIRS)
@@ -739,6 +580,8 @@ object NguhBlocks {
             it.add(POLISHED_CALCITE_SLAB)
             it.add(POLISHED_CALCITE_STAIRS)
             it.add(POLISHED_CALCITE_WALL)
+            it.add(POLISHED_CALCITE_BUTTON)
+            it.add(POLISHED_CALCITE_PRESSURE_PLATE)
             it.add(CALCITE_BRICKS)
             it.add(CALCITE_BRICK_SLAB)
             it.add(CALCITE_BRICK_STAIRS)
@@ -752,6 +595,8 @@ object NguhBlocks {
             it.add(GILDED_POLISHED_CALCITE_SLAB)
             it.add(GILDED_POLISHED_CALCITE_STAIRS)
             it.add(GILDED_POLISHED_CALCITE_WALL)
+            it.add(GILDED_POLISHED_CALCITE_BUTTON)
+            it.add(GILDED_POLISHED_CALCITE_PRESSURE_PLATE)
             it.add(GILDED_CALCITE_BRICKS)
             it.add(GILDED_CALCITE_BRICK_SLAB)
             it.add(GILDED_CALCITE_BRICK_STAIRS)
