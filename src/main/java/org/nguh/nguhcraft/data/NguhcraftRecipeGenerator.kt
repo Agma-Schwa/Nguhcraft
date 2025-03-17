@@ -117,6 +117,14 @@ class NguhcraftRecipeGenerator(
             cinput('#', Items.SMOOTH_STONE)
         }
 
+        offerShaped(NguhBlocks.GILDED_CALCITE, 2) {
+            pattern("GC ")
+            pattern("CG ")
+            pattern("   ")
+            cinput('C', Items.CALCITE)
+            cinput('G', Items.GOLD_INGOT)
+        }
+
         // Special recipes.
         ComplexRecipeJsonBuilder.create(::KeyLockPairingRecipe).offerTo(E, "key_lock_pairing")
         ComplexRecipeJsonBuilder.create(::KeyDuplicationRecipe).offerTo(E, "key_duplication")
@@ -125,6 +133,40 @@ class NguhcraftRecipeGenerator(
         offerShapelessRecipe(Items.STRING, 4, ItemTags.WOOL to 1)
         offerShapelessRecipe(Items.HOPPER, 1, NguhBlocks.DECORATIVE_HOPPER to 1, Items.CHEST to 1)
         offerShapelessRecipe(NguhBlocks.DECORATIVE_HOPPER, 1, Items.HOPPER to 1)
+        offerShapelessRecipe(NguhBlocks.CINNABAR, 2, Items.NETHERRACK to 1, Items.COBBLESTONE to 1)
+        offerShapelessRecipe(NguhBlocks.CHISELED_CALCITE, 2, NguhBlocks.POLISHED_CALCITE_SLAB to 2)
+        offerShapelessRecipe(NguhBlocks.CHISELED_CALCITE_BRICKS, 2, NguhBlocks.CALCITE_BRICK_SLAB to 2)
+
+        offerStonecuttingRecipe(
+            RecipeCategory.BUILDING_BLOCKS,
+            Items.CALCITE,
+            NguhBlocks.CHISELED_CALCITE
+        )
+        offerStonecuttingRecipe(
+            RecipeCategory.BUILDING_BLOCKS,
+            Items.CALCITE,
+            NguhBlocks.CHISELED_CALCITE_BRICKS
+        )
+        offerStonecuttingRecipe(
+            RecipeCategory.BUILDING_BLOCKS,
+            NguhBlocks.CHISELED_CALCITE,
+            NguhBlocks.CHISELED_CALCITE_BRICKS
+        )
+        offerStonecuttingRecipe(
+            RecipeCategory.BUILDING_BLOCKS,
+            NguhBlocks.GILDED_CALCITE,
+            NguhBlocks.GILDED_CHISELED_CALCITE
+        )
+        offerStonecuttingRecipe(
+            RecipeCategory.BUILDING_BLOCKS,
+            NguhBlocks.GILDED_CALCITE,
+            NguhBlocks.GILDED_CHISELED_CALCITE_BRICKS
+        )
+        offerStonecuttingRecipe(
+            RecipeCategory.BUILDING_BLOCKS,
+            NguhBlocks.GILDED_CHISELED_CALCITE,
+            NguhBlocks.GILDED_CHISELED_CALCITE_BRICKS
+        )
     }
 
     // Combines a call to input() and criterion() because having to specify the latter
