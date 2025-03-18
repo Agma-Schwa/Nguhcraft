@@ -10,6 +10,7 @@ import net.fabricmc.fabric.api.datagen.v1.provider.FabricRecipeProvider
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricTagProvider
 import net.minecraft.block.Block
 import net.minecraft.block.Blocks
+import net.minecraft.block.SlabBlock
 import net.minecraft.client.data.BlockStateModelGenerator
 import net.minecraft.client.data.ItemModelGenerator
 import net.minecraft.component.DataComponentTypes
@@ -89,6 +90,8 @@ class NguhcraftLootTableProvider(
     override fun generate() {
         NguhBlocks.DROPS_SELF.forEach { addDrop(it) }
         addDrop(NguhBlocks.LOCKED_DOOR) { B: Block -> doorDrops(B) }
+        for (S in NguhBlocks.STONE_VARIANT_FAMILY_BLOCKS.filter { it is SlabBlock })
+            addDrop(S, ::slabDrops)
 
         // Copied from nameableContainerDrops(), but modified to also
         // copy the chest variant component.

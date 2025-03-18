@@ -468,7 +468,10 @@ object NguhBlocks {
         WROUGHT_IRON_BARS,
         GOLD_BARS,
         COMPRESSED_STONE,
-    ).also { it.addAll(STONE_VARIANT_FAMILY_BLOCKS) }.toTypedArray()
+    ).also {
+        // Slabs may drop 2 or 1 and are thus handled separately.
+        it.addAll(STONE_VARIANT_FAMILY_BLOCKS.filter { it !is SlabBlock })
+    }.toTypedArray()
 
     // =========================================================================
     // Models
