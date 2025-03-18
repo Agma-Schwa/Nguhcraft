@@ -61,7 +61,7 @@
 	"death.attack.minecart_run_over": "%1$s foguèt espotit per un vagonet",
 	"death.attack.minecart_run_over.player": "%1$s foguèt espotit per %2$s",
 	"death.attack.minecart_run_over.item": "%1$s foguèt espotit per %2$s",
-	"death.attack.minecart_collision": "%1$s crashed into a rogue minecart",
+	"death.attack.minecart_collision": "%1$s s'esclafar sur un vagonet abandonat",
 	"death.attack.minecart_collision.item": "%1$s s'esclafar sur %2$s alara que foguèt en un vagonet",
 	"death.attack.minecart_collision.player": "%1$s crashed into %2$s alara que foguèt en un vagonet",
 	"death.attack.minecart_poor_track_design": "%1$s patiguèt de ralh mal bastits",
