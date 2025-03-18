@@ -154,6 +154,12 @@ class ChestVariantProperty : SelectProperty<ChestVariant> {
     }
 }
 
+val BlockFamily.Chiseled get() = this.variants[BlockFamily.Variant.CHISELED]
+val BlockFamily.Polished get() = this.variants[BlockFamily.Variant.POLISHED]
+val BlockFamily.Slab get() = this.variants[BlockFamily.Variant.SLAB]
+val BlockFamily.Stairs get() = this.variants[BlockFamily.Variant.STAIRS]
+val BlockFamily.Wall get() = this.variants[BlockFamily.Variant.WALL]
+
 object NguhBlocks {
     // Components.
     @JvmField val CHEST_VARIANT_ID = Id("chest_variant")
@@ -385,6 +391,7 @@ object NguhBlocks {
         .slab(POLISHED_CALCITE_SLAB)
         .stairs(POLISHED_CALCITE_STAIRS)
         .wall(POLISHED_CALCITE_WALL)
+        .chiseled(CHISELED_CALCITE)
         .build()
 
     val CALCITE_BRICK_FAMILY: BlockFamily = BlockFamilies.register(CALCITE_BRICKS)
@@ -398,13 +405,13 @@ object NguhBlocks {
         .polished(GILDED_POLISHED_CALCITE)
         .slab(GILDED_CALCITE_SLAB)
         .stairs(GILDED_CALCITE_STAIRS)
-        .chiseled(GILDED_CHISELED_CALCITE)
         .build()
 
     val GILDED_POLISHED_CALCITE_FAMILY: BlockFamily = BlockFamilies.register(GILDED_POLISHED_CALCITE)
         .slab(GILDED_POLISHED_CALCITE_SLAB)
         .stairs(GILDED_POLISHED_CALCITE_STAIRS)
         .wall(GILDED_POLISHED_CALCITE_WALL)
+        .chiseled(GILDED_CHISELED_CALCITE)
         .build()
 
     val GILDED_CALCITE_BRICK_FAMILY: BlockFamily = BlockFamilies.register(GILDED_CALCITE_BRICKS)
@@ -413,6 +420,11 @@ object NguhBlocks {
         .wall(GILDED_CALCITE_BRICK_WALL)
         .chiseled(GILDED_CHISELED_CALCITE_BRICKS)
         .build()
+
+    val CINNABAR_FAMILIES = listOf(CINNABAR_FAMILY, POLISHED_CINNABAR_FAMILY, CINNABAR_BRICK_FAMILY)
+    val CALCITE_FAMILIES = listOf(POLISHED_CALCITE_FAMILY, CALCITE_BRICK_FAMILY)
+    val GILDED_CALCITE_FAMILIES = listOf(GILDED_CALCITE_FAMILY, GILDED_POLISHED_CALCITE_FAMILY, GILDED_CALCITE_BRICK_FAMILY)
+    val FAMILY_GROUPS = listOf(CINNABAR_FAMILIES, CALCITE_FAMILIES, GILDED_CALCITE_FAMILIES)
 
     val STONE_VARIANT_FAMILIES = arrayOf(
         CINNABAR_FAMILY,
@@ -446,7 +458,6 @@ object NguhBlocks {
         WROUGHT_IRON_BARS,
         GOLD_BARS,
         COMPRESSED_STONE,
-        CHISELED_CALCITE,
     ).also { it.addAll(STONE_VARIANT_FAMILY_BLOCKS) }.toTypedArray()
 
     val DROPS_SELF = mutableSetOf(
@@ -457,7 +468,6 @@ object NguhBlocks {
         WROUGHT_IRON_BARS,
         GOLD_BARS,
         COMPRESSED_STONE,
-        CHISELED_CALCITE,
     ).also { it.addAll(STONE_VARIANT_FAMILY_BLOCKS) }.toTypedArray()
 
     // =========================================================================
@@ -487,9 +497,6 @@ object NguhBlocks {
             .filter(BlockFamily::shouldGenerateModels)
             .forEach { G.registerCubeAllModelTexturePool(it.baseBlock).family(it) }
 
-        // We can’t modify builtin families, so we just have to handle these manually.
-        G.registerSimpleCubeAll(CHISELED_CALCITE)
-
         // Chest variants. Copied from registerChest().
         val Template = Models.TEMPLATE_CHEST.upload(Items.CHEST, TextureMap.particle(Blocks.OAK_PLANKS), G.modelCollector)
         val Normal = ItemModels.special(Template, ChestModelRenderer.Unbaked(ChestModelRenderer.NORMAL_ID))
@@ -515,7 +522,6 @@ object NguhBlocks {
             it.add(WROUGHT_IRON_BLOCK)
             it.add(WROUGHT_IRON_BARS)
             it.add(GOLD_BARS)
-            it.add(CHISELED_CALCITE)
             for (B in STONE_VARIANT_FAMILY_BLOCKS) it.add(B)
         }
 

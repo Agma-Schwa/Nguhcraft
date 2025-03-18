@@ -1,5 +1,8 @@
 package org.nguh.nguhcraft.data
 
+import net.minecraft.block.Block
+import net.minecraft.block.Blocks
+import net.minecraft.data.family.BlockFamily
 import net.minecraft.data.recipe.ComplexRecipeJsonBuilder
 import net.minecraft.data.recipe.RecipeExporter
 import net.minecraft.data.recipe.RecipeGenerator
@@ -8,13 +11,19 @@ import net.minecraft.item.Item
 import net.minecraft.item.ItemConvertible
 import net.minecraft.item.Items
 import net.minecraft.recipe.book.RecipeCategory
+import net.minecraft.registry.Registries
 import net.minecraft.registry.RegistryKey
 import net.minecraft.registry.RegistryKeys
 import net.minecraft.registry.RegistryWrapper
 import net.minecraft.registry.tag.ItemTags
 import net.minecraft.registry.tag.TagKey
 import org.nguh.nguhcraft.Nguhcraft
+import org.nguh.nguhcraft.block.Chiseled
 import org.nguh.nguhcraft.block.NguhBlocks
+import org.nguh.nguhcraft.block.Polished
+import org.nguh.nguhcraft.block.Slab
+import org.nguh.nguhcraft.block.Stairs
+import org.nguh.nguhcraft.block.Wall
 import org.nguh.nguhcraft.item.KeyDuplicationRecipe
 import org.nguh.nguhcraft.item.KeyLockPairingRecipe
 import org.nguh.nguhcraft.item.NguhItems
@@ -26,7 +35,9 @@ class NguhcraftRecipeGenerator(
     val Lookup = WL.getOrThrow(RegistryKeys.ITEM)
 
     override fun generate() {
-        // Armour trims.
+        // =========================================================================
+        //  Armour Trims
+        // =========================================================================
         NguhItems.SMITHING_TEMPLATES.forEach { offerSmithingTrimRecipe(
             it,
             RegistryKey.of(RegistryKeys.RECIPE, Nguhcraft.Companion.Id("${getItemPath(it)}_smithing"))
@@ -37,20 +48,17 @@ class NguhcraftRecipeGenerator(
         offerSmithingTemplateCopyingRecipe(NguhItems.ICE_COLD_ARMOUR_TRIM, Items.SNOW_BLOCK)
         offerSmithingTemplateCopyingRecipe(NguhItems.VENEFICIUM_ARMOUR_TRIM, Items.SLIME_BALL)
 
-        // Slablet crafting.
+        // =========================================================================
+        //  Slabs and Slablets
+        // =========================================================================
         for ((Lesser, Greater) in SLABLETS) {
             offerShapelessRecipe(Lesser, Greater, "slablets", 2)
             offerShapelessRecipe(Greater, 1, Lesser to 2)
         }
 
-        // Modded items.
-        offerShaped(NguhBlocks.DECORATIVE_HOPPER) {
-            pattern("i i")
-            pattern("i i")
-            pattern(" i ")
-            cinput('i', Items.IRON_INGOT)
-        }
-
+        // =========================================================================
+        //  Items
+        // =========================================================================
         offerShaped(NguhItems.KEY) {
             pattern("g ")
             pattern("gr")
@@ -65,6 +73,18 @@ class NguhcraftRecipeGenerator(
             pattern("iri")
             cinput('i', Items.IRON_INGOT)
             cinput('r', Items.REDSTONE)
+        }
+
+        offerShapelessRecipe(Items.STRING, 4, ItemTags.WOOL to 1)
+
+        // =========================================================================
+        //  Miscellaneous Blocks
+        // =========================================================================
+        offerShaped(NguhBlocks.DECORATIVE_HOPPER) {
+            pattern("i i")
+            pattern("i i")
+            pattern(" i ")
+            cinput('i', Items.IRON_INGOT)
         }
 
         offerShaped(NguhBlocks.LOCKED_DOOR, 3) {
@@ -117,55 +137,108 @@ class NguhcraftRecipeGenerator(
             cinput('#', Items.SMOOTH_STONE)
         }
 
-        offerShaped(NguhBlocks.GILDED_CALCITE, 2) {
+        offerShapelessRecipe(Items.HOPPER, 1, NguhBlocks.DECORATIVE_HOPPER to 1, Items.CHEST to 1)
+        offerShapelessRecipe(NguhBlocks.DECORATIVE_HOPPER, 1, Items.HOPPER to 1)
+
+        // =========================================================================
+        //  Stone Families
+        // =========================================================================
+        for ((Base, Gilded) in listOf(
+            Blocks.CALCITE to NguhBlocks.GILDED_CALCITE,
+            NguhBlocks.POLISHED_CALCITE to NguhBlocks.GILDED_POLISHED_CALCITE,
+            NguhBlocks.CHISELED_CALCITE to NguhBlocks.GILDED_CHISELED_CALCITE,
+            NguhBlocks.CHISELED_CALCITE_BRICKS to NguhBlocks.GILDED_CHISELED_CALCITE_BRICKS
+        )) offerShaped(Gilded, 2, "from_${Registries.BLOCK.getKey(Base).get().value.path.lowercase()}_and_gold_ingot") {
             pattern("GC")
             pattern("CG")
-            cinput('C', Items.CALCITE)
+            cinput('C', Base)
             cinput('G', Items.GOLD_INGOT)
         }
 
-        // Special recipes.
+        offerShaped(NguhBlocks.POLISHED_CALCITE, 4) {
+            pattern("##")
+            pattern("##")
+            cinput('#', Items.CALCITE)
+        }
+
+        // Usual crafting recipes for custom stone types.
+        for (F in NguhBlocks.STONE_VARIANT_FAMILIES) {
+            if (F.Chiseled != null && F.Polished != null)
+                throw IllegalStateException("A block family must not have both a polished and chiseled variant")
+
+            F.Slab?.let {
+                offerShaped(it, 3) {
+                    pattern("###")
+                    cinput('#', F.baseBlock)
+
+                    F.Chiseled?.let {
+                        offerShaped(it, 4) {
+                            pattern("#")
+                            pattern("#")
+                            cinput('#', F.Slab!!)
+                        }
+                    }
+                }
+            }
+
+            F.Stairs?.let {
+                offerShaped(it, 4) {
+                    pattern("#  ")
+                    pattern("## ")
+                    pattern("###")
+                    cinput('#', F.baseBlock)
+                }
+            }
+
+
+            F.Polished?.let {
+                offerShaped(it, 4) {
+                    pattern("##")
+                    pattern("##")
+                    cinput('#', F.baseBlock)
+                }
+            }
+
+            F.Wall?.let {
+                offerShaped(it, 6) {
+                    pattern("###")
+                    pattern("###")
+                    cinput('#', F.baseBlock)
+                }
+            }
+        }
+
+        offerShapelessRecipe(NguhBlocks.CINNABAR, 2, Items.NETHERRACK to 1, Items.COBBLESTONE to 1)
+
+        // =========================================================================
+        //  Stone Cutting
+        // =========================================================================
+        for (F in NguhBlocks.STONE_VARIANT_FAMILIES) offerStonecuttingFamily(F)
+        for (F in NguhBlocks.FAMILY_GROUPS) offerRelatedStonecuttingFamilies(F)
+        offerStonecuttingFamily(NguhBlocks.POLISHED_CALCITE_FAMILY, Blocks.CALCITE)
+        offerStonecuttingFamily(NguhBlocks.CALCITE_BRICK_FAMILY, Blocks.CALCITE)
+
+        // =========================================================================
+        //  Special Recipes
+        // =========================================================================
         ComplexRecipeJsonBuilder.create(::KeyLockPairingRecipe).offerTo(E, "key_lock_pairing")
         ComplexRecipeJsonBuilder.create(::KeyDuplicationRecipe).offerTo(E, "key_duplication")
+    }
 
-        // Miscellaneous.
-        offerShapelessRecipe(Items.STRING, 4, ItemTags.WOOL to 1)
-        offerShapelessRecipe(Items.HOPPER, 1, NguhBlocks.DECORATIVE_HOPPER to 1, Items.CHEST to 1)
-        offerShapelessRecipe(NguhBlocks.DECORATIVE_HOPPER, 1, Items.HOPPER to 1)
-        offerShapelessRecipe(NguhBlocks.CINNABAR, 2, Items.NETHERRACK to 1, Items.COBBLESTONE to 1)
-        offerShapelessRecipe(NguhBlocks.CHISELED_CALCITE, 2, NguhBlocks.POLISHED_CALCITE_SLAB to 2)
-        offerShapelessRecipe(NguhBlocks.CHISELED_CALCITE_BRICKS, 2, NguhBlocks.CALCITE_BRICK_SLAB to 2)
+    /** Add stonecutting recipes for a family. */
+    fun offerStonecuttingFamily(F: BlockFamily, Base: Block = F.baseBlock) {
+        /// Do NOT include 'Polished' here; that is handled in offerRelatedStonecuttingFamilies().
+        if (F.baseBlock != Base) offerStonecuttingRecipe(RecipeCategory.BUILDING_BLOCKS, F.baseBlock, Base)
+        F.Chiseled?.let { offerStonecuttingRecipe(RecipeCategory.BUILDING_BLOCKS, it, Base) }
+        F.Slab?.let { offerStonecuttingRecipe(RecipeCategory.BUILDING_BLOCKS, it, Base, 2) }
+        F.Stairs?.let { offerStonecuttingRecipe(RecipeCategory.BUILDING_BLOCKS, it, Base) }
+        F.Wall?.let { offerStonecuttingRecipe(RecipeCategory.BUILDING_BLOCKS, it, Base) }
+    }
 
-        offerStonecuttingRecipe(
-            RecipeCategory.BUILDING_BLOCKS,
-            Items.CALCITE,
-            NguhBlocks.CHISELED_CALCITE
-        )
-        offerStonecuttingRecipe(
-            RecipeCategory.BUILDING_BLOCKS,
-            Items.CALCITE,
-            NguhBlocks.CHISELED_CALCITE_BRICKS
-        )
-        offerStonecuttingRecipe(
-            RecipeCategory.BUILDING_BLOCKS,
-            NguhBlocks.CHISELED_CALCITE,
-            NguhBlocks.CHISELED_CALCITE_BRICKS
-        )
-        offerStonecuttingRecipe(
-            RecipeCategory.BUILDING_BLOCKS,
-            NguhBlocks.GILDED_CALCITE,
-            NguhBlocks.GILDED_CHISELED_CALCITE
-        )
-        offerStonecuttingRecipe(
-            RecipeCategory.BUILDING_BLOCKS,
-            NguhBlocks.GILDED_CALCITE,
-            NguhBlocks.GILDED_CHISELED_CALCITE_BRICKS
-        )
-        offerStonecuttingRecipe(
-            RecipeCategory.BUILDING_BLOCKS,
-            NguhBlocks.GILDED_CHISELED_CALCITE,
-            NguhBlocks.GILDED_CHISELED_CALCITE_BRICKS
-        )
+    /** Add stonecutting recipes for a list of related families. */
+    fun offerRelatedStonecuttingFamilies(Families: List<BlockFamily>) {
+        for ((Base, F) in Families.windowed(2))
+                offerStonecuttingFamily(F, Base.baseBlock)
     }
 
     // Combines a call to input() and criterion() because having to specify the latter
@@ -179,9 +252,11 @@ class NguhcraftRecipeGenerator(
     inline fun offerShaped(
         Output: ItemConvertible,
         Count: Int = 1,
-        Name: String = getItemPath(Output),
+        Suffix: String = "",
         Consumer: ShapedRecipeJsonBuilder.() -> Unit,
     ) {
+        var Name: String = getItemPath(Output)
+        if (!Suffix.isEmpty()) Name += "_$Suffix"
         val B = createShaped(RecipeCategory.MISC, Output, Count)
         B.Consumer()
         B.offerTo(E, Name)

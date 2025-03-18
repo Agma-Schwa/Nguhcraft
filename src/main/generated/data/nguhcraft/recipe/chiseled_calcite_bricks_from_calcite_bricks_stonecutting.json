@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:stonecutting",
+  "ingredient": "nguhcraft:calcite_bricks",
+  "result": {
+    "count": 1,
+    "id": "nguhcraft:chiseled_calcite_bricks"
+  }
+}

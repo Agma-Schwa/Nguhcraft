@@ -10,9 +10,6 @@ import net.fabricmc.fabric.api.datagen.v1.provider.FabricRecipeProvider
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricTagProvider
 import net.minecraft.block.Block
 import net.minecraft.block.Blocks
-import net.minecraft.block.SlabBlock
-import net.minecraft.block.StairsBlock
-import net.minecraft.block.WallBlock
 import net.minecraft.client.data.BlockStateModelGenerator
 import net.minecraft.client.data.ItemModelGenerator
 import net.minecraft.component.DataComponentTypes
@@ -34,6 +31,9 @@ import net.minecraft.registry.tag.TagKey
 import org.nguh.nguhcraft.NguhDamageTypes
 import org.nguh.nguhcraft.NguhPaintings
 import org.nguh.nguhcraft.block.NguhBlocks
+import org.nguh.nguhcraft.block.Slab
+import org.nguh.nguhcraft.block.Stairs
+import org.nguh.nguhcraft.block.Wall
 import org.nguh.nguhcraft.item.NguhItems
 import java.util.concurrent.CompletableFuture
 
@@ -52,22 +52,13 @@ class NguhcraftBlockTagProvider(
         getOrCreateTagBuilder(BlockTags.DOORS).add(NguhBlocks.LOCKED_DOOR)
 
         // Add blocks from families.
-        getOrCreateTagBuilder(BlockTags.WALLS).let {
-            for (B in NguhBlocks.STONE_VARIANT_FAMILY_BLOCKS)
-                if (B is WallBlock)
-                    it.add(B)
-        }
-
-        getOrCreateTagBuilder(BlockTags.STAIRS).let {
-            for (B in NguhBlocks.STONE_VARIANT_FAMILY_BLOCKS)
-                if (B is StairsBlock)
-                    it.add(B)
-        }
-
-        getOrCreateTagBuilder(BlockTags.SLABS).let {
-            for (B in NguhBlocks.STONE_VARIANT_FAMILY_BLOCKS)
-                if (B is SlabBlock)
-                    it.add(B)
+        val Walls = getOrCreateTagBuilder(BlockTags.WALLS)
+        val Stairs = getOrCreateTagBuilder(BlockTags.STAIRS)
+        val Slabs = getOrCreateTagBuilder(BlockTags.SLABS)
+        for (B in NguhBlocks.STONE_VARIANT_FAMILIES) {
+            B.Slab?.let { Slabs.add(it) }
+            B.Stairs?.let { Stairs.add(it) }
+            B.Wall?.let { Walls.add(it) }
         }
     }
 }

@@ -1,0 +1,43 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_chiseled_calcite_bricks": {
+      "conditions": {
+        "items": [
+          {
+            "items": "nguhcraft:chiseled_calcite_bricks"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_gold_ingot": {
+      "conditions": {
+        "items": [
+          {
+            "items": "minecraft:gold_ingot"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "minecraft:gilded_chiseled_calcite_bricks"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_chiseled_calcite_bricks",
+      "has_gold_ingot"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "minecraft:gilded_chiseled_calcite_bricks"
+    ]
+  }
+}

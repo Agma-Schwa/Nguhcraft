@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:stonecutting",
+  "ingredient": "nguhcraft:cinnabar",
+  "result": {
+    "count": 1,
+    "id": "nguhcraft:polished_cinnabar"
+  }
+}
