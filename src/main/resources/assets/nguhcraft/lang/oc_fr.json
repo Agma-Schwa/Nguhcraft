@@ -63,7 +63,7 @@
 	"death.attack.minecart_run_over.item": "%1$s foguèt espotit per %2$s",
 	"death.attack.minecart_collision": "%1$s s'esclafar sur un vagonet abandonat",
 	"death.attack.minecart_collision.item": "%1$s s'esclafar sur %2$s alara que foguèt en un vagonet",
-	"death.attack.minecart_collision.player": "%1$s crashed into %2$s alara que foguèt en un vagonet",
+	"death.attack.minecart_collision.player": "%1$s s'esclafar sur %2$s alara que foguèt en un vagonet",
 	"death.attack.minecart_poor_track_design": "%1$s patiguèt de ralh mal bastits",
 	"death.attack.minecart_poor_track_design.player": "%1$s patiguèt de ralh mal bastits alara qu'ensagèt d'escapar a %2$s",
 	"death.attack.obliterated": "%1$s foguèt obliterat",
@@ -73,7 +73,7 @@
 	"enchantment.nguhcraft.homing": "Mirant",
 	"enchantment.nguhcraft.hypershot": "Ipertir",
 	"enchantment.nguhcraft.smelting": "Cosent",
-	"enchantment.nguhcraft.health": "Suènh",
+	"enchantment.nguhcraft.health": "Santat",
 	"enchantment.nguhcraft.saturation": "Saturacion",
 
 	"instrument.nguhcraft.nguh_goat_horn": "Nguh",
@@ -86,10 +86,10 @@
 	"item.nguhcraft.slablet_4": "4 Slablèts",
 	"item.nguhcraft.slablet_8": "8 Slablèts",
 	"item.nguhcraft.slablet_16": "16 Slablèts",
-	"item.nguhcraft.atlantic_armour_trim_smithing_template": "Atlantic Armor Trim",
-	"item.nguhcraft.cenrail_armour_trim_smithing_template": "Cenrail Armor Trim",
-	"item.nguhcraft.ice_cold_armour_trim_smithing_template": "Ice-Cold Armor Trim",
-	"item.nguhcraft.veneficium_armour_trim_smithing_template": "Venēficium Armor Trim",
+	"item.nguhcraft.atlantic_armour_trim_smithing_template": "Decòr d'armadura atlantic",
+	"item.nguhcraft.cenrail_armour_trim_smithing_template": "Decòr d'armadura de Cenrail",
+	"item.nguhcraft.ice_cold_armour_trim_smithing_template": "Decòr d'armadura glaciau",
+	"item.nguhcraft.veneficium_armour_trim_smithing_template": "Decòr d'armadura de Venēficium",
 
 	"jukebox_song.nguhcraft.nguhrovision_2024": "Marcy Sheikah – Reflection",
 
@@ -121,8 +121,8 @@
 
 	"subtitles.nguhcraft.nguh": "Nguh",
 
-	"trim_pattern.nguhcraft.atlantic": "Atlantic Armor Trim",
-	"trim_pattern.nguhcraft.cenrail": "Cenrail Armor Trim",
-	"trim_pattern.nguhcraft.ice_cold": "Ice-Cold Armor Trim",
-	"trim_pattern.nguhcraft.veneficium": "Venēficium Armor Trim"
+	"trim_pattern.nguhcraft.atlantic": "Decòr d'armadura atlantic",
+	"trim_pattern.nguhcraft.cenrail": "Decòr d'armadura de Cenrail",
+	"trim_pattern.nguhcraft.ice_cold": "Decòr d'armadura glaciau",
+	"trim_pattern.nguhcraft.veneficium": "Decòr d'armadura de Venēficium"
 }
