@@ -44,5 +44,6 @@ object NguhPaintings {
         Register("rail_diagram", 3, 3)
         Register("rails_of_eras", 3, 2)
         Register("rauratoshan_loop", 3, 3)
+        Register("leshrail_diagram", 2, 2)
     }
 }
