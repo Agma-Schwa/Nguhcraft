@@ -34,6 +34,73 @@ object Chat {
     private val COLON_COMPONENT: Text = Text.literal(":")
     private val COMMA_COMPONENT = Text.literal(", ").withColor(Constants.DeepKoamaru)
 
+    private val EMOJI_REPLACEMENTS: Map<String, String> = mapOf(
+        ":gold_nguh:" to "\uE200",
+        ":rainbow_nguh:" to "\uE201",
+        ":trangs_nguh:" to "\uE202",
+        ":ngold_nguh:" to "\uE203",
+        ":red_nguh:" to "\uE204",
+        ":red_ng:" to "\uE205",
+        ":red_agma:" to "\uE206",
+        ":red_amogus:" to "\uE207",
+        ":bigyus:" to "\uE208",
+        ":emoji_1:" to "\uE209",
+        ":emoji_2:" to "\uE20A",
+        ":true_anguish:" to "\uE20B",
+        ":worse_anguish:" to "\uE20C",
+        ":worst_anguish:" to "\uE20D",
+        ":true_joy:" to "\uE20E",
+        ":better_joy:" to "\uE20F",
+        ":hellnaw:" to "\uE210",
+        ":hotspot:" to "\uE211",
+        ":pridespot:" to "\uE212",
+        ":trangspot:" to "\uE213",
+        ":ultrafrenchspot:" to "\uE214",
+        ":belgianspot:" to "\uE215",
+        ":lesbianspot:" to "\uE216",
+        ":coldspot:" to "\uE217",
+        ":toki_returna:" to "\uE218",
+        ":trollkipona:" to "\uE219",
+        ":ough:" to "\uE21A",
+        ":eigh:" to "\uE21B",
+        ":blough:" to "\uE21C",
+        ":lol:" to "\uE21D",
+        ":newXD:" to "\uE21E",
+        ":TCPain:" to "\uE21F",
+        ":EYES:" to "\uE220",
+        ":ooooooo:" to "\uE221",
+        ":OOOOOOO:" to "\uE222",
+        ":ellers_estrogen:" to "\uE223",
+        ":colon3:" to "\uE224",
+        ":kek:" to "\uE225",
+        ":hehH:" to "\uE226",
+        ":ap:" to "\uE227",
+        ":predator:" to "\uE228",
+        ":duolingun:" to "\uE229",
+        ":thonkening:" to "\uE22A",
+        ":antistrut:" to "\uE22B",
+        ":antihmidhat:" to "\uE22C",
+        ":antierhua:" to "\uE22D",
+        ":esperandont:" to "\uE22E",
+        ":ngascended:" to "\uE22F",
+        ":reaksi_gue:" to "\uE230",
+        ":smork:" to "\uE231",
+        ":stroke:" to "\uE232",
+        ":uhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh:" to "\uE233",
+        ":regional_indicator_ash:" to "\uE234",
+        ":regional_indicator_eth:" to "\uE235",
+        ":regional_indicator_thorn:" to "\uE236",
+        ":silly_me:" to "\uE237",
+        ":ramsey:" to "\uE238",
+        ":anti_ramsey:" to "\uE239",
+        ":nb_nguh:" to "\uE23A",
+        ":CENSORED:" to "\uE23B",
+        ":aight:" to "\uE23C",
+        ":curst:" to "\uE23D",
+        ":kjehkjeh:" to "\uE23E",
+        ":whatdidijustread:" to "\uE23F",
+    )
+
     /** Broadcast a command to subscribed operators. */
     private fun BroadcastCommand(
         S: MinecraftServer,
@@ -47,11 +114,12 @@ object Chat {
 
     /** Actually send a message. */
     private fun DispatchMessage(S: MinecraftServer, Sender: ServerPlayerEntity?, Message: String) {
+        val MessageWithEmojis = ReplaceEmojiNames(Message)
         // On the integrated server, don’t bother with the linking.
         if (IsIntegratedServer()) {
             S.Broadcast(ClientboundChatPacket(
                 Sender?.displayName ?: SERVER_COMPONENT,
-                Message,
+                MessageWithEmojis,
                 ClientboundChatPacket.MK_PUBLIC
             ))
             return
@@ -67,8 +135,17 @@ object Chat {
                 )
         )
 
-        S.Broadcast(ClientboundChatPacket(Name, Message, ClientboundChatPacket.MK_PUBLIC))
+        S.Broadcast(ClientboundChatPacket(Name, MessageWithEmojis, ClientboundChatPacket.MK_PUBLIC))
         Discord.ForwardChatMessage(Sender, Message)
+    }
+
+    /** Replace the :name: with the PUA character for that Discord emoji */
+    private fun ReplaceEmojiNames(Message: String): String {
+        var NewMessage = Message
+        EMOJI_REPLACEMENTS.forEach { entry ->
+            NewMessage = NewMessage.replace(entry.key, entry.value)
+        }
+        return NewMessage
     }
 
     /** Check if a player can send a chat message and issue an error if they can’t. */
@@ -162,6 +239,7 @@ object Chat {
 
     /** Send a private message to players. */
     fun SendPrivateMessage(From: ServerPlayerEntity?, Players: Collection<ServerPlayerEntity>, Message: String) {
+        val MessageWithEmojis = ReplaceEmojiNames(Message)
         if (From != null && !IsIntegratedServer()) {
             if (Discord.IsMuted(From)) {
                 From.sendMessage(ERR_MUTED, false)
@@ -173,7 +251,7 @@ object Chat {
         val SenderName = if (From == null) SRV_LIT_COMPONENT else From.displayName!!
         Multicast(Players, ClientboundChatPacket(
             SenderName,
-            Message,
+            MessageWithEmojis,
             ClientboundChatPacket.MK_INCOMING_DM
         ))
 
@@ -191,7 +269,7 @@ object Chat {
 
         ServerPlayNetworking.send(From, ClientboundChatPacket(
             AllReceivers,
-            Message,
+            MessageWithEmojis,
             ClientboundChatPacket.MK_OUTGOING_DM
         ))
     }
