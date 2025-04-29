@@ -226,6 +226,12 @@ class NguhcraftRecipeGenerator(
 
         offerShapelessRecipe(NguhBlocks.CINNABAR, 2, Items.NETHERRACK to 1, Items.COBBLESTONE to 1)
 
+        offerShaped(Items.TUFF, 4) {
+            pattern("BQ")
+            pattern("QB")
+            cinput('B', Items.BLACKSTONE)
+            cinput('Q', Items.QUARTZ)
+        }
         // =========================================================================
         //  Stone Cutting
         // =========================================================================
@@ -234,6 +240,11 @@ class NguhcraftRecipeGenerator(
         offerStonecuttingFamily(NguhBlocks.POLISHED_CALCITE_FAMILY, Blocks.CALCITE)
         offerStonecuttingFamily(NguhBlocks.CALCITE_BRICK_FAMILY, Blocks.CALCITE)
         offerStonecuttingRecipe(RecipeCategory.BUILDING_BLOCKS, NguhBlocks.PYRITE_BRICKS, NguhBlocks.PYRITE)
+
+        // =========================================================================
+        //  Smelting
+        // =========================================================================
+        offerSmelting(Items.BONE_BLOCK, RecipeCategory.BUILDING_BLOCKS, Items.CALCITE, 0.2, 200, "nguhStoneRenewables")
 
         // =========================================================================
         //  Special Recipes
