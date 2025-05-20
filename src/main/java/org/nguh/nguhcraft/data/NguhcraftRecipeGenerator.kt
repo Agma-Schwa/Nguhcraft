@@ -224,6 +224,13 @@ class NguhcraftRecipeGenerator(
             }
         }
 
+        offerShaped(Items.TUFF, 2, "from_blackstone_and_quartz") {
+            pattern("BQ")
+            pattern("QB")
+            cinput('B', Items.BLACKSTONE)
+            cinput('Q', Items.QUARTZ)
+        }
+
         offerShapelessRecipe(NguhBlocks.CINNABAR, 2, Items.NETHERRACK to 1, Items.COBBLESTONE to 1)
 
         // =========================================================================
@@ -234,6 +241,11 @@ class NguhcraftRecipeGenerator(
         offerStonecuttingFamily(NguhBlocks.POLISHED_CALCITE_FAMILY, Blocks.CALCITE)
         offerStonecuttingFamily(NguhBlocks.CALCITE_BRICK_FAMILY, Blocks.CALCITE)
         offerStonecuttingRecipe(RecipeCategory.BUILDING_BLOCKS, NguhBlocks.PYRITE_BRICKS, NguhBlocks.PYRITE)
+
+        // =========================================================================
+        //  Smelting
+        // =========================================================================
+        offerSmelting(Items.BONE_BLOCK, Items.CALCITE)
 
         // =========================================================================
         //  Special Recipes
@@ -299,6 +311,10 @@ class NguhcraftRecipeGenerator(
         B.Consumer()
         B.offerTo(E, Name)
     }
+
+    // Helper function for smelting
+    fun offerSmelting(Input: ItemConvertible, Output: ItemConvertible, Experience: Float = .2f)
+            = offerSmelting(listOf(Input.asItem()), RecipeCategory.MISC, Output.asItem(), Experience, 200, null)
 
     // offerShapelessRecipe() sucks, so this is a better version.
     inline fun <reified T> offerShapelessRecipe(Output: ItemConvertible, Count: Int, vararg Inputs: Pair<T, Int>) {

@@ -1,0 +1,13 @@
+{
+  "asset_id": "nguhcraft:leshrail_diagram",
+  "author": {
+    "color": "gray",
+    "translate": "painting.nguhcraft.leshrail_diagram.author"
+  },
+  "height": 2,
+  "title": {
+    "color": "yellow",
+    "translate": "painting.nguhcraft.leshrail_diagram.title"
+  },
+  "width": 2
+}

@@ -7,6 +7,7 @@ import net.minecraft.text.MutableText
 import net.minecraft.text.Text
 import net.minecraft.util.Formatting
 import org.apache.commons.lang3.StringUtils
+import org.nguh.nguhcraft.client.ClientUtils.EMOJI_REPLACEMENTS
 import org.slf4j.Logger
 import java.util.*
 
@@ -40,6 +41,8 @@ internal class MarkdownParser private constructor(private val MD: String) {
         /** @return The number of characters in this span. */
         val Size get() = End - Start
     }
+
+    private class LiteralText(val Text: String) : Node()
 
     @JvmRecord
     private data class Delimiter(val S: Span, val CanOpen: Boolean, val CanClose: Boolean) {
@@ -230,15 +233,15 @@ internal class MarkdownParser private constructor(private val MD: String) {
             //    (2) a sequence of one or more `_` characters that is not preceded or
             //        followed by a non-backslash-escaped `_` character.
             //
-            // EXTENSION: `~~`/`||` are also a delimiters.
-            val Start = StringUtils.indexOfAny(MD.substring(Pos), "*_~|`")
+            // EXTENSION: `~~`/`||` are also a delimiters, and we treat emoji names as literals.
+            val Start = StringUtils.indexOfAny(MD.substring(Pos), "*_~|`:")
             if (Start == -1) {
                 Nodes.add(Span(StartOfText, Length))
                 return
             }
 
             // Convert relative to absolute position.
-            val Offs = Pos + Start
+            var Offs = Pos + Start
 
             // Check if this is escaped; to do that, read backslashes before the character;
             // note that backslashes can escape each other, so only treat this as escaped
@@ -295,6 +298,46 @@ internal class MarkdownParser private constructor(private val MD: String) {
                     Pos = StartOfText
                     continue@parse
                 }
+            }
+
+            // EXTENSION: Emoji names are literals. An emoji name is a pair of colons
+            // with only alphanumeric chars and underscores in between.
+            //
+            // We need to handle emoji names here too because otherwise, we run into
+            // the issue that they may be split into multiple spans, and consequently,
+            // parts of the emoji name may be in different literal text components,
+            // which means that our replacement later on wouldn’t recognise them.
+            if (Kind == ':') {
+                // If we have more than one colon in a row, skip to the last one.
+                if (Count > 1) Offs = Offs + Count - 1
+
+                // Find the next colon.
+                val End = MD.indexOf(':', Offs + 1)
+                if (End == -1) {
+                    Pos = Offs + 1
+                    continue
+                }
+
+                // If there is one, look it up immediately so we only have to do this
+                // once rather than every time we render it.
+                val EmojiName = MD.substring(Offs + 1, End)
+                val Emoji = EMOJI_REPLACEMENTS[EmojiName]
+
+                // We found an emoji, skip over the second colon and add it as a literal.
+                if (Emoji != null) {
+                    Nodes.add(Span(StartOfText, Offs))
+                    Nodes.add(LiteralText(Emoji))
+                    Pos = End + 1
+                    StartOfText = Pos
+                }
+
+                // Otherwise, this is just a literal colon. Do NOT skip over the second
+                // colon as there may be text in between we need to render; instead, only
+                // skip over the first one.
+                else Pos = Offs + 1
+
+                // Resume processing after either colon.
+                continue
             }
 
             // EXTENSION: A single `~`/`/` is not a delimiter.
@@ -421,6 +464,7 @@ internal class MarkdownParser private constructor(private val MD: String) {
         for (N in Nodes) {
             if (N is Span) C.append(Render(N))
             else if (N is Emph) C.append(Render(N))
+            else if (N is LiteralText) C.append(Text.of(N.Text))
         }
         return C
     }
