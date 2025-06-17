@@ -1,0 +1,25 @@
+{
+  "variants": {
+    "type=double": {
+      "model": "minecraft:block/spruce_planks"
+    },
+    "type=east": {
+      "model": "nguhcraft:block/spruce_slab_vertical",
+      "uvlock": true,
+      "y": 270
+    },
+    "type=north": {
+      "model": "nguhcraft:block/spruce_slab_vertical",
+      "uvlock": true,
+      "y": 180
+    },
+    "type=south": {
+      "model": "nguhcraft:block/spruce_slab_vertical"
+    },
+    "type=west": {
+      "model": "nguhcraft:block/spruce_slab_vertical",
+      "uvlock": true,
+      "y": 90
+    }
+  }
+}

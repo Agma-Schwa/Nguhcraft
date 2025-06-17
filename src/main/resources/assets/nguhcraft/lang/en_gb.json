@@ -1,4 +1,12 @@
 {
+	"block.nguhcraft.chiseled_calcite": "Chiselled Calcite",
+	"block.nguhcraft.chiseled_calcite_bricks": "Chiselled Calcite Bricks",
+	"block.nguhcraft.chiseled_calcite_bricks_slab": "Chiselled Calcite Bricks Slab",
+	"block.nguhcraft.chiseled_calcite_bricks_stairs": "Chiselled Calcite Bricks Stairs",
+	"block.nguhcraft.chiseled_calcite_bricks_wall": "Chiselled Calcite Bricks Wall",
+	"block.nguhcraft.gilded_chiseled_calcite": "Gilded Chiselled Calcite",
+	"block.nguhcraft.gilded_chiseled_calcite_bricks": "Gilded Chiselled Calcite Bricks",
+
 	"item.nguhcraft.atlantic_armour_trim_smithing_template": "Atlantic Armour Trim",
 	"item.nguhcraft.cenrail_armour_trim_smithing_template": "Cenrail Armour Trim",
 	"item.nguhcraft.ice_cold_armour_trim_smithing_template": "Ice-Cold Armour Trim",

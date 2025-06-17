@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:stonecutting",
+  "ingredient": "nguhcraft:gilded_polished_calcite",
+  "result": {
+    "count": 1,
+    "id": "nguhcraft:gilded_chiseled_calcite"
+  }
+}

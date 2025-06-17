@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/outer_stairs",
+  "textures": {
+    "bottom": "nguhcraft:block/polished_cinnabar",
+    "side": "nguhcraft:block/polished_cinnabar",
+    "top": "nguhcraft:block/polished_cinnabar"
+  }
+}

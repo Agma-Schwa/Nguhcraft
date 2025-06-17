@@ -1,0 +1,54 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_emerald": {
+      "conditions": {
+        "items": [
+          {
+            "items": "minecraft:emerald"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_iron_nugget": {
+      "conditions": {
+        "items": [
+          {
+            "items": "minecraft:iron_nugget"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "minecraft:verdant_lantern"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    },
+    "has_verdant_froglight": {
+      "conditions": {
+        "items": [
+          {
+            "items": "minecraft:verdant_froglight"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_emerald",
+      "has_iron_nugget",
+      "has_verdant_froglight"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "minecraft:verdant_lantern"
+    ]
+  }
+}

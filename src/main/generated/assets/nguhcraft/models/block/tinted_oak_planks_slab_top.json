@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/slab_top",
+  "textures": {
+    "bottom": "nguhcraft:block/tinted_oak_planks",
+    "side": "nguhcraft:block/tinted_oak_planks",
+    "top": "nguhcraft:block/tinted_oak_planks"
+  }
+}

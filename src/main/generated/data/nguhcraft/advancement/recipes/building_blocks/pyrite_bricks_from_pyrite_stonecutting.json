@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_pyrite": {
+      "conditions": {
+        "items": [
+          {
+            "items": "nguhcraft:pyrite"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "minecraft:pyrite_bricks_from_pyrite_stonecutting"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_pyrite"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "minecraft:pyrite_bricks_from_pyrite_stonecutting"
+    ]
+  }
+}

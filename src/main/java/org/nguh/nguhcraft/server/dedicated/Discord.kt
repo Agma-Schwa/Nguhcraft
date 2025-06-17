@@ -15,10 +15,13 @@ import net.dv8tion.jda.api.entities.channel.concrete.TextChannel
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent
 import net.dv8tion.jda.api.events.guild.member.GuildMemberUpdateEvent
 import net.dv8tion.jda.api.events.guild.update.GuildUpdateIconEvent
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import net.dv8tion.jda.api.exceptions.ErrorResponseException
 import net.dv8tion.jda.api.hooks.ListenerAdapter
+import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions
+import net.dv8tion.jda.api.interactions.commands.build.Commands
 import net.dv8tion.jda.api.interactions.components.buttons.Button
 import net.dv8tion.jda.api.requests.ErrorResponse
 import net.dv8tion.jda.api.requests.GatewayIntent
@@ -190,6 +193,36 @@ internal class Discord : ListenerAdapter() {
         }
     }
 
+    override fun onSlashCommandInteraction(Interaction: SlashCommandInteractionEvent) {
+        if (Interaction.name == "players") Server.execute {
+            try {
+                val S = buildString {
+                    val PL = Server.playerManager.playerList.filter { !Vanish.IsVanished(it) }
+                    append(when (PL.size) {
+                        0 -> "**There are currently no players online.**"
+                        1 -> "**There is currently 1 player online:**"
+                        else -> "**There are currently ${PL.size} players online:**"
+                    })
+
+                    for (SP in PL) {
+                        append("\n- ")
+                        append(if (SP.isLinked) "<@${SP.discordId}>" else SP.nameForScoreboard)
+                    }
+                }
+
+                Interaction.replyEmbeds(
+                    EmbedBuilder()
+                    .setAuthor("Player List", null, ServerAvatarURL)
+                    .setColor(Constants.Lavender)
+                    .setDescription(S)
+                    .build()
+                ).setEphemeral(true).queue()
+            } catch (T: Throwable) {
+                LOGGER.error("Failed to execute /players command", T)
+            }
+        }
+    }
+
     companion object {
         const val INVALID_ID: Long = 0
 
@@ -274,14 +307,14 @@ internal class Discord : ListenerAdapter() {
             RequiredRoles = Config.requiredRoleIds.map { Get ("required role") { AgmaSchwaGuild.getRoleById(it) } }
             ServerAvatarURL = AgmaSchwaGuild.iconUrl ?: Client.selfUser.effectiveAvatarUrl
             Ready = true
-            SendSimpleEmbed(null, "Starting server...", Constants.Lavender)
+            SendSimpleEmbed("Starting server...")
         }
 
         @JvmStatic
         fun Stop() {
             if (!Ready) return
             Ready = false
-            SendSimpleEmbed(null, "Shutting down...", Constants.Lavender)
+            SendSimpleEmbed("Shutting down...")
             Client.shutdown()
         }
 
@@ -291,7 +324,7 @@ internal class Discord : ListenerAdapter() {
             if (!Ready) return
             try {
                 val Text = AdvancementMessage.string
-                SendSimpleEmbed(SP, Text, Constants.Lavender)
+                SendSimpleEmbed(Text, Player = SP)
             } catch (E: Exception) {
                 E.printStackTrace()
                 LOGGER.error("Failed to send advancement message: {}", E.message)
@@ -324,14 +357,14 @@ internal class Discord : ListenerAdapter() {
             // exception escape in any case.
             try {
                 val Text = DeathMessage.string
-                SendSimpleEmbed(SP, Text, Constants.Red)
+                SendSimpleEmbed(Text, Constants.Red, SP)
             } catch (E: Exception) {
                 if (E is IllegalArgumentException || E is ErrorResponseException) {
                     // Death message was too long.
                     val S = DeathMessage.asTruncatedString(256)
                     val Msg = Text.translatable("death.attack.even_more_magic", SP.displayName)
                     val Abbr = Text.translatable("death.attack.message_too_long", Text.literal(S))
-                    SendSimpleEmbed(SP, "$Msg\n\n$Abbr", Constants.Black)
+                    SendSimpleEmbed("$Msg\n\n$Abbr", Constants.Black, SP)
                     return
                 }
 
@@ -352,7 +385,7 @@ internal class Discord : ListenerAdapter() {
                 val Name = if (SP.isLinked) SP.discordName
                 else SP.nameForScoreboard
                 val Text = "$Name ${if (Joined) "joined" else "left"} the game"
-                SendSimpleEmbed(SP, Text, if (Joined) Constants.Green else Constants.Red)
+                SendSimpleEmbed(Text, if (Joined) Constants.Green else Constants.Red, SP)
             } catch (E: Exception) {
                 E.printStackTrace()
                 LOGGER.error("Failed to send join/quit message: {}", E.message)
@@ -461,7 +494,7 @@ internal class Discord : ListenerAdapter() {
             try {
                 // Message sent by the server.
                 if (SP == null) {
-                    SendSimpleEmbed(null, Message, Constants.Lavender)
+                    SendSimpleEmbed(Message)
                     return
                 }
 
@@ -649,7 +682,7 @@ internal class Discord : ListenerAdapter() {
             AgmaSchwaGuild.addRoleToMember(M, NguhcrafterRole).queue()
 
             // Broadcast the change to all players and send a message to Discord.
-            SendSimpleEmbed(null, DiscordMsg, Constants.Green)
+            SendSimpleEmbed(DiscordMsg, Constants.Green)
             Server.playerManager.broadcast(
                 Text.empty()
                     .append(Text.literal(SP.nameForScoreboard).formatted(Formatting.AQUA))
@@ -657,6 +690,16 @@ internal class Discord : ListenerAdapter() {
                     .append(Text.literal(M.effectiveName).withColor(M.colorRaw)),
                 false
             )
+        }
+
+        /** Register commands. */
+        fun RegisterCommands() {
+            if (!Ready) return
+            LOGGER.info("Registering commands...")
+            AgmaSchwaGuild.updateCommands().addCommands(
+                Commands.slash("players", "Show players online on the Minecraft server")
+                        .setDefaultPermissions(DefaultMemberPermissions.ENABLED)
+            ).queue()
         }
 
         /**
@@ -740,15 +783,15 @@ internal class Discord : ListenerAdapter() {
         /**
          * Send an embed to the server. Used for join, quit, death, and link messages.
          *
-         * @param SP     the player whose name should be used
+         * @param Player the player whose name should be used
          * @param Text   the message content
          * @param Colour the colour of the embed
          */
-        private fun SendSimpleEmbed(SP: ServerPlayerEntity?, Text: String?, Colour: Int) {
+        private fun SendSimpleEmbed(Text: String?, Colour: Int = Constants.Lavender, Player: ServerPlayerEntity? = null) {
             SendEmbed(
                 "[Server]",
                 ServerAvatarURL,
-                SP?.discordAvatarURL,
+                Player?.discordAvatarURL,
                 Text,
                 Colour
             )
@@ -764,7 +807,7 @@ internal class Discord : ListenerAdapter() {
             )
 
             val DiscordMsg = "${SP.nameForScoreboard} is no longer linked"
-            SendSimpleEmbed(SP, DiscordMsg, Constants.Red)
+            SendSimpleEmbed(DiscordMsg, Constants.Red, SP)
         }
 
         /**

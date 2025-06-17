@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "hanging=false": {
+      "model": "nguhcraft:block/ochre_lantern"
+    },
+    "hanging=true": {
+      "model": "nguhcraft:block/ochre_lantern_hanging"
+    }
+  }
+}

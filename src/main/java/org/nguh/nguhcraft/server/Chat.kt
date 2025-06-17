@@ -29,7 +29,7 @@ object Chat {
     private val ERR_MUTED: Text = Text.literal("You are muted and cannot send messages in chat").formatted(Formatting.RED)
 
     /** Components used in sender names. */
-    private val SERVER_COMPONENT: Text = Utils.BracketedLiteralComponent("Server")
+    val SERVER_COMPONENT: Text = Utils.BracketedLiteralComponent("Server")
     private val SRV_LIT_COMPONENT: Text = Text.literal("Server").withColor(Constants.Lavender)
     private val COLON_COMPONENT: Text = Text.literal(":")
     private val COMMA_COMPONENT = Text.literal(", ").withColor(Constants.DeepKoamaru)
@@ -41,12 +41,12 @@ object Chat {
         Command: String,
         SP: ServerPlayerEntity? = null
     ) {
-        Source.append(" issued command\n    /$Command")
-        S.BroadcastToOperators(Source.formatted(Formatting.YELLOW), SP)
+        Source.append(Text.literal(" issued command\n    /$Command").formatted(Formatting.GRAY))
+        S.BroadcastToOperators(Source, SP)
     }
 
     /** Actually send a message. */
-    private fun DispatchMessage(S: MinecraftServer, Sender: ServerPlayerEntity?, Message: String) {
+    fun DispatchMessage(S: MinecraftServer, Sender: ServerPlayerEntity?, Message: String) {
         // On the integrated server, don’t bother with the linking.
         if (IsIntegratedServer()) {
             S.Broadcast(ClientboundChatPacket(
@@ -201,7 +201,7 @@ object Chat {
     /** Send a message from the console. */
     @JvmStatic
     fun SendServerMessage(S: MinecraftServer, Message: String) {
-        LOGGER.info("{} {}", SERVER_COMPONENT, Message)
+        LOGGER.info("[Server] {}", Message)
         DispatchMessage(S, null, Message)
     }
 }

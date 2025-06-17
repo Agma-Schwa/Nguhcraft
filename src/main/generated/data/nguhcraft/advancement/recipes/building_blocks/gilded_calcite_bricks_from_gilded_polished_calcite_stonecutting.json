@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_gilded_polished_calcite": {
+      "conditions": {
+        "items": [
+          {
+            "items": "nguhcraft:gilded_polished_calcite"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "minecraft:gilded_calcite_bricks_from_gilded_polished_calcite_stonecutting"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_gilded_polished_calcite"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "minecraft:gilded_calcite_bricks_from_gilded_polished_calcite_stonecutting"
+    ]
+  }
+}

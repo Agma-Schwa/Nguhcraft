@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "A": "minecraft:emerald",
+    "N": "minecraft:iron_nugget"
+  },
+  "pattern": [
+    "N",
+    "A",
+    "N"
+  ],
+  "result": {
+    "count": 1,
+    "id": "nguhcraft:verdant_chain"
+  }
+}

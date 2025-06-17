@@ -1,0 +1,25 @@
+{
+  "variants": {
+    "type=double": {
+      "model": "minecraft:block/cobblestone"
+    },
+    "type=east": {
+      "model": "nguhcraft:block/cobblestone_slab_vertical",
+      "uvlock": true,
+      "y": 270
+    },
+    "type=north": {
+      "model": "nguhcraft:block/cobblestone_slab_vertical",
+      "uvlock": true,
+      "y": 180
+    },
+    "type=south": {
+      "model": "nguhcraft:block/cobblestone_slab_vertical"
+    },
+    "type=west": {
+      "model": "nguhcraft:block/cobblestone_slab_vertical",
+      "uvlock": true,
+      "y": 90
+    }
+  }
+}

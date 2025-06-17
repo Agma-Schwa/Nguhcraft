@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:stonecutting",
+  "ingredient": "nguhcraft:gilded_calcite",
+  "result": {
+    "count": 1,
+    "id": "nguhcraft:gilded_calcite_bricks_stairs"
+  }
+}

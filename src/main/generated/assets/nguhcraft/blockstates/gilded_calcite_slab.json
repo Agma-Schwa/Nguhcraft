@@ -1,0 +1,13 @@
+{
+  "variants": {
+    "type=bottom": {
+      "model": "nguhcraft:block/gilded_calcite_slab"
+    },
+    "type=double": {
+      "model": "nguhcraft:block/gilded_calcite"
+    },
+    "type=top": {
+      "model": "nguhcraft:block/gilded_calcite_slab_top"
+    }
+  }
+}

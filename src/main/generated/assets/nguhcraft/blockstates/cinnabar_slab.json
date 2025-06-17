@@ -1,0 +1,13 @@
+{
+  "variants": {
+    "type=bottom": {
+      "model": "nguhcraft:block/cinnabar_slab"
+    },
+    "type=double": {
+      "model": "nguhcraft:block/cinnabar"
+    },
+    "type=top": {
+      "model": "nguhcraft:block/cinnabar_slab_top"
+    }
+  }
+}

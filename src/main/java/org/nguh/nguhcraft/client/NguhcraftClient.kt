@@ -5,11 +5,9 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder.literal
 import net.fabricmc.api.ClientModInitializer
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
-import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents
-import net.minecraft.client.render.RenderLayer
 import net.minecraft.client.render.item.property.select.SelectProperties
 import net.minecraft.item.ItemGroup
 import net.minecraft.item.ItemStack
@@ -21,7 +19,7 @@ import net.minecraft.util.Formatting
 import net.minecraft.util.math.BlockPos
 import org.nguh.nguhcraft.Nguhcraft.Companion.Id
 import org.nguh.nguhcraft.block.ChestVariantProperty
-import org.nguh.nguhcraft.block.NguhBlocks
+import org.nguh.nguhcraft.block.NguhBlockModels
 import org.nguh.nguhcraft.client.render.Renderer
 import org.nguh.nguhcraft.client.render.WorldRendering
 
@@ -33,9 +31,7 @@ class NguhcraftClient : ClientModInitializer {
 
         Registry.register(Registries.ITEM_GROUP, Id("treasures"), TREASURES_ITEM_GROUP)
 
-        BlockRenderLayerMap.INSTANCE.putBlock(NguhBlocks.LOCKED_DOOR, RenderLayer.getCutout())
-        BlockRenderLayerMap.INSTANCE.putBlock(NguhBlocks.PEARLESCENT_LANTERN, RenderLayer.getCutout())
-        BlockRenderLayerMap.INSTANCE.putBlock(NguhBlocks.PEARLESCENT_CHAIN, RenderLayer.getCutout())
+        NguhBlockModels.InitRenderLayers()
 
         ClientCommandRegistrationCallback.EVENT.register { Dispatcher, _ ->
             Dispatcher.register(RenderCommand())

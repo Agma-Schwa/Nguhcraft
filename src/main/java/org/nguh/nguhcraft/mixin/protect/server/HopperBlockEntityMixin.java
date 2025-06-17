@@ -1,6 +1,7 @@
 package org.nguh.nguhcraft.mixin.protect.server;
 
 import net.minecraft.block.BlockState;
+import net.minecraft.block.entity.Hopper;
 import net.minecraft.block.entity.HopperBlockEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
@@ -15,6 +16,18 @@ import java.util.function.BooleanSupplier;
 
 @Mixin(HopperBlockEntity.class)
 public abstract class HopperBlockEntityMixin {
+    /** As below. Used by hopper minecarts. */
+    @Inject(
+        method = "extract(Lnet/minecraft/world/World;Lnet/minecraft/block/entity/Hopper;)Z",
+        at = @At("HEAD"),
+        cancellable = true
+    )
+    private static void inject$extract(World W, Hopper H, CallbackInfoReturnable<Boolean> CIR) {
+        BlockPos Pos = BlockPos.ofFloored(H.getHopperX(), H.getHopperY() + 1.0, H.getHopperZ());
+        if (ProtectionManager.IsProtectedBlock(W, Pos))
+            CIR.setReturnValue(false);
+    }
+
     /**
     * Prevent hoppers from accessing protected inventories.
     * <p>

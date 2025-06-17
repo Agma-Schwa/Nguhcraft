@@ -32,7 +32,9 @@ import kotlin.math.min
 typealias MojangPair<A, B> = com.mojang.datafixers.util.Pair<A, B>
 operator fun <A, B> MojangPair<A, B>.component1(): A = this.first
 operator fun <A, B> MojangPair<A, B>.component2(): B = this.second
-operator fun Vec3d.unaryMinus() = Vec3d(-x, -y, -z)
+operator fun Vec3d.unaryMinus(): Vec3d = negate()
+operator fun Vec3d.plus(o: Vec3d): Vec3d = add(o)
+operator fun Vec3d.minus(o: Vec3d): Vec3d = subtract(o)
 
 /**
 * Transform 'this' using a function iff 'Cond' is true and return
@@ -40,6 +42,9 @@ operator fun Vec3d.unaryMinus() = Vec3d(-x, -y, -z)
 */
 inline fun <T> T.mapIf(Cond: Boolean, Block: (T) -> T): T
     = if (Cond) Block(this) else this
+
+/** Flatten a list of pairs to a list. */
+fun <A> List<Pair<A, A>>.flatten(): List<A> = flatMap { listOf(it.first, it.second) }
 
 /**
  * Rectangle that has X and Z bounds but ignores the Y axis. Used by regions
@@ -246,6 +251,20 @@ object Utils {
     fun EnchantLvl(W: World, Stack: ItemStack, E: RegistryKey<Enchantment>): Int {
         val R = W.registryManager.getOrThrow(RegistryKeys.ENCHANTMENT)
         return EnchantmentHelper.getLevel(R.getOrThrow(E), Stack)
+    }
+
+    /** If this iterable contains a single element, return it, else return null. */
+    fun<T> GetSingleElement(Iter: Iterable<T>?): T? {
+        if (Iter == null) return null
+
+        // For lists, just extract the first element directly.
+        if (Iter is List) return if (Iter.size == 1) Iter.first() else null
+
+        // For anything else, use an iterator.
+        val It = Iter.iterator()
+        if (!It.hasNext()) return null
+        val First = It.next()
+        return if (It.hasNext()) null else First
     }
 
     /** Normalise a string for fuzzy matching against another string  */

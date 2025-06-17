@@ -1,0 +1,6 @@
+{
+  "parent": "nguhcraft:block/template_chain",
+  "textures": {
+    "all": "nguhcraft:block/pearlescent_chain"
+  }
+}

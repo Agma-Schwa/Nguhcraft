@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "#": "minecraft:verdant_froglight",
+    "A": "minecraft:emerald",
+    "N": "minecraft:iron_nugget"
+  },
+  "pattern": [
+    "NAN",
+    "A#A",
+    "NNN"
+  ],
+  "result": {
+    "count": 1,
+    "id": "nguhcraft:verdant_lantern"
+  }
+}

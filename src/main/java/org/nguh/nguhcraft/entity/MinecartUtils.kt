@@ -52,7 +52,7 @@ object MinecartUtils {
         if (E.isRemoved) return false
         if (E is AbstractMinecartEntity) return true
         if (E !is ServerPlayerEntity) return false
-        return E.isAlive && !E.isSpectator && !E.isCreative
+        return !E.isSpectator && !E.isCreative
     }
 
     /** Get the damage source to use for a collision.  */
@@ -66,18 +66,25 @@ object MinecartUtils {
     /** Perform minecart collisions. Returns 'true' if we handled a collision. */
     @JvmStatic
     fun HandleCollisions(C: AbstractMinecartEntity): Boolean {
-        // Don’t collide if we’re not on a track or too slow.
+        // Don’t collide if we’re not on a track or too slow, or if
+        // our controlling passenger is dead.
+        //
+        // Two minecarts that don’t have a player are going to be moving
+        // too slowly for collisions anyway, so skip them; if another cart
+        // that we are colliding with does have a player, but we don’t, we’ll
+        // register the collision whenever the other cart is ticked.
         val OurPlayer = C.firstPassenger as? ServerPlayerEntity
-        val HasPlayer = OurPlayer != null
+        val HasPlayer = OurPlayer != null && OurPlayer.isAlive
         val OurSpeed = C.velocity.horizontalLength()
         if (
             C.world.isClient ||
-            !C.isOnRail ||
-            OurSpeed < COLLISION_THRESHOLD
+           !C.isOnRail ||
+            OurSpeed < COLLISION_THRESHOLD ||
+           !HasPlayer
         ) return HasPlayer
 
         // Calculate bounding box at the target position.
-        val BB = C.boundingBox.mapIf(HasPlayer) { it.union(OurPlayer!!.boundingBox) }
+        val BB = C.boundingBox.union(OurPlayer.boundingBox)
 
         // Check for colliding entities.
         val Level = C.world as ServerWorld
@@ -150,6 +157,6 @@ object MinecartUtils {
             break
         }
 
-        return HasPlayer
+        return true
     }
 }

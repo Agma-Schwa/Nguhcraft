@@ -47,6 +47,7 @@ object WorldRendering {
 
         // Render barriers for each region.
         for (R in ProtectionManager.GetRegions(CW)) {
+            if (!R.ShouldRenderEntryExitBarrier()) continue
             if (R.World != CW.registryKey) continue
             if (R.DistanceFrom(CameraPos) > WR.viewDistance * 16) continue
             VA.Draw { RenderBarrier(it, R, MinY = MinY, MaxY = MaxY, DT) }

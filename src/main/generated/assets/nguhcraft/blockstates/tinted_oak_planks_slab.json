@@ -1,0 +1,13 @@
+{
+  "variants": {
+    "type=bottom": {
+      "model": "nguhcraft:block/tinted_oak_planks_slab"
+    },
+    "type=double": {
+      "model": "nguhcraft:block/tinted_oak_planks"
+    },
+    "type=top": {
+      "model": "nguhcraft:block/tinted_oak_planks_slab_top"
+    }
+  }
+}

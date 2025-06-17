@@ -6,6 +6,7 @@ import net.minecraft.entity.Entity
 import net.minecraft.nbt.NbtCompound
 import net.minecraft.network.packet.CustomPayload
 import net.minecraft.network.packet.Packet
+import net.minecraft.screen.ScreenTexts
 import net.minecraft.server.MinecraftServer
 import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.server.world.ServerWorld
@@ -107,9 +108,8 @@ fun MinecraftServer.Broadcast(Msg: Text) {
 /** Broadcast a message in the operator chat. */
 fun MinecraftServer.BroadcastToOperators(Msg: Text, Except: ServerPlayerEntity? = null) {
     val Decorated = Text.empty()
-        .append(Text.literal("[").withColor(Constants.Orange))
-        .append(Text.literal("Console").formatted(Formatting.YELLOW))
-        .append(Text.literal("] ").withColor(Constants.Orange))
+        .append(Chat.SERVER_COMPONENT)
+        .append(ScreenTexts.SPACE)
         .append(Msg)
 
     for (P in playerManager.playerList)

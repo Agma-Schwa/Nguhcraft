@@ -30,7 +30,8 @@ class NguhcraftDedicatedServer : DedicatedServerModInitializer {
         }
 
         ServerLifecycleEvents.SERVER_STARTING.register {
-            Discord.Start(it as MinecraftDedicatedServer)
+            NguhcraftAppender.Server = it as MinecraftDedicatedServer
+            Discord.Start(it)
         }
 
         ServerLifecycleEvents.SERVER_STOPPING.register {

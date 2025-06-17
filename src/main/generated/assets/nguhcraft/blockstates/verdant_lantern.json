@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "hanging=false": {
+      "model": "nguhcraft:block/verdant_lantern"
+    },
+    "hanging=true": {
+      "model": "nguhcraft:block/verdant_lantern_hanging"
+    }
+  }
+}

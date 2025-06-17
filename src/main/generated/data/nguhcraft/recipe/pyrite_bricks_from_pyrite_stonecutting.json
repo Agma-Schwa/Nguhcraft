@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:stonecutting",
+  "ingredient": "nguhcraft:pyrite",
+  "result": {
+    "count": 1,
+    "id": "nguhcraft:pyrite_bricks"
+  }
+}

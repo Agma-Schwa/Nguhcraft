@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "G": "minecraft:glowstone_dust",
+    "I": "minecraft:iron_nugget"
+  },
+  "pattern": [
+    "GI",
+    "IG"
+  ],
+  "result": {
+    "count": 2,
+    "id": "nguhcraft:pyrite"
+  }
+}

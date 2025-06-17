@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "#": "minecraft:ochre_froglight",
+    "A": "minecraft:resin_clump",
+    "N": "minecraft:iron_nugget"
+  },
+  "pattern": [
+    "NAN",
+    "A#A",
+    "NNN"
+  ],
+  "result": {
+    "count": 1,
+    "id": "nguhcraft:ochre_lantern"
+  }
+}

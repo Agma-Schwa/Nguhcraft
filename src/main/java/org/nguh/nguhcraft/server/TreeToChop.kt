@@ -88,7 +88,7 @@ class TreeToChop private constructor(private val Owner: ServerPlayerEntity, priv
             Blocks.CHERRY_LOG to arrayOf(Blocks.CHERRY_LOG),
             Blocks.DARK_OAK_LOG to arrayOf(Blocks.DARK_OAK_LOG),
             Blocks.JUNGLE_LOG to arrayOf(Blocks.JUNGLE_LOG),
-            Blocks.MANGROVE_LOG to arrayOf(Blocks.MANGROVE_LOG, Blocks.MANGROVE_ROOTS, Blocks.MUDDY_MANGROVE_ROOTS),
+            Blocks.MANGROVE_LOG to arrayOf(Blocks.MANGROVE_LOG, Blocks.MANGROVE_ROOTS),
             Blocks.OAK_LOG to arrayOf(Blocks.OAK_LOG),
             Blocks.SPRUCE_LOG to arrayOf(Blocks.SPRUCE_LOG),
             Blocks.PALE_OAK_LOG to arrayOf(Blocks.PALE_OAK_LOG)
@@ -116,8 +116,7 @@ class TreeToChop private constructor(private val Owner: ServerPlayerEntity, priv
                 Level is ServerWorld &&
                 (
                     State.isIn(BlockTags.OVERWORLD_NATURAL_LOGS) ||
-                    State.isOf(Blocks.MANGROVE_ROOTS) ||
-                    State.isOf(Blocks.MUDDY_MANGROVE_ROOTS)
+                    State.isOf(Blocks.MANGROVE_ROOTS)
                 ) &&
                 Player.mainHandStack.isIn(ItemTags.AXES)
             ) ChopDownTree(Player, Level, Block, State)
@@ -200,10 +199,7 @@ class TreeToChop private constructor(private val Owner: ServerPlayerEntity, priv
                     // Do chop downwards if these are Mangrove roots because it looks stupid
                     // if only the roots are left (re ‘that is not how trees work’: they’re
                     // roots; they’d probably fall over or something).
-                    if (ChopDownwards && (
-                        B == Blocks.MANGROVE_ROOTS ||
-                        B == Blocks.MUDDY_MANGROVE_ROOTS
-                    )) VisitBlock(Q, Visited, Block.down())
+                    if (ChopDownwards && B == Blocks.MANGROVE_ROOTS) VisitBlock(Q, Visited, Block.down())
                 }
             }
 
@@ -219,10 +215,7 @@ class TreeToChop private constructor(private val Owner: ServerPlayerEntity, priv
         // to find the corresponding leaves block, is always the first element.
         private fun GetWoodTypes(Wood: Block): Array<Block> {
             var W = Wood
-            if (
-                W === Blocks.MANGROVE_ROOTS ||
-                W === Blocks.MUDDY_MANGROVE_ROOTS
-            ) W = Blocks.MANGROVE_LOG
+            if (W === Blocks.MANGROVE_ROOTS) W = Blocks.MANGROVE_LOG
             return Objects.requireNonNull<Array<Block>>(WOOD_TYPES[W])
         }
 

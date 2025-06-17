@@ -1,0 +1,25 @@
+{
+  "variants": {
+    "type=double": {
+      "model": "nguhcraft:block/gilded_calcite"
+    },
+    "type=east": {
+      "model": "nguhcraft:block/gilded_calcite_slab_vertical",
+      "uvlock": true,
+      "y": 270
+    },
+    "type=north": {
+      "model": "nguhcraft:block/gilded_calcite_slab_vertical",
+      "uvlock": true,
+      "y": 180
+    },
+    "type=south": {
+      "model": "nguhcraft:block/gilded_calcite_slab_vertical"
+    },
+    "type=west": {
+      "model": "nguhcraft:block/gilded_calcite_slab_vertical",
+      "uvlock": true,
+      "y": 90
+    }
+  }
+}

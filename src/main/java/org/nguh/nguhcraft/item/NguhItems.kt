@@ -34,6 +34,8 @@ object NguhItems {
     // =========================================================================
     val LOCK: Item = CreateItem(LockItem.ID, LockItem())
     val KEY: Item = CreateItem(KeyItem.ID, KeyItem())
+    val MASTER_KEY: Item = CreateItem(MasterKeyItem.ID, MasterKeyItem())
+    val KEY_CHAIN: Item = CreateItem(KeyChainItem.ID, KeyChainItem())
     val SLABLET_1: Item = CreateItem(Id("slablet_1"), Item.Settings().maxCount(64).rarity(Rarity.UNCOMMON).fireproof())
     val SLABLET_2: Item = CreateItem(Id("slablet_2"), Item.Settings().maxCount(64).rarity(Rarity.UNCOMMON).fireproof())
     val SLABLET_4: Item = CreateItem(Id("slablet_4"), Item.Settings().maxCount(64).rarity(Rarity.UNCOMMON).fireproof())
@@ -89,6 +91,8 @@ object NguhItems {
 
         Register(LOCK)
         Register(KEY)
+        Register(KEY_CHAIN)
+        Register(MASTER_KEY)
         Register(SLABLET_1)
         Register(SLABLET_2)
         Register(SLABLET_4)
@@ -99,9 +103,13 @@ object NguhItems {
     }
 
     fun Init() {
+        LockPredicate.RunStaticInitialisation()
+
         ItemGroupEvents.modifyEntriesEvent(ItemGroups.FUNCTIONAL).register {
             it.add(LOCK)
             it.add(KEY)
+            it.add(KEY_CHAIN)
+            it.add(MASTER_KEY)
             it.add(SLABLET_1)
             it.add(SLABLET_2)
             it.add(SLABLET_4)

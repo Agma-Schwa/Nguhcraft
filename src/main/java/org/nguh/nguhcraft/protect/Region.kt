@@ -107,6 +107,9 @@ abstract class Region(
          */
         PRESSURE_PLATES,
 
+        /** Whether to render the entry/exit barrier if there is one. */
+        RENDER_ENTRY_EXIT_BARRIER,
+
         /**
          * Allow teleportation.
          *
@@ -214,6 +217,9 @@ abstract class Region(
 
     /** Check if this region allows trading with villagers. */
     fun AllowsVillagerTrading() = Test(Flags.ENTITY_INTERACT) || Test(Flags.TRADE)
+
+    /** Whether we should render the entry/exit barrier. */
+    fun ShouldRenderEntryExitBarrier() = Test(Flags.RENDER_ENTRY_EXIT_BARRIER)
 
     /** Helper to simplify testing flags. */
     protected fun Test(Flag: Flags) = RegionFlags and Flag.Bit() != 0L

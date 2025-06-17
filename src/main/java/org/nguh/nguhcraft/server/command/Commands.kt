@@ -82,40 +82,42 @@ object Commands {
     fun Register() {
         CommandRegistrationCallback.EVENT.register { D, A, E ->
             if (E.dedicated) {
-                D.register(DiscordCommand())          // /discord
-                D.register(ModCommand())              // /mod
-                D.register(VanishCommand())           // /vanish
+                D.register(DiscordCommand())           // /discord
+                D.register(ModCommand())               // /mod
+                D.register(UpdateBotCommandsCommand()) // /update_bot_commands
+                D.register(VanishCommand())            // /vanish
             }
 
-            D.register(BackCommand())                 // /back
-            D.register(BypassCommand())               // /bypass
-            D.register(DelHomeCommand())              // /delhome
-            D.register(DiscardCommand())              // /discard
-            D.register(DisplayCommand())              // /display
-            D.register(EnchantCommand(A))             // /enchant
-            D.register(EntityCountCommand())          // /entity_count
-            D.register(FixCommand())                  // /fix
-            D.register(HomeCommand())                 // /home
-            D.register(HomesCommand())                // /homes
-            D.register(KeyCommand())                  // /key
-            val Msg = D.register(MessageCommand())    // /msg
-            D.register(ObliterateCommand())           // /obliterate
-            D.register(ProcedureCommand())            // /procedure
-            D.register(RegionCommand())               // /region
-            D.register(RenameCommand(A))              // /rename
-            D.register(RuleCommand())                 // /rule
-            D.register(SayCommand())                  // /say
-            D.register(SetHomeCommand())              // /sethome
-            D.register(SmiteCommand())                // /smite
-            D.register(SpeedCommand())                // /speed
-            D.register(SubscribeToConsoleCommand())   // /subscribe_to_console
-            D.register(literal("tell").redirect(Msg)) // /tell
-            D.register(TopCommand())                  // /top
-            D.register(UUIDCommand())                 // /uuid
-            D.register(literal("w").redirect(Msg))    // /w
-            D.register(WarpCommand())                 // /warp
-            D.register(WarpsCommand())                // /warps
-            D.register(WildCommand())                 // /wild
+            D.register(BackCommand())                  // /back
+            D.register(BypassCommand())                // /bypass
+            D.register(DelHomeCommand())               // /delhome
+            D.register(DiscardCommand())               // /discard
+            D.register(DisplayCommand())               // /display
+            D.register(EnchantCommand(A))              // /enchant
+            D.register(EntityCountCommand())           // /entity_count
+            D.register(FixCommand())                   // /fix
+            D.register(HereCommand())                  // /here
+            D.register(HomeCommand())                  // /home
+            D.register(HomesCommand())                 // /homes
+            D.register(KeyCommand())                   // /key
+            val Msg = D.register(MessageCommand())     // /msg
+            D.register(ObliterateCommand())            // /obliterate
+            D.register(ProcedureCommand())             // /procedure
+            D.register(RegionCommand())                // /region
+            D.register(RenameCommand(A))               // /rename
+            D.register(RuleCommand())                  // /rule
+            D.register(SayCommand())                   // /say
+            D.register(SetHomeCommand())               // /sethome
+            D.register(SmiteCommand())                 // /smite
+            D.register(SpeedCommand())                 // /speed
+            D.register(SubscribeToConsoleCommand())    // /subscribe_to_console
+            D.register(literal("tell").redirect(Msg))  // /tell
+            D.register(TopCommand())                   // /top
+            D.register(UUIDCommand())                  // /uuid
+            D.register(literal("w").redirect(Msg))     // /w
+            D.register(WarpCommand())                  // /warp
+            D.register(WarpsCommand())                 // /warps
+            D.register(WildCommand())                  // /wild
         }
 
         ArgType("display", DisplayArgumentType::Display)
@@ -936,6 +938,14 @@ object Commands {
         .then(literal("all").executes { FixCommand.FixAll(it.source, it.source.playerOrThrow) })
         .executes { FixCommand.Fix(it.source, it.source.playerOrThrow) }
 
+    private fun HereCommand(): LiteralArgumentBuilder<ServerCommandSource> = literal("here")
+        .requires { it.isExecutedByPlayer }
+        .executes {
+            val P = it.source.playerOrThrow.blockPos
+            Chat.DispatchMessage(it.source.server, it.source.playerOrThrow, "${P.x} ${P.y} ${P.z}")
+            1
+        }
+
     private fun HomeCommand(): LiteralArgumentBuilder<ServerCommandSource> = literal("home")
         .requires { it.isExecutedByPlayer }
         .then(argument("home", HomeArgumentType.Home())
@@ -1311,6 +1321,11 @@ object Commands {
             else it.source.sendError(Text.literal("Couldn’t find a suitable location to teleport to!"))
             1
         }
+
+    @Environment(EnvType.SERVER)
+    private fun UpdateBotCommandsCommand(): LiteralArgumentBuilder<ServerCommandSource> = literal("update_bot_commands")
+        .requires { it.hasPermissionLevel(4) && !it.isExecutedByPlayer }
+        .executes { org.nguh.nguhcraft.server.dedicated.Discord.RegisterCommands(); 0 }
 
     private fun UUIDCommand(): LiteralArgumentBuilder<ServerCommandSource> = literal("uuid")
         .then(argument("player", EntityArgumentType.player())

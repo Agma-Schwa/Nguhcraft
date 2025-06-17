@@ -9,10 +9,15 @@ import net.minecraft.block.entity.BlockEntity
 import net.minecraft.block.entity.ChestBlockEntity
 import net.minecraft.block.entity.LockableContainerBlockEntity
 import net.minecraft.block.enums.DoubleBlockHalf
-import net.minecraft.component.Component
 import net.minecraft.component.ComponentType
 import net.minecraft.component.DataComponentTypes
+import net.minecraft.component.type.BundleContentsComponent
+import net.minecraft.entity.Entity
+import net.minecraft.entity.LivingEntity
+import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.inventory.ContainerLock
+import net.minecraft.inventory.StackReference
+import net.minecraft.item.BundleItem
 import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
 import net.minecraft.item.ItemUsageContext
@@ -21,11 +26,14 @@ import net.minecraft.registry.Registries
 import net.minecraft.registry.Registry
 import net.minecraft.registry.RegistryKey
 import net.minecraft.registry.RegistryKeys
+import net.minecraft.screen.slot.Slot
 import net.minecraft.server.world.ServerWorld
 import net.minecraft.sound.SoundCategory
 import net.minecraft.sound.SoundEvents
+import net.minecraft.text.MutableText
 import net.minecraft.text.Text
 import net.minecraft.util.ActionResult
+import net.minecraft.util.ClickType
 import net.minecraft.util.Formatting
 import net.minecraft.util.Rarity
 import net.minecraft.util.math.BlockPos
@@ -33,7 +41,6 @@ import net.minecraft.world.World
 import org.nguh.nguhcraft.Nguhcraft.Companion.Id
 import org.nguh.nguhcraft.block.LockableBlockEntity
 import org.nguh.nguhcraft.block.LockedDoorBlockEntity
-import org.nguh.nguhcraft.mixin.common.ComponentPredicateAccessor
 import org.nguh.nguhcraft.server.ServerUtils.UpdateLock
 
 /**
@@ -42,11 +49,7 @@ import org.nguh.nguhcraft.server.ServerUtils.UpdateLock
  * If the lock somehow has multiple lock components, only the
  * first one is returned.
  */
-fun ContainerLock.GetKey(): String? {
-    val Comps = this.predicate.components()
-    if (Comps.isEmpty) return null
-    return ((Comps as ComponentPredicateAccessor).components[0] as Component<*>).value as String
-}
+fun ContainerLock.GetKey() = (this.predicate.subPredicates[LockPredicate.TYPE] as? LockPredicate)?.Key
 
 class KeyItem : Item(
     Settings()
@@ -59,44 +62,9 @@ class KeyItem : Item(
         Ctx: TooltipContext,
         TT: MutableList<Text>,
         Ty: TooltipType
-    ) = AppendLockTooltip(S, TT, Ty, KEY_PREFIX)
+    ) { TT.add(GetLockTooltip(S, Ty, KEY_PREFIX)) }
 
-    override fun useOnBlock(Ctx: ItemUsageContext): ActionResult {
-        // If this is not a lockable block, do nothing.
-        val W = Ctx.world
-        val BE = GetLockableEntity(W, Ctx.blockPos) ?: return ActionResult.PASS
-
-        // If the block is not locked, do nothing; if it is, and the
-        // key doesn’t match, then we fail here.
-        if (BE.lock == ContainerLock.EMPTY) return ActionResult.PASS
-        if (!BE.lock.canOpen(Ctx.stack)) return ActionResult.FAIL
-
-        // Key matches. Drop the lock and clear it.
-        if (W is ServerWorld) {
-            // This could theoretically fail if someone creates a container
-            // lock that uses some other random item predicate, so only drop
-            // a lock if we can extract a stored key.
-            val Key = BE.lock.GetKey()
-            if (Key != null) {
-                val Lock = LockItem.Create(Key)
-                Block.dropStack(W, Ctx.blockPos, Lock)
-            }
-
-            // Remove the component from the block entity either way.
-            UpdateLock(BE, ContainerLock.EMPTY)
-        }
-
-        W.playSound(
-            Ctx.player,
-            Ctx.blockPos,
-            SoundEvents.BLOCK_CHAIN_BREAK,
-            SoundCategory.BLOCKS,
-            1.0f,
-            1.0f
-        )
-
-        return ActionResult.SUCCESS
-    }
+    override fun useOnBlock(Ctx: ItemUsageContext) = UseOnBlock(Ctx)
 
     companion object {
         @JvmField val ID = Id("key")
@@ -121,12 +89,6 @@ class KeyItem : Item(
 
             override fun getFrom(BE: ChestBlockEntity) = BE
             override fun getFallback() = null
-        }
-
-        fun AppendLockTooltip(S: ItemStack, TT: MutableList<Text>, Ty: TooltipType, Prefix: Text) {
-            val Key = S.get(COMPONENT) ?: return
-            val Str = Text.literal(if (Ty.isAdvanced || Key.length < 13) Key else Key.substring(0..<13) + "...")
-            TT.add(Prefix.copy().append(Str.formatted(Formatting.LIGHT_PURPLE)))
         }
 
         /** Create an instance with the specified key. */
@@ -175,6 +137,13 @@ class KeyItem : Item(
             return null
         }
 
+        /** Get the UUID tooltip for a key or lock item. */
+        fun GetLockTooltip(S: ItemStack, Ty: TooltipType, Prefix: Text): Text {
+            val Key = S.get(COMPONENT) ?: return Prefix
+            val Str = Text.literal(if (Ty.isAdvanced || Key.length < 13) Key else Key.substring(0..<13) + "...")
+            return Text.empty().append(Prefix).append(Str.formatted(Formatting.LIGHT_PURPLE))
+        }
+
         /** Check if a chest is locked. */
         @JvmStatic
         fun IsChestLocked(BE: BlockEntity): Boolean {
@@ -182,5 +151,108 @@ class KeyItem : Item(
             val E = GetLockableEntity(W, BE.pos) ?: return false
             return E.lock != ContainerLock.EMPTY
         }
+
+        /** Run when a key is used on a block. */
+        fun UseOnBlock(Ctx: ItemUsageContext): ActionResult {
+            // If this is not a lockable block, do nothing.
+            val W = Ctx.world
+            val BE = GetLockableEntity(W, Ctx.blockPos) ?: return ActionResult.PASS
+
+            // If the block is not locked, do nothing; if it is, and the
+            // key doesn’t match, then we fail here.
+            if (BE.lock == ContainerLock.EMPTY) return ActionResult.PASS
+            if (!BE.lock.canOpen(Ctx.stack)) return ActionResult.FAIL
+
+            // Key matches. Drop the lock and clear it.
+            if (W is ServerWorld) {
+                // This could theoretically fail if someone creates a container
+                // lock that uses some other random item predicate, so only drop
+                // a lock if we can extract a stored key.
+                val Key = BE.lock.GetKey()
+                if (Key != null) {
+                    val Lock = LockItem.Create(Key)
+                    Block.dropStack(W, Ctx.blockPos, Lock)
+                }
+
+                // Remove the component from the block entity either way.
+                UpdateLock(BE, ContainerLock.EMPTY)
+            }
+
+            W.playSound(
+                Ctx.player,
+                Ctx.blockPos,
+                SoundEvents.BLOCK_CHAIN_BREAK,
+                SoundCategory.BLOCKS,
+                1.0f,
+                1.0f
+            )
+
+            return ActionResult.SUCCESS
+        }
+    }
+}
+
+class MasterKeyItem : Item(
+    Settings()
+        .fireproof()
+        .rarity(Rarity.EPIC)
+        .registryKey(RegistryKey.of(RegistryKeys.ITEM, ID))
+) {
+    override fun useOnBlock(Ctx: ItemUsageContext) = KeyItem.UseOnBlock(Ctx)
+    companion object {
+        @JvmField val ID = Id("master_key")
+    }
+}
+
+class KeyChainItem : BundleItem(
+    Settings()
+        .fireproof()
+        .maxCount(1)
+        .rarity(Rarity.UNCOMMON)
+        .component(DataComponentTypes.BUNDLE_CONTENTS, BundleContentsComponent.DEFAULT)
+        .registryKey(RegistryKey.of(RegistryKeys.ITEM, ID))
+) {
+    override fun onClicked(
+        St: ItemStack,
+        Other: ItemStack,
+        Slot: Slot,
+        Click: ClickType,
+        PE: PlayerEntity,
+        StackRef: StackReference
+    ): Boolean {
+        // A left click on the keyring is only valid if no item is selected
+        // or if the selected item is a key.
+        if (Click == ClickType.LEFT && !IsEmptyOrKey(Other))
+            return false
+
+        return super.onClicked(St, Other, Slot, Click, PE, StackRef)
+    }
+
+    override fun onStackClicked(
+        St: ItemStack,
+        Slot: Slot,
+        Click: ClickType,
+        PE: PlayerEntity
+    ) = IsEmptyOrKey(Slot.stack) && super.onStackClicked(St, Slot, Click, PE)
+
+    override fun usageTick(W: World, U: LivingEntity, St: ItemStack, Ticks: Int) {
+        /** Do nothing so people can’t accidentally drop the contents of this. */
+    }
+
+    override fun useOnBlock(Ctx: ItemUsageContext) = KeyItem.UseOnBlock(Ctx)
+    companion object {
+        @JvmField val ID = Id("key_chain")
+        @JvmStatic fun `is`(S: ItemStack) = S.isOf(NguhItems.KEY_CHAIN)
+
+        /** Get the tooltip to render for the selected key. */
+        @JvmStatic
+        fun GetKeyTooltip(St: ItemStack) = KeyItem.GetLockTooltip(
+            St,
+            TooltipType.BASIC,
+            Text.empty().append(St.formattedName).append(": ")
+        )
+
+        /** We don’t allow adding master keys to keychains because that’s kind of pointless. */
+        private fun IsEmptyOrKey(St: ItemStack): Boolean = St.isEmpty || St.isOf(NguhItems.KEY)
     }
 }

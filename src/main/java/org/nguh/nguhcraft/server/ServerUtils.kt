@@ -9,6 +9,9 @@ import net.minecraft.block.entity.BlockEntity
 import net.minecraft.entity.EntityType
 import net.minecraft.entity.LivingEntity
 import net.minecraft.entity.SpawnReason
+import net.minecraft.entity.effect.StatusEffect
+import net.minecraft.entity.effect.StatusEffectInstance
+import net.minecraft.entity.effect.StatusEffects
 import net.minecraft.entity.mob.AbstractPiglinEntity
 import net.minecraft.entity.mob.Monster
 import net.minecraft.entity.passive.IronGolemEntity
@@ -26,6 +29,7 @@ import net.minecraft.recipe.SmeltingRecipe
 import net.minecraft.recipe.input.SingleStackRecipeInput
 import net.minecraft.registry.RegistryKey
 import net.minecraft.registry.RegistryKeys
+import net.minecraft.registry.entry.RegistryEntry
 import net.minecraft.server.MinecraftServer
 import net.minecraft.server.command.ServerCommandSource
 import net.minecraft.server.network.ServerPlayerEntity
@@ -43,6 +47,7 @@ import net.minecraft.world.RaycastContext
 import net.minecraft.world.TeleportTarget
 import net.minecraft.world.World
 import org.nguh.nguhcraft.Constants.MAX_HOMING_DISTANCE
+import org.nguh.nguhcraft.Effects
 import org.nguh.nguhcraft.Nbt
 import org.nguh.nguhcraft.NguhDamageTypes
 import org.nguh.nguhcraft.SyncedGameRule
@@ -57,6 +62,13 @@ import org.nguh.nguhcraft.server.dedicated.Discord
 import org.nguh.nguhcraft.set
 import org.slf4j.Logger
 
+/**
+ * Server-side utilities.
+ *
+ * Do NOT put any globals in here that require static initialisation that
+ * depends on registries etc. because some of the functions in here are
+ * run from the pre-launch entrypoint.
+ */
 object ServerUtils {
     private val BORDER_TITLE: Text = Text.literal("TURN BACK").formatted(Formatting.RED)
     private val BORDER_SUBTITLE: Text = Text.literal("You may not cross the border")
@@ -124,6 +136,37 @@ object ServerUtils {
     fun ActOnPlayerQuit(SP: ServerPlayerEntity, Msg: Text) {
         SP.server.ProtectionManager.TickPlayerQuit(SP)
         SendPlayerJoinQuitMessage(SP, Msg)
+    }
+
+    /** Apply beacon effects to mobs. */
+    @JvmStatic
+    fun ApplyBeaconEffectsToVillagers(
+        W: World,
+        Pos: BlockPos,
+        BeaconLevel: Int,
+        Primary: RegistryEntry<StatusEffect>?,
+        Secondary: RegistryEntry<StatusEffect>?
+    ) {
+        // Check if these effects are applicable to villagers.
+        var Primary = Primary
+        var Secondary = Secondary
+        if (!Effects.BEACON_EFFECTS_AFFECTING_VILLAGERS.contains(Secondary)) Secondary = null
+        if (!Effects.BEACON_EFFECTS_AFFECTING_VILLAGERS.contains(Primary)) Primary = Secondary
+        if (W !is ServerWorld || Primary == null) return
+
+        // This calculation is taken from BeaconBlockEntity::applyPlayerEffects().
+        val Distance = (BeaconLevel * 10 + 10).toDouble()
+        val Amplifier = if (BeaconLevel >= 4 && Primary == Secondary) 1 else 0
+        val Duration = (9 + BeaconLevel * 2) * 20
+        val SeparateSecondary = BeaconLevel >= 4 && Primary != Secondary && Secondary != null
+        val B = Box(Pos).expand(Distance).stretch(0.0, W.height.toDouble(), 0.0)
+
+        // Apply the status effect(s) to all villager entities.
+        for (E in W.getEntitiesByType(EntityType.VILLAGER, B) { true }) {
+            E.addStatusEffect(StatusEffectInstance(Primary, Duration, Amplifier, true, true))
+            if (SeparateSecondary)
+                E.addStatusEffect(StatusEffectInstance(Secondary, Duration, 0, true, true))
+        }
     }
 
     /** Check if we’re running on a dedicated server. */
