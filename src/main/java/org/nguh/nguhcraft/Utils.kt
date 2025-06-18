@@ -1,6 +1,7 @@
 package org.nguh.nguhcraft
 
 import com.mojang.logging.LogUtils
+import com.mojang.serialization.JavaOps
 import net.minecraft.component.ComponentChanges
 import net.minecraft.enchantment.Enchantment
 import net.minecraft.enchantment.EnchantmentHelper
@@ -245,6 +246,8 @@ object Utils {
     /** Deserialise a world from a registry key. */
     fun DeserialiseWorld(Nbt: NbtElement) =
         World.CODEC.parse(NbtOps.INSTANCE, Nbt).result().get()
+    fun DeserialiseWorld(Str: String) =
+        World.CODEC.parse(JavaOps.INSTANCE, Str).result().get()
 
     /** Get the level of an enchantment on an item stack. */
     @JvmStatic
@@ -286,6 +289,7 @@ object Utils {
 
     /** Serialise a world as a registry key. */
     fun SerialiseWorld(W: RegistryKey<World>) = World.CODEC.encodeStart(NbtOps.INSTANCE, W).result().get()
+    fun SerialiseWorldToString(W: RegistryKey<World>) = World.CODEC.encodeStart(JavaOps.INSTANCE, W).result().get() as String
 }
 
 /** Parse a string into a UUID, returning null on failure. */

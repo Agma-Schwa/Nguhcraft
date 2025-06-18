@@ -1,6 +1,6 @@
 package org.nguh.nguhcraft.server
 
-import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking
+import com.mojang.logging.LogUtils
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.nbt.NbtCompound
 import net.minecraft.nbt.NbtElement
@@ -15,13 +15,11 @@ import net.minecraft.text.Text
 import net.minecraft.util.Formatting
 import net.minecraft.util.profiler.Profilers
 import net.minecraft.world.World
-import org.nguh.nguhcraft.Constants
-import org.nguh.nguhcraft.Nbt
+import org.nguh.nguhcraft.*
 import org.nguh.nguhcraft.network.ClientboundSyncProtectionMgrPacket
 import org.nguh.nguhcraft.protect.ProtectionManager
 import org.nguh.nguhcraft.protect.Region
 import org.nguh.nguhcraft.server.accessors.ServerPlayerAccessor
-import org.nguh.nguhcraft.set
 import java.util.*
 
 /** Used to signal that a region’s properties are invalid. */
@@ -398,15 +396,11 @@ class ServerRegionList(
  * code that checks whether something is allowed is in the base class
  * instead.
  */
-class ServerProtectionManager : ProtectionManager(
+class ServerProtectionManager(private val S: MinecraftServer) : ProtectionManager(
     OverworldRegions = ServerRegionList(ServerWorld.OVERWORLD),
     NetherRegions = ServerRegionList(ServerWorld.NETHER),
     EndRegions = ServerRegionList(ServerWorld.END)
 ) {
-    companion object {
-        private const val TAG_REGIONS = "Regions"
-    }
-
     /**
      * This function is the intended way to add a region to a world.
      *
@@ -448,42 +442,43 @@ class ServerProtectionManager : ProtectionManager(
      *
      * The existing list of regions is cleared.
      */
-    fun LoadRegions(SW: ServerWorld, Tag: NbtCompound) {
-        val RegionsTag = Tag.getList(TAG_REGIONS, NbtElement.COMPOUND_TYPE.toInt())
-        val Regions = RegionListFor(SW)
-        RegionsTag.forEach {
-            val R = ServerRegion(SW.server, it as NbtCompound, SW.registryKey)
-            Regions.Add(R)
+    override fun ReadData(Tag: NbtElement) {
+        if (Tag !is NbtCompound) return
+        for (K in Tag.keys) {
+            try {
+                val Key = Utils.DeserialiseWorld(K)
+                val List = ServerRegionListFor(Key)
+                val Regions = Tag.getList(K, NbtElement.COMPOUND_TYPE.toInt())
+                for (R in Regions) List.Add(ServerRegion(S, R as NbtCompound, Key))
+            } catch (E: Exception) {
+                LOGGER.error("Failed to deserialise regions for world '$K': ${E.message}", E)
+            }
         }
     }
 
     /** Save regions to a tag. */
-    fun SaveRegions(W: ServerWorld, Tag: NbtCompound) {
-        val RegionsTag = Tag.getList(TAG_REGIONS, NbtElement.COMPOUND_TYPE.toInt())
-        RegionListFor(W).forEach { RegionsTag.add(it.Save()) }
-        Tag.put(TAG_REGIONS, RegionsTag)
+    override fun WriteData() = Nbt {
+        fun Write(Key: RegistryKey<World>) {
+            set(Utils.SerialiseWorldToString(Key), NbtListOf {
+                for (R in ServerRegionListFor(Key)) add(R.Save())
+            })
+        }
+
+        Write(ServerWorld.OVERWORLD)
+        Write(ServerWorld.NETHER)
+        Write(ServerWorld.END)
     }
 
     /** Get the region list for a world. */
     fun RegionListFor(SW: ServerWorld) = (super.RegionListFor(SW) as ServerRegionList)
     fun ServerRegionListFor(SW: RegistryKey<World>) = (super.RegionListFor(SW) as ServerRegionList)
 
-    /** Send data to the client. */
-    fun Send(SP: ServerPlayerEntity) {
-        ServerPlayNetworking.send(SP, Serialise())
-    }
-
     /** Write the manager state to a packet. */
-    fun Serialise() = ClientboundSyncProtectionMgrPacket(
+    override fun ToPacket() = ClientboundSyncProtectionMgrPacket(
         OverworldRegions = RegionListFor(ServerWorld.OVERWORLD),
         NetherRegions = RegionListFor(ServerWorld.NETHER),
         EndRegions = RegionListFor(ServerWorld.END)
     )
-
-    /** Sync regions to the clients. */
-    fun Sync(Server: MinecraftServer) {
-        Server.Broadcast(Serialise())
-    }
 
     /** Fire events that need to happen when a player leaves the server. */
     fun TickPlayerQuit(SP: ServerPlayerEntity) {
@@ -505,5 +500,9 @@ class ServerProtectionManager : ProtectionManager(
         for (R in RegionListFor(SP.serverWorld)) R.TickPlayer(SP)
 
         Profilers.get().pop()
+    }
+
+    companion object {
+        val LOGGER = LogUtils.getLogger()
     }
 }

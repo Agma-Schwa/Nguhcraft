@@ -207,24 +207,23 @@ class RegionArgumentType : ArgumentType<String> {
     }
 }
 
-class WarpArgumentType : ArgumentType<WarpManager.Warp> {
-    override fun parse(R: StringReader): WarpManager.Warp {
-        val S = R.readUnquotedString()
-        WarpManager.Warps[S]?.let { return it }
-        throw NO_SUCH_WARP.createWithContext(R, S)
-    }
-
+class WarpArgumentType : ArgumentType<String> {
+    override fun parse(R: StringReader) = R.readUnquotedString()
     companion object {
         private val NO_SUCH_WARP = DynamicCommandExceptionType { Text.literal("No such warp: $it") }
 
         fun Resolve(Ctx: CommandContext<ServerCommandSource>, Name: String): WarpManager.Warp {
-            return Ctx.getArgument(Name, WarpManager.Warp::class.java)
+            val WarpName = Ctx.getArgument(Name, String::class.java)
+            return Ctx.source.server.WarpManager.Warps[WarpName] ?: throw NO_SUCH_WARP.create(WarpName)
         }
 
         fun Suggest(
             Ctx: CommandContext<ServerCommandSource>,
             SB: SuggestionsBuilder
-        ): CompletableFuture<Suggestions> = CommandSource.suggestMatching(WarpManager.Warps.keys, SB)
+        ): CompletableFuture<Suggestions> = CommandSource.suggestMatching(
+            Ctx.source.server.WarpManager.Warps.keys,
+            SB
+        )
 
         fun Warp() = WarpArgumentType()
     }

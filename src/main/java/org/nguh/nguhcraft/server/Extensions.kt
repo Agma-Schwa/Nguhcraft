@@ -11,13 +11,10 @@ import net.minecraft.server.MinecraftServer
 import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.server.world.ServerWorld
 import net.minecraft.text.Text
-import net.minecraft.util.Formatting
 import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.Vec3d
 import net.minecraft.world.TeleportTarget
-import org.nguh.nguhcraft.Constants
 import org.nguh.nguhcraft.Nbt
-import org.nguh.nguhcraft.protect.ProtectionManagerAccessor
 import org.nguh.nguhcraft.network.ClientFlags
 import org.nguh.nguhcraft.network.ClientboundSyncFlagPacket
 import org.nguh.nguhcraft.server.accessors.ServerPlayerAccessor
@@ -127,9 +124,6 @@ fun MinecraftServer.PlayerByUUID(ID: String?): ServerPlayerEntity? {
     return try { playerManager.getPlayer(UUID.fromString(ID)) }
     catch (E: RuntimeException) { null }
 }
-
-val MinecraftServer.ProtectionManager get() =
-    (this as ProtectionManagerAccessor).`Nguhcraft$GetProtectionManager`() as ServerProtectionManager
 
 /** Check if a player is a moderator. */
 var ServerPlayerEntity.IsModerator

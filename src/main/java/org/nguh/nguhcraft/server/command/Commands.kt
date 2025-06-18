@@ -643,7 +643,7 @@ object Commands {
         private val NO_WARPS = ReplyMsg("No warps defined")
 
         fun Delete(S: ServerCommandSource, W: WarpManager.Warp): Int {
-            WarpManager.Warps.remove(W.Name)
+            S.server.WarpManager.Warps.remove(W.Name)
             S.Reply(Text.literal("Deleted warp ").append(Text.literal(W.Name).formatted(Formatting.AQUA)))
             return 1
         }
@@ -663,13 +663,13 @@ object Commands {
 
 
         fun List(S: ServerCommandSource): Int {
-            if (WarpManager.Warps.isEmpty()) {
+            if (S.server.WarpManager.Warps.isEmpty()) {
                 S.sendMessage(NO_WARPS)
                 return 0
             }
 
             val List = Text.literal("Warps:")
-            for (W in WarpManager.Warps.values) {
+            for (W in S.server.WarpManager.Warps.values) {
                 List.append(Text.literal("\n  - "))
                     .append(FormatWarp(W))
             }
@@ -680,7 +680,7 @@ object Commands {
 
         fun Set(S: ServerCommandSource, SP: ServerPlayerEntity, Name: String): Int {
             val W = WarpManager.Warp(Name, SP.serverWorld.registryKey, SP.pos, SP.yaw, SP.pitch)
-            WarpManager.Warps[Name] = W
+            S.server.WarpManager.Warps[Name] = W
             S.Reply(Text.literal("Set warp ").append(FormatWarp(W)))
             return 1
         }

@@ -4,6 +4,7 @@ import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
 import net.minecraft.client.network.ClientPlayerEntity
 import net.minecraft.entity.player.PlayerEntity
+import net.minecraft.nbt.NbtElement
 import net.minecraft.network.RegistryByteBuf
 import net.minecraft.registry.RegistryKey
 import net.minecraft.world.World
@@ -42,6 +43,8 @@ class ClientProtectionManager(
         else false
 
     override fun IsLinked(PE: PlayerEntity) = true
+    override fun ReadData(Tag: NbtElement) = throw UnsupportedOperationException()
+    override fun WriteData() = throw UnsupportedOperationException()
 
     companion object {
         /** Empty manager used on the client to ensure it’s never null. */

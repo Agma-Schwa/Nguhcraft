@@ -56,6 +56,7 @@ import org.nguh.nguhcraft.accessors.TridentEntityAccessor
 import org.nguh.nguhcraft.block.LockableBlockEntity
 import org.nguh.nguhcraft.enchantment.NguhcraftEnchantments
 import org.nguh.nguhcraft.network.ClientFlags
+import org.nguh.nguhcraft.protect.ProtectionManager
 import org.nguh.nguhcraft.server.accessors.LivingEntityAccessor
 import org.nguh.nguhcraft.server.accessors.ServerPlayerAccessor
 import org.nguh.nguhcraft.server.dedicated.Discord
@@ -99,9 +100,7 @@ object ServerUtils {
         // Sync data with the client.
         val LEA = SP as LivingEntityAccessor
         val SPA = SP as ServerPlayerAccessor
-        SyncedGameRule.Send(SP)
-        SP.server.ProtectionManager.Send(SP)
-        SP.server.DisplayManager.Send(SP)
+        Manager.SendAll(SP)
         SP.SetClientFlag(ClientFlags.BYPASSES_REGION_PROTECTION, SPA.bypassesRegionProtection)
         SP.SetClientFlag(ClientFlags.IN_HYPERSHOT_CONTEXT, LEA.hypershotContext != null)
         SP.SetClientFlag(ClientFlags.VANISHED, SP.IsVanished)

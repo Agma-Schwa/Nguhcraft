@@ -4,6 +4,7 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking
 import net.minecraft.nbt.NbtCompound
 import net.minecraft.nbt.NbtElement
 import net.minecraft.nbt.NbtString
+import net.minecraft.network.packet.CustomPayload
 import net.minecraft.registry.RegistryWrapper
 import net.minecraft.server.MinecraftServer
 import net.minecraft.server.network.ServerPlayerEntity
@@ -13,12 +14,8 @@ import net.minecraft.util.Formatting
 import org.nguh.nguhcraft.Nbt
 import org.nguh.nguhcraft.NbtListOf
 import org.nguh.nguhcraft.network.ClientboundSyncDisplayPacket
-import org.nguh.nguhcraft.server.accessors.ManagerAccessor
 import org.nguh.nguhcraft.set
 import java.util.*
-
-val MinecraftServer.DisplayManager get(): DisplayManager
-    = (this as ManagerAccessor).`Nguhcraft$GetDisplayManager`()
 
 /** Abstract handle for a display. */
 abstract class DisplayHandle(val Id: String) {
@@ -64,7 +61,7 @@ class SyncedDisplay(Id: String): DisplayHandle(Id) {
 }
 
 /** Object that manages displays. */
-class DisplayManager(private val S: MinecraftServer) {
+class DisplayManager(private val S: MinecraftServer): Manager("Displays") {
     private val Displays = mutableMapOf<String, SyncedDisplay>()
     private val ActiveDisplays = mutableMapOf<UUID, SyncedDisplay>()
 
@@ -82,10 +79,8 @@ class DisplayManager(private val S: MinecraftServer) {
         return T
     }
 
-    /** Load displays from Nbt. */
-    fun Load(Parent: NbtCompound) {
-        if (!Parent.contains(TAG_ROOT)) return
-        val Tag = Parent.getCompound(TAG_ROOT)
+    override fun ReadData(Tag: NbtElement) {
+        if (Tag !is NbtCompound) return
 
         // Load displays.
         val TDisplays = Tag.getList(TAG_DISPLAYS, NbtElement.COMPOUND_TYPE.toInt())
@@ -104,23 +99,19 @@ class DisplayManager(private val S: MinecraftServer) {
         }
     }
 
-    /** Clear the list of displays. */
-    fun Reset() {
-        Displays.clear() // No need to sync this since it runs at startup only.
+    override fun WriteData() = Nbt {
+        set(TAG_DISPLAYS, NbtListOf { for (D in Displays.values) add(D.Save(S.registryManager)) })
+        set(TAG_ACTIVE_DISPLAYS, Nbt { for ((Id, Display) in ActiveDisplays) set(Id.toString(), Display.Id) })
     }
 
-    /** Save displays to Nbt. */
-    fun Save(Parent: NbtCompound) {
-        Parent.put(TAG_ROOT, Nbt {
-            set(TAG_DISPLAYS, NbtListOf { for (D in Displays.values) add(D.Save(S.registryManager)) })
-            set(TAG_ACTIVE_DISPLAYS, Nbt { for ((Id, Display) in ActiveDisplays) set(Id.toString(), Display.Id) })
-        })
-    }
-
-    /** Send the current display to a player. */
-    fun Send(SP: ServerPlayerEntity) {
+    override fun Sync(SP: ServerPlayerEntity) {
         val D = ActiveDisplays[SP.uuid]
         if (D != null) SyncDisplay(SP, D)
+    }
+
+    override fun Sync(S: MinecraftServer) {
+        // The displays differ by player, so we need to sync each player individually.
+        for (SP in S.playerManager.playerList) Sync(SP)
     }
 
     /** Set the active display for a player. */
@@ -155,8 +146,9 @@ class DisplayManager(private val S: MinecraftServer) {
     }
 
     companion object {
-        private const val TAG_ROOT = "Displays"
         private const val TAG_DISPLAYS = "Displays"
         private const val TAG_ACTIVE_DISPLAYS = "ActiveDisplays"
     }
 }
+
+val MinecraftServer.DisplayManager get() = Manager.Get<DisplayManager>(this)

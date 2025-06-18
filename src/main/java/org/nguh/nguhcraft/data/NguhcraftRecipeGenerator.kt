@@ -333,6 +333,7 @@ class NguhcraftRecipeGenerator(
             = offerSmelting(listOf(Input.asItem()), RecipeCategory.MISC, Output.asItem(), Experience, 200, null)
 
     // offerShapelessRecipe() sucks, so this is a better version.
+    @Suppress("UNCHECKED_CAST")
     inline fun <reified T> offerShapelessRecipe(Output: ItemConvertible, Count: Int, vararg Inputs: Pair<T, Int>) {
         val B = createShapeless(RecipeCategory.MISC, Output, Count)
         for ((I, C) in Inputs) when (I) {

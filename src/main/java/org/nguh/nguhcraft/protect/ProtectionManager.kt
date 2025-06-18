@@ -17,6 +17,7 @@ import net.minecraft.item.MinecartItem
 import net.minecraft.registry.RegistryKey
 import net.minecraft.registry.tag.BlockTags
 import net.minecraft.registry.tag.DamageTypeTags
+import net.minecraft.server.MinecraftServer
 import net.minecraft.util.ActionResult
 import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.Box
@@ -25,7 +26,14 @@ import net.minecraft.world.World
 import org.nguh.nguhcraft.block.LockableBlockEntity
 import org.nguh.nguhcraft.isa
 import org.nguh.nguhcraft.item.KeyItem
+import org.nguh.nguhcraft.server.Manager
+import org.nguh.nguhcraft.server.ServerProtectionManager
 import java.util.function.Consumer
+
+interface ProtectionManagerAccess {
+    fun `Nguhcraft$GetProtectionManager`(): ProtectionManager
+    fun `Nguhcraft$SetProtectionManager`(Mgr: ProtectionManager)
+}
 
 /** Enum denotes if an entity can teleport somewhere, or why it can’t. */
 enum class TeleportResult {
@@ -72,7 +80,7 @@ abstract class ProtectionManager(
     val OverworldRegions: Collection<Region>,
     val NetherRegions: Collection<Region>,
     val EndRegions: Collection<Region>
-) {
+) : Manager("Regions") {
     /**
      * Check if a player is allowed to break, start breaking, or place a
      * block at this block position.
@@ -434,20 +442,9 @@ abstract class ProtectionManager(
 
     companion object {
         /**
-         * Get the manager instance.
-         *
-         * The manager is a singleton instead of a namespace to prevent
-         * protection state from leaking between sessions on the client.
-         *
-         * Note: The manager is *not* world-specific. Rather, the world
-         * is simply a convenient place to put the accessor for it since
-         * it is both present on the client and server and also passed in
-         * one way or another to every single API call of the manager.
-         *
-         * The server-side manager is stored in the server instance, and
-         * the client-side manger in the client network handler.
+         * The ProtectionManager also exists on the client, so we retrieve it via the world.
          */
-        fun Get(W: World): ProtectionManager = (W as ProtectionManagerAccessor).`Nguhcraft$GetProtectionManager`()
+        fun Get(W: World) = (W as ProtectionManagerAccess).`Nguhcraft$GetProtectionManager`()
 
         // Static convenience wrappers for the functions above.
         @JvmStatic
@@ -532,3 +529,7 @@ abstract class ProtectionManager(
             Get(E.world)._IsSpawningAllowed(E)
     }
 }
+
+
+val MinecraftServer.ProtectionManager get() =
+    Manager.Get<ProtectionManager>(this) as ServerProtectionManager

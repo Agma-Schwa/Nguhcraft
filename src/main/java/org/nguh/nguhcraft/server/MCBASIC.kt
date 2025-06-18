@@ -5,6 +5,7 @@ import com.mojang.logging.LogUtils
 import net.minecraft.command.EntitySelector
 import net.minecraft.command.argument.EntityArgumentType
 import net.minecraft.entity.Entity
+import net.minecraft.nbt.NbtElement
 import net.minecraft.server.MinecraftServer
 import net.minecraft.server.command.ServerCommandSource
 import net.minecraft.server.network.ServerPlayerEntity
@@ -12,12 +13,10 @@ import net.minecraft.text.ClickEvent
 import net.minecraft.text.MutableText
 import net.minecraft.text.Text
 import net.minecraft.util.Formatting
-import org.nguh.nguhcraft.server.accessors.ProcedureManagerAccessor
+import net.minecraft.util.WorldSavePath
 import java.nio.file.Path
 import kotlin.io.path.Path
 import kotlin.io.path.exists
-
-val MinecraftServer.ProcedureManager get() = (this as ProcedureManagerAccessor).`Nguhcraft$GetProcedureManager`()
 
 /**
  * BASIC (sort of) implementation in which minecraft commands are
@@ -186,8 +185,14 @@ object MCBASIC {
     }
 
     /** Helper that manages procedure storage. */
-    class ProcedureManager {
-        /** Save directory. */
+    class ProcedureManager(private val S: MinecraftServer): Manager("Procedures") {
+        /**
+         * Save directory.
+         *
+         * This needs to be initialised when the save data is first loaded
+         * because the session holding the paths may not exist before that
+         * point.
+         */
         private var SaveDir: Path? = null
 
         /** All loaded  procedures. */
@@ -195,7 +200,6 @@ object MCBASIC {
 
         /** Procedures as an immutable list. */
         val Procedures get(): Collection<Procedure> = LoadedProcs.values
-
 
         /** Delete a managed or unmanaged procedure. */
         fun Delete(P: Procedure) {
@@ -244,10 +248,10 @@ object MCBASIC {
         fun GetOrCreateManaged(Name: String) = GetOrCreateImpl(Name, true)
 
         /** Load stored procedures. */
-        fun Load(ProcsDir: Path) {
-            SaveDir = ProcsDir
-            if (!ProcsDir.exists()) return
-            val Dir = ProcsDir.toFile()
+        override fun ReadData(Tag: NbtElement) {
+            SaveDir = S.getSavePath(WorldSavePath.ROOT).resolve("nguhcraft").resolve("procedures")
+            if (SaveDir == null || !SaveDir!!.exists()) return
+            val Dir = SaveDir!!.toFile()
             for (F in Dir.walkTopDown()) {
                 if (!F.isFile || !F.name.endsWith(FILE_EXTENSION)) continue
                 try {
@@ -265,20 +269,22 @@ object MCBASIC {
          *
          * Empty procedures are not saved.
          */
-        fun Save(ProcsDir: Path) {
-            val Dir = ProcsDir.toFile()
+        override fun WriteData(): NbtElement? {
+            if (SaveDir == null) return null
+            val Dir = SaveDir!!.toFile()
             Dir.mkdirs()
             for (Proc in LoadedProcs.values) {
                 try {
                     val S = Proc.Serialise()
                     if (S.isEmpty()) continue
-                    val ProcPath = ProcsDir.resolve(Proc.Path)
+                    val ProcPath = SaveDir!!.resolve(Proc.Path)
                     ProcPath.parent.toFile().mkdirs()
                     ProcPath.toFile().writeText(S)
                 } catch (E: Exception) {
                     LOGGER.error("Could not save stored procedure '{}': {}", Proc.Name, E.message)
                 }
             }
+            return null
         }
     }
 
@@ -708,3 +714,5 @@ object MCBASIC {
         }
     }
 }
+
+val MinecraftServer.ProcedureManager get() = Manager.Get<MCBASIC.ProcedureManager>(this)
