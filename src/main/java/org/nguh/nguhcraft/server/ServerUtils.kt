@@ -67,6 +67,38 @@ import org.nguh.nguhcraft.server.dedicated.Discord
 import org.nguh.nguhcraft.set
 import org.slf4j.Logger
 
+/** A TeleportTarget that doesn’t store the world directly and can actually be saved. */
+class SerialisedTeleportTarget(
+    val World: RegistryKey<World>,
+    val X: Double,
+    val Y: Double,
+    val Z: Double,
+    val Yaw: Float,
+    val Pitch: Float,
+) {
+    fun Instantiate(S: MinecraftServer) = TeleportTarget(
+        S.getWorld(World),
+        Vec3d(X, Y, Z),
+        Vec3d.ZERO,
+        Yaw,
+        Pitch,
+        TeleportTarget.NO_OP
+    )
+
+    companion object {
+        val CODEC: Codec<SerialisedTeleportTarget> = RecordCodecBuilder.create {
+            it.group(
+                RegistryKey.createCodec(RegistryKeys.WORLD).fieldOf("World").forGetter(SerialisedTeleportTarget::World),
+                Codec.DOUBLE.fieldOf("X").forGetter(SerialisedTeleportTarget::X),
+                Codec.DOUBLE.fieldOf("Y").forGetter(SerialisedTeleportTarget::Y),
+                Codec.DOUBLE.fieldOf("Z").forGetter(SerialisedTeleportTarget::Z),
+                Codec.FLOAT.fieldOf("Yaw").forGetter(SerialisedTeleportTarget::Yaw),
+                Codec.FLOAT.fieldOf("Pitch").forGetter(SerialisedTeleportTarget::Pitch),
+            ).apply(it, ::SerialisedTeleportTarget)
+        }
+    }
+}
+
 /**
  * Server-side utilities.
  *
@@ -117,7 +149,7 @@ object ServerUtils {
     */
     @JvmStatic
     fun ActOnPlayerTick(SP: ServerPlayerEntity) {
-        val SW = SP.serverWorld
+        val SW = SP.world
 
         // Check if the player is outside the world border.
         // TODO: Can we make a 'global' region for the entire world
@@ -131,13 +163,13 @@ object ServerUtils {
             LOGGER.warn("Player {} tried to leave the border.", SP.displayName!!.string)
         }
 
-        SP.server.ProtectionManager.TickRegionsForPlayer(SP)
+        SP.server!!.ProtectionManager.TickRegionsForPlayer(SP)
     }
 
     /** Broadcast a join message for a player. */
     @JvmStatic
     fun ActOnPlayerQuit(SP: ServerPlayerEntity, Msg: Text) {
-        SP.server.ProtectionManager.TickPlayerQuit(SP)
+        SP.server!!.ProtectionManager.TickPlayerQuit(SP)
         SendPlayerJoinQuitMessage(SP, Msg)
     }
 
@@ -296,7 +328,7 @@ object ServerUtils {
      */
     fun Obliterate(SP: ServerPlayerEntity) {
         if (SP.isDead || SP.isSpectator || SP.isCreative) return
-        val SW = SP.serverWorld
+        val SW = SP.world
         StrikeLightning(SW, SP.pos, null, true)
         SP.damage(SW, NguhDamageTypes.Obliterated(SW), Float.MAX_VALUE)
     }
@@ -311,7 +343,7 @@ object ServerUtils {
     /** Broadcast a join message for a player. */
     @JvmStatic
     fun SendPlayerJoinQuitMessage(SP: ServerPlayerEntity, Msg: Text) {
-        if (!SP.IsVanished) SP.server.Broadcast(Msg)
+        if (!SP.IsVanished) SP.server!!.Broadcast(Msg)
     }
 
     /**
@@ -340,28 +372,6 @@ object ServerUtils {
             Lightning.channeler = TE?.owner as? ServerPlayerEntity
             if (TE != null) (TE as TridentEntityAccessor).`Nguhcraft$SetStruckLightning`()
         }
-    }
-
-    /** Load a teleport target from NBT data. */
-    @JvmStatic
-    fun TeleportTargetFromNbt(Server: MinecraftServer, Tag : NbtCompound): TeleportTarget? {
-        val Pos = Vec3d(Tag.getDouble("X"), Tag.getDouble("Y"), Tag.getDouble("Z"))
-        val Yaw = Tag.getFloat("Yaw")
-        val Pitch = Tag.getFloat("Pitch")
-        val Dim = Utils.DeserialiseWorld(Tag.getString("World"))
-        val SW = Server.getWorld(Dim) ?: return null
-        return TeleportTarget(SW, Pos, Vec3d.ZERO, Yaw, Pitch, TeleportTarget.NO_OP)
-    }
-
-    /** Save a teleport target to NBT data. */
-    @JvmStatic
-    fun TeleportTargetToNbt(Target: TeleportTarget) = Nbt {
-        set("X", Target.position.x)
-        set("Y", Target.position.y)
-        set("Z", Target.position.z)
-        set("Yaw", Target.yaw)
-        set("Pitch", Target.pitch)
-        set("World", Utils.SerialiseWorld(Target.world.registryKey))
     }
 
     /** Called during the world tick on the server. */

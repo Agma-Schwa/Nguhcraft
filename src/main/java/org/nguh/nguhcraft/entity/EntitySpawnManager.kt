@@ -30,10 +30,6 @@ import org.nguh.nguhcraft.server.Manager
 import java.util.*
 
 class EntitySpawnManager(val S: MinecraftServer) : Manager("EntitySpawns") {
-    interface EntityAccess {
-        fun `Nguhcraft$SetManagedBySpawnPos`()
-    }
-
     /** Spawn data shared between client and server. */
     open class Spawn(
         val World: RegistryKey<World>,

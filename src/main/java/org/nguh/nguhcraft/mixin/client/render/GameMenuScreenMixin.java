@@ -8,6 +8,7 @@ import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.gui.widget.GridWidget;
 import net.minecraft.client.gui.widget.Widget;
 import net.minecraft.text.Text;
+import net.minecraft.text.TranslatableTextContent;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -35,28 +36,18 @@ public abstract class GameMenuScreenMixin {
         method = "initWidgets",
         at = @At(
             value = "INVOKE",
-            target = "Lnet/minecraft/client/gui/widget/GridWidget$Adder;add(Lnet/minecraft/client/gui/widget/Widget;)Lnet/minecraft/client/gui/widget/Widget;",
-            ordinal = 5
+            target = "Lnet/minecraft/client/gui/widget/GridWidget$Adder;add(Lnet/minecraft/client/gui/widget/Widget;)Lnet/minecraft/client/gui/widget/Widget;"
         )
     )
     private Widget inject$initWidgets$0(
         GridWidget.Adder Instance,
         Widget W,
         Operation<Widget> Orig
-    ) { return MakeDisabledWidget(Instance, W, Orig, LAN_DISABLED); }
-
-    /** Likewise, disable the social interactions screen. */
-    @WrapOperation(
-        method = "initWidgets",
-        at = @At(
-            value = "INVOKE",
-            target = "Lnet/minecraft/client/gui/widget/GridWidget$Adder;add(Lnet/minecraft/client/gui/widget/Widget;)Lnet/minecraft/client/gui/widget/Widget;",
-            ordinal = 6
-        )
-    )
-    private Widget inject$initWidgets$1(
-        GridWidget.Adder Instance,
-        Widget W,
-        Operation<Widget> Orig
-    ) { return MakeDisabledWidget(Instance, W, Orig, REPORT_SCREEN_DISABLED); }
+    ) {
+        if (W instanceof ButtonWidget BW && BW.getMessage().getContent() instanceof TranslatableTextContent TTC) {
+            if (TTC.getKey().equals("menu.shareToLan")) return MakeDisabledWidget(Instance, W, Orig, LAN_DISABLED);
+            if (TTC.getKey().equals("menu.playerReporting")) return MakeDisabledWidget(Instance, W, Orig, REPORT_SCREEN_DISABLED);
+        }
+        return Orig.call(Instance, W);
+    }
 }

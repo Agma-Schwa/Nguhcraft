@@ -2,9 +2,11 @@ package org.nguh.nguhcraft.mixin.server;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LightningEntity;
-import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.world.ServerWorld;
-import org.nguh.nguhcraft.entity.EntitySpawnManager;
+import net.minecraft.storage.ReadView;
+import net.minecraft.storage.WriteView;
+import org.jetbrains.annotations.NotNull;
+import org.nguh.nguhcraft.server.NguhcraftEntityData;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -14,14 +16,15 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(Entity.class)
-public abstract class EntityMixin implements EntitySpawnManager.EntityAccess {
+public abstract class EntityMixin implements NguhcraftEntityData.Access {
     @Shadow public int timeUntilRegen;
 
-    @Unique private static final String TAG_MANAGED_BY_SPAWN_POS = "NguhcraftManagedBySpawnPos";
-    @Unique private boolean ManagedBySpawnPos = false;
-
+    @Unique private NguhcraftEntityData Data = new NguhcraftEntityData();
     @Unique private Entity This() { return (Entity) (Object) this; }
-    @Override public void Nguhcraft$SetManagedBySpawnPos() { ManagedBySpawnPos = true; }
+
+    @Override public @NotNull NguhcraftEntityData Nguhcraft$GetEntityData() {
+        return Data;
+    }
 
     /**
     * Make it so lightning ignores damage cooldown.
@@ -40,16 +43,28 @@ public abstract class EntityMixin implements EntitySpawnManager.EntityAccess {
     /** Prevent managed entities from travelling through portals. */
     @Inject(method = "canUsePortals", at = @At("HEAD"), cancellable = true)
     private void inject$onCanUsePortals(boolean AllowVehicles, CallbackInfoReturnable<Boolean> CIR) {
-        if (ManagedBySpawnPos) CIR.setReturnValue(false);
+        if (Data.getManagedBySpawnPos()) CIR.setReturnValue(false);
     }
 
-    @Inject(method = "readNbt", at = @At("HEAD"))
-    private void inject$readNbt(NbtCompound Tag, CallbackInfo CI) {
-        ManagedBySpawnPos = Tag.getBoolean(TAG_MANAGED_BY_SPAWN_POS);
+    @Inject(
+        method = "readData",
+        at = @At(
+            value = "INVOKE",
+            target = "Lnet/minecraft/entity/Entity;readCustomData(Lnet/minecraft/storage/ReadView;)V"
+        )
+    )
+    private void inject$readData(ReadView RV, CallbackInfo CI) {
+        RV.read(NguhcraftEntityData.TAG_ROOT, NguhcraftEntityData.CODEC).ifPresent(D -> Data = D);
     }
 
-    @Inject(method = "writeNbt", at = @At("HEAD"))
-    private void inject$writeNbt(NbtCompound Tag, CallbackInfoReturnable<NbtCompound> CIR) {
-        if (ManagedBySpawnPos) Tag.putBoolean(TAG_MANAGED_BY_SPAWN_POS, true);
+    @Inject(
+        method = "writeData",
+        at = @At(
+            value = "INVOKE",
+            target = "Lnet/minecraft/entity/Entity;writeCustomData(Lnet/minecraft/storage/WriteView;)V"
+        )
+    )
+    private void inject$writeData(WriteView WV, CallbackInfo CI) {
+        WV.put(NguhcraftEntityData.TAG_ROOT, NguhcraftEntityData.CODEC, Data);
     }
 }

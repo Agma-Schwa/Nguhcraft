@@ -1,6 +1,5 @@
 package org.nguh.nguhcraft.mixin.server.command;
 
-import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;

@@ -8,6 +8,8 @@ import net.minecraft.item.ItemStack
 import net.minecraft.item.ItemUsageContext
 import net.minecraft.item.tooltip.TooltipType
 import net.minecraft.predicate.ComponentPredicate
+import net.minecraft.predicate.component.ComponentPredicate
+import net.minecraft.predicate.component.ComponentsPredicate
 import net.minecraft.predicate.item.ItemPredicate
 import net.minecraft.predicate.item.ItemSubPredicate
 import net.minecraft.registry.Registries
@@ -119,25 +121,6 @@ class LockItem : Item(
                 .build()
 
             return ContainerLock(Predicate)
-        }
-
-        /** Retrieve the key from a legacy container lock item predicate. */
-        private fun ExtractKeyFromLegacyContainerLock(Pred: ItemPredicate): String? {
-            // Most locks will be using the new predicate, so check for that first.
-            if (Pred.subPredicates[LockPredicate.TYPE] != null) return null
-
-            // The legacy lock was created like this
-            //
-            //   ItemPredicate.Builder.create()
-            //       .items(Registries.ITEM, NguhItems.KEY)
-            //       .component(ComponentPredicate.builder().add(KeyItem.COMPONENT, Key).build())
-            //       .build()
-            //
-            // so match that.
-            if (Utils.GetSingleElement(Pred.items.getOrNull())?.value() != NguhItems.KEY) return null
-            return Utils.GetSingleElement((Pred.components as ComponentPredicateAccessor).components)
-                ?.takeIf { it.type == KeyItem.COMPONENT }
-                ?.value as? String
         }
 
         /** Format the message that indicates why a container is locked. */

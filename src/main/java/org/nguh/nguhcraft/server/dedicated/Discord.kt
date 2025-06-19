@@ -52,6 +52,7 @@ import org.nguh.nguhcraft.mixin.server.MinecraftServerAccessor
 import org.nguh.nguhcraft.network.ClientboundChatPacket
 import org.nguh.nguhcraft.network.ClientboundLinkUpdatePacket
 import org.nguh.nguhcraft.server.Broadcast
+import org.nguh.nguhcraft.server.Data
 import org.nguh.nguhcraft.server.IsVanished
 import org.nguh.nguhcraft.server.PlayerByUUID
 import org.nguh.nguhcraft.server.accessors.ServerPlayerAccessor
@@ -795,6 +796,11 @@ internal class Discord : ListenerAdapter() {
                 Text,
                 Colour
             )
+        }
+
+        @JvmStatic
+        fun TickPlayer(SP: ServerPlayerEntity) {
+            if (!SP.IsLinkedOrOperator) SP.changeGameMode(GameMode.ADVENTURE)
         }
 
         fun Unlink(S: ServerCommandSource, SP: ServerPlayerEntity) {

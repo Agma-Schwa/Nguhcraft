@@ -6,7 +6,11 @@ import net.minecraft.client.network.ClientCommonNetworkHandler;
 import net.minecraft.client.network.ClientConnectionState;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.network.ClientConnection;
+import net.minecraft.network.message.LastSeenMessagesCollector;
+import net.minecraft.network.message.MessageSignatureStorage;
 import net.minecraft.network.packet.c2s.play.CommandExecutionC2SPacket;
+import net.minecraft.network.packet.s2c.play.ChatMessageS2CPacket;
+import net.minecraft.network.packet.s2c.play.RemoveMessageS2CPacket;
 import org.jetbrains.annotations.NotNull;
 import org.nguh.nguhcraft.client.NguhcraftClient;
 import org.nguh.nguhcraft.client.accessors.ClientDisplayData;
@@ -27,9 +31,19 @@ public abstract class ClientPlayNetworkHandlerMixin extends ClientCommonNetworkH
     }
 
     @Shadow private boolean displayedUnsecureChatWarning;
+    @Shadow private LastSeenMessagesCollector lastSeenMessagesCollector;
+    @Shadow private MessageSignatureStorage signatureStorage;
     @Unique private final ClientDisplayData DisplayData = new ClientDisplayData();
 
     @Override public @NotNull ClientDisplayData Nguhcraft$GetDisplayData() { return DisplayData; }
+
+    /** Remove any data related to chat signing. */
+    @Inject(method = "<init>", at = @At("TAIL"))
+    private void inject$ctor(MinecraftClient C, ClientConnection CC, ClientConnectionState CCS, CallbackInfo CI) {
+        // Ensure that we crash if we try to do anything related to chat signing.
+        lastSeenMessagesCollector = null;
+        signatureStorage = null;
+    }
 
     /** Suppress unsecure server toast. */
     @Inject(method = "onGameJoin(Lnet/minecraft/network/packet/s2c/play/GameJoinS2CPacket;)V", at = @At("HEAD"))
@@ -38,6 +52,15 @@ public abstract class ClientPlayNetworkHandlerMixin extends ClientCommonNetworkH
         NguhcraftClient.InHypershotContext = false;
     }
 
+    /** We can ignore this packet as we never remove messages. */
+    @Overwrite
+    public void onRemoveMessage(RemoveMessageS2CPacket packet) {}
+
+    /** We completely replace this packet with something else. */
+    @Overwrite
+    public void onChatMessage(ChatMessageS2CPacket packet) {
+        throw new IllegalStateException("Should never be sent by the Nguhcraft server");
+    }
 
     /**
     * Send a chat message.
@@ -62,18 +85,5 @@ public abstract class ClientPlayNetworkHandlerMixin extends ClientCommonNetworkH
     @Overwrite
     public void sendChatCommand(String message) {
         sendPacket(new CommandExecutionC2SPacket(message));
-    }
-
-    /**
-     * Send a command.
-     * <p>
-     * We always send a command as unsigned; thus, this also always succeeds.
-     * @author Sirraide
-     * @reason Function body is short enough to where injection is pointless.
-     */
-    @Overwrite
-    public boolean sendCommand(String message) {
-        sendPacket(new CommandExecutionC2SPacket(message));
-        return true;
     }
 }
