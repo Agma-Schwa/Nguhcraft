@@ -1,0 +1,25 @@
+{
+  "variants": {
+    "type=double": {
+      "model": "nguhcraft:block/cinnabar"
+    },
+    "type=east": {
+      "model": "nguhcraft:block/cinnabar_slab_vertical",
+      "uvlock": true,
+      "y": 270
+    },
+    "type=north": {
+      "model": "nguhcraft:block/cinnabar_slab_vertical",
+      "uvlock": true,
+      "y": 180
+    },
+    "type=south": {
+      "model": "nguhcraft:block/cinnabar_slab_vertical"
+    },
+    "type=west": {
+      "model": "nguhcraft:block/cinnabar_slab_vertical",
+      "uvlock": true,
+      "y": 90
+    }
+  }
+}

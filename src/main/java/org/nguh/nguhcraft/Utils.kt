@@ -1,16 +1,21 @@
 package org.nguh.nguhcraft
 
 import com.mojang.logging.LogUtils
+import com.mojang.serialization.Codec
+import com.mojang.serialization.JavaOps
+import com.mojang.serialization.MapCodec
+import com.mojang.serialization.codecs.RecordCodecBuilder
+import io.netty.buffer.ByteBuf
 import net.minecraft.component.ComponentChanges
 import net.minecraft.enchantment.Enchantment
 import net.minecraft.enchantment.EnchantmentHelper
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
-import net.minecraft.nbt.NbtCompound
 import net.minecraft.nbt.NbtElement
 import net.minecraft.nbt.NbtOps
-import net.minecraft.network.RegistryByteBuf
+import net.minecraft.network.codec.PacketCodec
+import net.minecraft.network.codec.PacketCodecs
 import net.minecraft.network.packet.CustomPayload
 import net.minecraft.registry.Registries
 import net.minecraft.registry.RegistryKey
@@ -25,6 +30,9 @@ import net.minecraft.world.World
 import org.nguh.nguhcraft.enchantment.NguhcraftEnchantments
 import java.text.Normalizer
 import java.util.*
+import java.util.function.Function
+import kotlin.enums.EnumEntries
+import kotlin.jvm.optionals.getOrNull
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -32,7 +40,9 @@ import kotlin.math.min
 typealias MojangPair<A, B> = com.mojang.datafixers.util.Pair<A, B>
 operator fun <A, B> MojangPair<A, B>.component1(): A = this.first
 operator fun <A, B> MojangPair<A, B>.component2(): B = this.second
-operator fun Vec3d.unaryMinus() = Vec3d(-x, -y, -z)
+operator fun Vec3d.unaryMinus(): Vec3d = negate()
+operator fun Vec3d.plus(o: Vec3d): Vec3d = add(o)
+operator fun Vec3d.minus(o: Vec3d): Vec3d = subtract(o)
 
 /**
 * Transform 'this' using a function iff 'Cond' is true and return
@@ -43,6 +53,52 @@ inline fun <T> T.mapIf(Cond: Boolean, Block: (T) -> T): T
 
 /** Flatten a list of pairs to a list. */
 fun <A> List<Pair<A, A>>.flatten(): List<A> = flatMap { listOf(it.first, it.second) }
+
+/** Serialisable EnumSet for small enums with less overhead. */
+class SmallEnumSet<T : Enum<T>> private constructor(var Encoded: Long = 0L) {
+    /** Encoded enum values.*/
+    constructor(vararg Vals: T): this() { for (V in Vals) Set(V) }
+
+    /** Deserialising constructor. */
+    constructor(Vals: Map<T, Boolean>) : this() {
+        for ((Flag, V) in Vals) Set(Flag, V)
+    }
+
+    /** Check whether a value is set. */
+    fun IsSet(Flag: T, Value: Boolean = true) = (Encoded and Flag.Bit != 0L) == Value
+
+    /** Set a value. */
+    fun Set(Flag: T, To: Boolean = true) {
+        val OldFlags = Encoded
+        Encoded = if (To) OldFlags or Flag.Bit else OldFlags and Flag.Bit.inv()
+    }
+
+    companion object {
+        private val <T: Enum<T>> T.Bit get() = 1L shl ordinal
+        val PACKET_CODEC = PacketCodecs.LONG.xmap(::SmallEnumSet, SmallEnumSet<*>::Encoded)
+
+        /** Create a codec for an enum set. */
+        inline fun <reified T: Enum<T>> CreateCodec(Entries: EnumEntries<T>): Codec<SmallEnumSet<T>> {
+            val EnumeratorCodec = Codec.stringResolver(
+                { it.name.lowercase() },
+                { enumValueOf<T>(it.uppercase()) }
+            )
+
+            return Codec.unboundedMap(
+                EnumeratorCodec,
+                Codec.BOOL
+            ).xmap(
+                ::SmallEnumSet,
+                { Set -> Entries.associateWith { Set.IsSet(it) } },
+            )
+        }
+
+        /** Get the packet codec for an enum set. This does not create a new object. */
+        @Suppress("UNCHECKED_CAST")
+        inline fun <reified T : Enum<T>> CreatePacketCodec()
+            = PACKET_CODEC as PacketCodec<ByteBuf, SmallEnumSet<T>>
+    }
+}
 
 /**
  * Rectangle that has X and Z bounds but ignores the Y axis. Used by regions
@@ -120,39 +176,8 @@ open class XZRect(FromX: Int, FromZ: Int, ToX: Int, ToZ: Int) {
         return Vec2f(X.toFloat(), Z.toFloat())
     }
 
-    fun SaveXZRect(Tag: NbtCompound) = Tag.apply {
-        set(TAG_MIN_X, MinX)
-        set(TAG_MIN_Z, MinZ)
-        set(TAG_MAX_X, MaxX)
-        set(TAG_MAX_Z, MaxZ)
-    }
-
-    fun WriteXZRect(buf: RegistryByteBuf) {
-        buf.writeInt(MinX)
-        buf.writeInt(MinZ)
-        buf.writeInt(MaxX)
-        buf.writeInt(MaxZ)
-    }
-
     companion object {
-        const val TAG_MIN_X = "MinX"
-        const val TAG_MIN_Z = "MinZ"
-        const val TAG_MAX_X = "MaxX"
-        const val TAG_MAX_Z = "MaxZ"
 
-        fun Load(Tag: NbtCompound) = XZRect(
-            FromX = Tag.getInt(TAG_MIN_X),
-            FromZ = Tag.getInt(TAG_MIN_Z),
-            ToX = Tag.getInt(TAG_MAX_X),
-            ToZ = Tag.getInt(TAG_MAX_Z)
-        )
-
-        fun ReadXZRect(B: RegistryByteBuf) = XZRect(
-            FromX = B.readInt(),
-            FromZ = B.readInt(),
-            ToX = B.readInt(),
-            ToZ = B.readInt()
-        )
     }
 }
 
@@ -243,12 +268,28 @@ object Utils {
     /** Deserialise a world from a registry key. */
     fun DeserialiseWorld(Nbt: NbtElement) =
         World.CODEC.parse(NbtOps.INSTANCE, Nbt).result().get()
+    fun DeserialiseWorld(Str: String) =
+        World.CODEC.parse(JavaOps.INSTANCE, Str).result().get()
 
     /** Get the level of an enchantment on an item stack. */
     @JvmStatic
     fun EnchantLvl(W: World, Stack: ItemStack, E: RegistryKey<Enchantment>): Int {
         val R = W.registryManager.getOrThrow(RegistryKeys.ENCHANTMENT)
         return EnchantmentHelper.getLevel(R.getOrThrow(E), Stack)
+    }
+
+    /** If this iterable contains a single element, return it, else return null. */
+    fun<T> GetSingleElement(Iter: Iterable<T>?): T? {
+        if (Iter == null) return null
+
+        // For lists, just extract the first element directly.
+        if (Iter is List) return if (Iter.size == 1) Iter.first() else null
+
+        // For anything else, use an iterator.
+        val It = Iter.iterator()
+        if (!It.hasNext()) return null
+        val First = It.next()
+        return if (It.hasNext()) null else First
     }
 
     /** Normalise a string for fuzzy matching against another string  */
@@ -270,6 +311,7 @@ object Utils {
 
     /** Serialise a world as a registry key. */
     fun SerialiseWorld(W: RegistryKey<World>) = World.CODEC.encodeStart(NbtOps.INSTANCE, W).result().get()
+    fun SerialiseWorldToString(W: RegistryKey<World>) = World.CODEC.encodeStart(JavaOps.INSTANCE, W).result().get() as String
 }
 
 /** Parse a string into a UUID, returning null on failure. */
@@ -278,3 +320,11 @@ fun String?.toUUID(): UUID? {
     return try { UUID.fromString(this) }
     catch (E: IllegalArgumentException) { null }
 }
+
+/** Decode a value. */
+fun <T> Codec<T>.Decode(Val: NbtElement): T =
+    parse(NbtOps.INSTANCE, Val).getOrThrow()
+
+/** Encode a value. */
+fun <T> Codec<T>.Encode(Val: T): NbtElement =
+    encodeStart(NbtOps.INSTANCE, Val).getOrThrow()

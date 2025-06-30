@@ -17,6 +17,7 @@ import net.minecraft.item.MinecartItem
 import net.minecraft.registry.RegistryKey
 import net.minecraft.registry.tag.BlockTags
 import net.minecraft.registry.tag.DamageTypeTags
+import net.minecraft.server.MinecraftServer
 import net.minecraft.util.ActionResult
 import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.Box
@@ -25,7 +26,14 @@ import net.minecraft.world.World
 import org.nguh.nguhcraft.block.LockableBlockEntity
 import org.nguh.nguhcraft.isa
 import org.nguh.nguhcraft.item.KeyItem
+import org.nguh.nguhcraft.server.Manager
+import org.nguh.nguhcraft.server.ServerProtectionManager
 import java.util.function.Consumer
+
+interface ProtectionManagerAccess {
+    fun `Nguhcraft$GetProtectionManager`(): ProtectionManager
+    fun `Nguhcraft$SetProtectionManager`(Mgr: ProtectionManager)
+}
 
 /** Enum denotes if an entity can teleport somewhere, or why it can’t. */
 enum class TeleportResult {
@@ -33,6 +41,8 @@ enum class TeleportResult {
     EXIT_DISALLOWED,
     ENTRY_DISALLOWED,
 }
+
+typealias RegionLists = Map<RegistryKey<World>, Collection<Region>>
 
 /**
  * Handler that contains common code paths related to world protection.
@@ -67,12 +77,7 @@ enum class TeleportResult {
  * - [IsProtectedEntity] checks whether an entity is protected from world effects;
  *   this does *not* handle block entities. Use [IsProtectedBlock] for that.
  */
-abstract class ProtectionManager(
-    /** Regions that are currently in each dimension. */
-    val OverworldRegions: Collection<Region>,
-    val NetherRegions: Collection<Region>,
-    val EndRegions: Collection<Region>
-) {
+abstract class ProtectionManager(protected val Regions: RegionLists) : Manager("Regions") {
     /**
      * Check if a player is allowed to break, start breaking, or place a
      * block at this block position.
@@ -415,39 +420,13 @@ abstract class ProtectionManager(
      * For internal use; returns a mutable list instead of an
      * immutable one.
      */
-    private fun TryGetRegionList(Key: RegistryKey<World>) = when (Key) {
-        World.OVERWORLD -> OverworldRegions
-        World.NETHER -> NetherRegions
-        World.END -> EndRegions
-        else -> null
-    }
-
-    /** Dump a string representation of the manager state. */
-    override fun toString(): String {
-        var S = "ProtectionManager {\n"
-        for (R in OverworldRegions) S += "  Overworld: $R\n"
-        for (R in NetherRegions) S += "  Nether: $R\n"
-        for (R in EndRegions) S += "  End: $R\n"
-        S += "}"
-        return S
-    }
+    private fun TryGetRegionList(Key: RegistryKey<World>) = Regions[Key]
 
     companion object {
         /**
-         * Get the manager instance.
-         *
-         * The manager is a singleton instead of a namespace to prevent
-         * protection state from leaking between sessions on the client.
-         *
-         * Note: The manager is *not* world-specific. Rather, the world
-         * is simply a convenient place to put the accessor for it since
-         * it is both present on the client and server and also passed in
-         * one way or another to every single API call of the manager.
-         *
-         * The server-side manager is stored in the server instance, and
-         * the client-side manger in the client network handler.
+         * The ProtectionManager also exists on the client, so we retrieve it via the world.
          */
-        fun Get(W: World): ProtectionManager = (W as ProtectionManagerAccessor).`Nguhcraft$GetProtectionManager`()
+        fun Get(W: World) = (W as ProtectionManagerAccess).`Nguhcraft$GetProtectionManager`()
 
         // Static convenience wrappers for the functions above.
         @JvmStatic
@@ -532,3 +511,7 @@ abstract class ProtectionManager(
             Get(E.world)._IsSpawningAllowed(E)
     }
 }
+
+
+val MinecraftServer.ProtectionManager get() =
+    Manager.Get<ProtectionManager>(this) as ServerProtectionManager

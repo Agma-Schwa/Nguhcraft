@@ -1,10 +1,15 @@
 package org.nguh.nguhcraft.server
 
+import com.mojang.serialization.Codec
+import com.mojang.serialization.codecs.RecordCodecBuilder
 import net.minecraft.nbt.NbtCompound
 import net.minecraft.registry.RegistryKey
+import net.minecraft.registry.RegistryKeys
 import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
+import org.nguh.nguhcraft.Decode
+import org.nguh.nguhcraft.Encode
 import org.nguh.nguhcraft.Nbt
 import org.nguh.nguhcraft.Utils
 import org.nguh.nguhcraft.set
@@ -21,22 +26,21 @@ data class Home(
     val World: RegistryKey<World>,
     val Pos: BlockPos,
 ) {
-    fun Save() = Nbt {
-        set(TAG_NAME, Name)
-        set(TAG_WORLD, Utils.SerialiseWorld(World))
-        set(TAG_X, Pos.x)
-        set(TAG_Y, Pos.y)
-        set(TAG_Z, Pos.z)
-    }
-
+    fun Save() = CODEC.Encode(this)
     companion object {
-        private const val TAG_NAME = "Name"
-        private const val TAG_WORLD = "World"
-        private const val TAG_X = "X"
-        private const val TAG_Y = "Y"
-        private const val TAG_Z = "Z"
         const val BED_HOME = "bed"
         const val DEFAULT_HOME = "home"
+
+        @JvmField
+        val CODEC = RecordCodecBuilder.create {
+            it.group(
+                Codec.STRING.fieldOf("Name").forGetter(Home::Name),
+                RegistryKey.createCodec(RegistryKeys.WORLD).fieldOf("World").forGetter(Home::World),
+                Codec.INT.fieldOf("X").forGetter { it.Pos.x },
+                Codec.INT.fieldOf("Y").forGetter { it.Pos.y },
+                Codec.INT.fieldOf("Z").forGetter { it.Pos.z },
+            ).apply(it) { Name, World, X, Y, Z -> Home(Name, World, BlockPos(X, Y, Z)) }
+        }
 
         fun Bed(SP: ServerPlayerEntity) = Home(
             BED_HOME,
@@ -45,15 +49,6 @@ data class Home(
         )
 
         @JvmStatic
-        fun Load(Tag: NbtCompound): Home {
-            val Name = Tag.getString(TAG_NAME)
-            val World = Utils.DeserialiseWorld(Tag.get(TAG_WORLD)!!)
-            val Pos = BlockPos(
-                Tag.getInt(TAG_X),
-                Tag.getInt(TAG_Y),
-                Tag.getInt(TAG_Z)
-            )
-            return Home(Name, World, Pos)
-        }
+        fun Load(Tag: NbtCompound) = CODEC.Decode(Tag)
     }
 }

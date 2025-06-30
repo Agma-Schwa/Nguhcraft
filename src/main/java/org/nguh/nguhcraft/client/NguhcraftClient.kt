@@ -22,6 +22,7 @@ import org.nguh.nguhcraft.block.ChestVariantProperty
 import org.nguh.nguhcraft.block.NguhBlockModels
 import org.nguh.nguhcraft.client.render.Renderer
 import org.nguh.nguhcraft.client.render.WorldRendering
+import org.nguh.nguhcraft.entity.EntitySpawnManager
 
 @Environment(EnvType.CLIENT)
 class NguhcraftClient : ClientModInitializer {
@@ -73,6 +74,16 @@ class NguhcraftClient : ClientModInitializer {
                     WorldRendering.RenderRegions = !WorldRendering.RenderRegions
                     it.source.sendFeedback(Text.literal(
                         "Region rendering is now ${if (WorldRendering.RenderRegions) "enabled" else "disabled"}."
+                    ).formatted(Formatting.YELLOW))
+                    0
+                }
+            )
+            .then(literal<FabricClientCommandSource>("spawns")
+                .requires { it.hasPermissionLevel(4) }
+                .executes {
+                    WorldRendering.RenderSpawns = !WorldRendering.RenderSpawns
+                    it.source.sendFeedback(Text.literal(
+                        "Entity spawn rendering is now ${if (WorldRendering.RenderSpawns) "enabled" else "disabled"}."
                     ).formatted(Formatting.YELLOW))
                     0
                 }

@@ -1,5 +1,7 @@
 package org.nguh.nguhcraft.data
 
+import net.fabricmc.api.EnvType
+import net.fabricmc.api.Environment
 import net.fabricmc.fabric.api.client.datagen.v1.provider.FabricModelProvider
 import net.fabricmc.fabric.api.datagen.v1.DataGeneratorEntrypoint
 import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator
@@ -19,9 +21,12 @@ import net.minecraft.entity.damage.DamageType
 import net.minecraft.entity.decoration.painting.PaintingVariant
 import net.minecraft.loot.LootPool
 import net.minecraft.loot.LootTable
+import net.minecraft.loot.condition.BlockStatePropertyLootCondition
 import net.minecraft.loot.entry.ItemEntry
 import net.minecraft.loot.function.CopyComponentsLootFunction
+import net.minecraft.loot.function.SetCountLootFunction
 import net.minecraft.loot.provider.number.ConstantLootNumberProvider
+import net.minecraft.predicate.StatePredicate
 import net.minecraft.registry.RegistryBuilder
 import net.minecraft.registry.RegistryKeys
 import net.minecraft.registry.RegistryWrapper
@@ -36,6 +41,7 @@ import org.nguh.nguhcraft.block.NguhBlockModels
 import org.nguh.nguhcraft.block.NguhBlocks
 import org.nguh.nguhcraft.block.Slab
 import org.nguh.nguhcraft.block.Stairs
+import org.nguh.nguhcraft.block.VerticalSlabBlock
 import org.nguh.nguhcraft.block.Wall
 import org.nguh.nguhcraft.item.NguhItems
 import java.util.concurrent.CompletableFuture
@@ -43,20 +49,44 @@ import java.util.concurrent.CompletableFuture
 // =========================================================================
 //  Static Registries
 // =========================================================================
+@Environment(EnvType.CLIENT)
 class NguhcraftBlockTagProvider(
     O: FabricDataOutput,
     RF: CompletableFuture<RegistryWrapper.WrapperLookup>
 ) : FabricTagProvider.BlockTagProvider(O, RF) {
     override fun configure(WL: RegistryWrapper.WrapperLookup) {
-        getOrCreateTagBuilder(BlockTags.AXE_MINEABLE).let {
-            for (B in NguhBlocks.AXE_MINEABLE) it.add(B)
+        getOrCreateTagBuilder(BlockTags.PICKAXE_MINEABLE).let { T ->
+            for (B in NguhBlocks.PICKAXE_MINEABLE) T.add(B)
+            for (B in NguhBlockModels.VERTICAL_SLABS.filter { !it.Wood }) T.add(B.VerticalSlab)
         }
 
-        getOrCreateTagBuilder(BlockTags.PICKAXE_MINEABLE).let {
-            for (B in NguhBlocks.PICKAXE_MINEABLE) it.add(B)
-        }
-
+        // Block tags for miscellaneous custom blocks.
+        getOrCreateTagBuilder(BlockTags.PLANKS).add(NguhBlocks.TINTED_OAK_PLANKS)
         getOrCreateTagBuilder(BlockTags.DOORS).add(NguhBlocks.LOCKED_DOOR)
+        getOrCreateTagBuilder(BlockTags.WOODEN_SLABS)
+            .add(NguhBlocks.TINTED_OAK_SLAB)
+            .let {
+                for (B in NguhBlockModels.VERTICAL_SLABS.filter { it.Wood })
+                    it.add(B.VerticalSlab)
+            }
+
+        getOrCreateTagBuilder(BlockTags.WOODEN_STAIRS).add(NguhBlocks.TINTED_OAK_STAIRS)
+        getOrCreateTagBuilder(BlockTags.WOODEN_FENCES).add(NguhBlocks.TINTED_OAK_FENCE)
+
+        // Block tag for bonemealing flowers.
+        getOrCreateTagBuilder(NguhBlocks.CAN_DUPLICATE_WITH_BONEMEAL)
+            .add(Blocks.DANDELION)
+            .add(Blocks.POPPY)
+            .add(Blocks.BLUE_ORCHID)
+            .add(Blocks.ALLIUM)
+            .add(Blocks.AZURE_BLUET)
+            .add(Blocks.RED_TULIP)
+            .add(Blocks.ORANGE_TULIP)
+            .add(Blocks.WHITE_TULIP)
+            .add(Blocks.PINK_TULIP)
+            .add(Blocks.OXEYE_DAISY)
+            .add(Blocks.CORNFLOWER)
+            .add(Blocks.LILY_OF_THE_VALLEY)
 
         // Add blocks from families.
         val Fences = getOrCreateTagBuilder(BlockTags.FENCES)
@@ -69,9 +99,13 @@ class NguhcraftBlockTagProvider(
             B.Stairs?.let { Stairs.add(it) }
             B.Wall?.let { Walls.add(it) }
         }
+
+        for (V in NguhBlockModels.VERTICAL_SLABS)
+            Slabs.add(V.VerticalSlab)
     }
 }
 
+@Environment(EnvType.CLIENT)
 class NguhcraftDamageTypeTagProvider(
     O: FabricDataOutput,
     RF: CompletableFuture<RegistryWrapper.WrapperLookup>
@@ -91,6 +125,7 @@ class NguhcraftDamageTypeTagProvider(
     }
 }
 
+@Environment(EnvType.CLIENT)
 class NguhcraftLootTableProvider(
     O: FabricDataOutput,
     RL: CompletableFuture<RegistryWrapper.WrapperLookup>
@@ -100,6 +135,8 @@ class NguhcraftLootTableProvider(
         addDrop(NguhBlocks.LOCKED_DOOR) { B: Block -> doorDrops(B) }
         for (S in NguhBlocks.ALL_VARIANT_FAMILY_BLOCKS.filter { it is SlabBlock })
             addDrop(S, ::slabDrops)
+        for (V in NguhBlockModels.VERTICAL_SLABS)
+            addDrop(V.VerticalSlab, ::VerticalSlabDrops)
 
         // Copied from nameableContainerDrops(), but modified to also
         // copy the chest variant component.
@@ -117,8 +154,28 @@ class NguhcraftLootTableProvider(
             )
         }
     }
+
+    fun VerticalSlabDrops(Drop: Block) = LootTable.builder().pool(
+        LootPool.builder()
+            .rolls(ConstantLootNumberProvider.create(1.0F))
+            .with(
+                applyExplosionDecay(
+                    Drop,
+                    ItemEntry.builder(Drop)
+                        .apply(
+                            SetCountLootFunction.builder(ConstantLootNumberProvider.create(2.0F))
+                                .conditionally(BlockStatePropertyLootCondition.builder(Drop)
+                                    .properties(StatePredicate.Builder.create().exactMatch(
+                                        VerticalSlabBlock.TYPE,
+                                        VerticalSlabBlock.Type.DOUBLE))
+                                )
+                        )
+                )
+            )
+    )
 }
 
+@Environment(EnvType.CLIENT)
 class NguhcraftModelGenerator(O: FabricDataOutput) : FabricModelProvider(O) {
     override fun generateBlockStateModels(G: BlockStateModelGenerator) {
         NguhBlockModels.BootstrapModels(G)
@@ -129,6 +186,7 @@ class NguhcraftModelGenerator(O: FabricDataOutput) : FabricModelProvider(O) {
     }
 }
 
+@Environment(EnvType.CLIENT)
 class NguhcraftPaintingVariantTagProvider(
     O: FabricDataOutput,
     RF: CompletableFuture<RegistryWrapper.WrapperLookup>
@@ -138,6 +196,7 @@ class NguhcraftPaintingVariantTagProvider(
     }
 }
 
+@Environment(EnvType.CLIENT)
 class NguhcraftRecipeProvider(
     O: FabricDataOutput,
     RL: CompletableFuture<RegistryWrapper.WrapperLookup>

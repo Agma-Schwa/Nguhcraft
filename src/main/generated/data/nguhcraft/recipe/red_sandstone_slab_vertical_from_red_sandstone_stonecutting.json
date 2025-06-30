@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:stonecutting",
+  "ingredient": "minecraft:red_sandstone",
+  "result": {
+    "count": 1,
+    "id": "nguhcraft:red_sandstone_slab_vertical"
+  }
+}

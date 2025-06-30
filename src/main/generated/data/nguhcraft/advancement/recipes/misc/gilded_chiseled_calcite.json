@@ -1,21 +1,11 @@
 {
   "parent": "minecraft:recipes/root",
   "criteria": {
-    "has_chiseled_calcite": {
+    "has_gilded_polished_calcite_slab": {
       "conditions": {
         "items": [
           {
-            "items": "nguhcraft:chiseled_calcite"
-          }
-        ]
-      },
-      "trigger": "minecraft:inventory_changed"
-    },
-    "has_gold_ingot": {
-      "conditions": {
-        "items": [
-          {
-            "items": "minecraft:gold_ingot"
+            "items": "nguhcraft:gilded_polished_calcite_slab"
           }
         ]
       },
@@ -31,8 +21,7 @@
   "requirements": [
     [
       "has_the_recipe",
-      "has_chiseled_calcite",
-      "has_gold_ingot"
+      "has_gilded_polished_calcite_slab"
     ]
   ],
   "rewards": {

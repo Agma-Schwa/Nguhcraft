@@ -4,13 +4,12 @@ import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext
 import net.minecraft.client.render.VertexConsumer
+import net.minecraft.client.render.VertexRendering
 import net.minecraft.util.Colors
-import net.minecraft.util.Formatting
 import net.minecraft.util.Util
-import net.minecraft.util.math.ColorHelper
 import net.minecraft.util.math.Direction
 import net.minecraft.util.profiler.Profilers
-import org.nguh.nguhcraft.Constants
+import org.nguh.nguhcraft.entity.EntitySpawnManager
 import org.nguh.nguhcraft.protect.ProtectionManager
 import org.nguh.nguhcraft.protect.Region
 import org.nguh.nguhcraft.unaryMinus
@@ -18,8 +17,20 @@ import kotlin.math.min
 
 @Environment(EnvType.CLIENT)
 object WorldRendering {
-    var RenderRegions = false
     private const val GOLD = 0xFFFFAA00.toInt()
+
+    @JvmField
+    @Volatile
+    var Spawns = listOf<EntitySpawnManager.Spawn>()
+
+    var RenderRegions = false
+    var RenderSpawns = false
+
+    fun ActOnSessionStart() {
+        Spawns = listOf()
+        RenderRegions = false
+        RenderSpawns = false
+    }
 
     fun RenderWorld(Ctx: WorldRenderContext) {
         Profilers.get().push("nguhcraft:world_rendering")
@@ -32,7 +43,10 @@ object WorldRendering {
             Layers.BARRIERS.Use { RenderBarriers(Ctx, it, DT) }
 
             // Render regions.
-            Layers.REGION_LINES.Use { RenderRegions(Ctx, it) }
+            if (RenderRegions) Layers.REGION_LINES.Use { RenderRegions(Ctx, it) }
+
+            // Render spawn positions.
+            if (RenderSpawns) Layers.LINES.Use { RenderSpawns(Ctx, it) }
         }
 
         Profilers.get().pop()
@@ -48,7 +62,6 @@ object WorldRendering {
         // Render barriers for each region.
         for (R in ProtectionManager.GetRegions(CW)) {
             if (!R.ShouldRenderEntryExitBarrier()) continue
-            if (R.World != CW.registryKey) continue
             if (R.DistanceFrom(CameraPos) > WR.viewDistance * 16) continue
             VA.Draw { RenderBarrier(it, R, MinY = MinY, MaxY = MaxY, DT) }
         }
@@ -117,7 +130,6 @@ object WorldRendering {
     }
 
     private fun RenderRegions(Ctx: WorldRenderContext, VA: VertexAllocator) {
-        if (!RenderRegions) return
         val CW = Ctx.world()
         val WR = Ctx.worldRenderer()
         val MinY = CW.bottomY
@@ -146,7 +158,7 @@ object WorldRendering {
         ).color(Colour)
 
         // Vertical lines along X axis.
-        for (X in MinX.toInt()..MaxX.toInt()) {
+        for (X in MinX..MaxX) {
             Vertex(X, MinY, MinZ).color(Colour)
             Vertex(X, MaxY, MinZ).color(Colour)
             Vertex(X, MinY, MaxZ).color(Colour)
@@ -154,7 +166,7 @@ object WorldRendering {
         }
 
         // Vertical lines along Z axis.
-        for (Z in MinZ.toInt()..MaxZ.toInt()) {
+        for (Z in MinZ..MaxZ) {
             Vertex(MinX, MinY, Z).color(Colour)
             Vertex(MinX, MaxY, Z).color(Colour)
             Vertex(MaxX, MinY, Z).color(Colour)
@@ -162,7 +174,7 @@ object WorldRendering {
         }
 
         // Horizontal lines.
-        for (Y in MinY.toInt()..MaxY.toInt()) {
+        for (Y in MinY..MaxY) {
             Vertex(MinX, Y, MinZ).color(Colour)
             Vertex(MaxX, Y, MinZ).color(Colour)
             Vertex(MinX, Y, MaxZ).color(Colour)
@@ -171,6 +183,25 @@ object WorldRendering {
             Vertex(MinX, Y, MaxZ).color(Colour)
             Vertex(MaxX, Y, MinZ).color(Colour)
             Vertex(MaxX, Y, MaxZ).color(Colour)
+        }
+    }
+
+    private fun RenderSpawns(Ctx: WorldRenderContext, VA: VertexAllocator) {
+        VA.Draw {
+            for (S in Spawns) VertexRendering.drawBox(
+                Ctx.matrixStack(),
+                it,
+                S.SpawnPos.x - .15,
+                S.SpawnPos.y + .15,
+                S.SpawnPos.z - .15,
+                S.SpawnPos.x + .15,
+                S.SpawnPos.y + .45,
+                S.SpawnPos.z + .15,
+                .4f,
+                .4f,
+                .8f,
+                1f,
+            )
         }
     }
 }

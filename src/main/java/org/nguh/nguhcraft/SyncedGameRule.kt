@@ -2,13 +2,12 @@ package org.nguh.nguhcraft
 
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
-import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking
 import net.minecraft.nbt.NbtCompound
+import net.minecraft.nbt.NbtElement
 import net.minecraft.server.MinecraftServer
 import net.minecraft.server.network.ServerPlayerEntity
 import org.nguh.nguhcraft.network.ClientboundSyncGameRulesPacket
-import org.nguh.nguhcraft.server.Broadcast
-import org.nguh.nguhcraft.server.ServerUtils
+import org.nguh.nguhcraft.server.Manager
 
 /**
 * Global setting that is synced to the client.
@@ -37,45 +36,34 @@ enum class SyncedGameRule(
     fun Set(S: MinecraftServer, NewValue: Boolean = true) {
         if (Value == NewValue) return
         Value = NewValue
-        Sync(S)
+        Manager.Get<ManagerImpl>(S).Sync(S)
     }
 
     /** Check if this rule is set. */
     fun IsSet() = Value
 
-    companion object {
-        private const val TAG_NAME = "SyncedGameRules"
-
+    /** Manager to sync and persist the game rule state. */
+    class ManagerImpl : Manager("SyncedGameRules") {
         /** Encode the game rules into a packet. */
-        private fun Encode() = ClientboundSyncGameRulesPacket(entries.fold(0L) { acc, rule ->
-            if (rule.Value) acc or rule.Flag else acc
+        override fun ToPacket(SP: ServerPlayerEntity) = ClientboundSyncGameRulesPacket(entries.fold(0L) { Acc, R ->
+            if (R.Value) Acc or R.Flag else Acc
         })
 
         /** Load the rules from disk. */
-        fun Load(LoadData: NbtCompound) {
-            val Tag = LoadData.getCompound(TAG_NAME)
+        override fun ReadData(Tag: NbtElement) {
+            if (Tag !is NbtCompound) return
             for (R in entries)
                 if (Tag.contains(R.Name))
                     R.Value = Tag.getBoolean(R.Name)
         }
 
-        /** Reset the rules to their default values. */
-        fun Reset() = entries.forEach { it.Value = it.Default }
-
         /** Save the rules to disk. */
-        fun Save(SaveData: NbtCompound) {
-            val Tag = NbtCompound()
-            for (R in entries) Tag.putBoolean(R.Name, R.Value)
-            SaveData.put(TAG_NAME, Tag)
+        override fun WriteData() = Nbt {
+            for (R in entries) set(R.Name, R.Value)
         }
+    }
 
-        /** Send the game rules to a player. */
-        @JvmStatic
-        fun Send(SP: ServerPlayerEntity) = ServerPlayNetworking.send(SP, Encode())
-
-        /** Sync the game rules. */
-        fun Sync(S: MinecraftServer) = S.Broadcast(Encode())
-
+    companion object {
         /** Update the game rules. */
         @JvmStatic
         @Environment(EnvType.CLIENT)

@@ -3,14 +3,15 @@ package org.nguh.nguhcraft
 import com.mojang.logging.LogUtils
 import net.fabricmc.api.ModInitializer
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry
 import net.minecraft.nbt.NbtCompound
+import net.minecraft.nbt.NbtElement
 import net.minecraft.nbt.NbtIo
 import net.minecraft.nbt.NbtSizeTracker
 import net.minecraft.registry.Registry
 import net.minecraft.registry.RegistryKey
 import net.minecraft.server.MinecraftServer
-import net.minecraft.server.world.ServerWorld
 import net.minecraft.util.Identifier
 import net.minecraft.util.WorldSavePath
 import org.nguh.nguhcraft.block.NguhBlocks
@@ -20,6 +21,7 @@ import org.nguh.nguhcraft.protect.ProtectionManager
 import org.nguh.nguhcraft.server.*
 import org.nguh.nguhcraft.server.command.Commands
 import java.nio.file.Path
+import kotlin.io.path.exists
 import kotlin.io.path.inputStream
 
 // TODO: Port all patches.
@@ -152,6 +154,8 @@ import kotlin.io.path.inputStream
 
 class Nguhcraft : ModInitializer {
     override fun onInitialize() {
+        Manager.RunStaticInitialisation()
+
         // Clientbound packets.
         PayloadTypeRegistry.playS2C().register(ClientboundChatPacket.ID, ClientboundChatPacket.CODEC)
         PayloadTypeRegistry.playS2C().register(ClientboundLinkUpdatePacket.ID, ClientboundLinkUpdatePacket.CODEC)
@@ -159,6 +163,7 @@ class Nguhcraft : ModInitializer {
         PayloadTypeRegistry.playS2C().register(ClientboundSyncFlagPacket.ID, ClientboundSyncFlagPacket.CODEC)
         PayloadTypeRegistry.playS2C().register(ClientboundSyncProtectionMgrPacket.ID, ClientboundSyncProtectionMgrPacket.CODEC)
         PayloadTypeRegistry.playS2C().register(ClientboundSyncDisplayPacket.ID, ClientboundSyncDisplayPacket.CODEC)
+        PayloadTypeRegistry.playS2C().register(ClientboundSyncSpawnsPacket.ID, ClientboundSyncSpawnsPacket.CODEC)
 
         // Serverbound packets.
         PayloadTypeRegistry.playC2S().register(ServerboundChatPacket.ID, ServerboundChatPacket.CODEC)
@@ -171,43 +176,18 @@ class Nguhcraft : ModInitializer {
         ServerNetworkHandler.Init()
 
         ServerLifecycleEvents.SERVER_STARTED.register { LoadServerState(it) }
+        ServerTickEvents.START_WORLD_TICK.register { ServerUtils.TickWorld(it) }
         ServerLifecycleEvents.BEFORE_SAVE.register { it, _, _ -> SaveServerState(it) }
     }
 
     companion object {
         private val LOGGER = LogUtils.getLogger()
         const val MOD_ID = "nguhcraft"
-        const val DIR_PROCEDURES = "procedures"
         @JvmStatic fun Id(S: String): Identifier = Identifier.of(MOD_ID, S)
         @JvmStatic fun<T> RKey(Registry: RegistryKey<Registry<T>>, S: String): RegistryKey<T> = RegistryKey.of(Registry, Id(S))
 
-        private fun NguhWorldSaveFile(SW: ServerWorld) = SW.server.getSavePath(WorldSavePath.ROOT).resolve(
-            "nguhcraft.extraworlddata.${SW.registryKey.value.path}.dat"
-        )
-
-        private fun NguhSaveDir(S: MinecraftServer) = S.getSavePath(WorldSavePath.ROOT).resolve("nguhcraft")
-
-        fun LoadExtraWorldData(SW: ServerWorld) {
-            LOGGER.info("Loading nguhcraft world data for {}", SW.registryKey.value)
-            try {
-                val Path = NguhWorldSaveFile(SW)
-                val Tag = NbtIo.readCompressed(Path, NbtSizeTracker.ofUnlimitedBytes())
-
-                // Load.
-                (ProtectionManager.Get(SW) as ServerProtectionManager).LoadRegions(SW, Tag)
-            } catch (E: Exception) {
-                LOGGER.error("Nguhcraft: Failed to load extra world data: ${E.message}")
-            }
-        }
-
         private fun LoadServerState(S: MinecraftServer) {
             LOGGER.info("[SETUP] Setting up server state")
-            val Dir = NguhSaveDir(S)
-
-            // Reset defaults.
-            SyncedGameRule.Reset()
-            WarpManager.Reset()
-            S.DisplayManager.Reset()
 
             // Load saved state.
             try {
@@ -217,36 +197,33 @@ class Nguhcraft : ModInitializer {
                     NbtSizeTracker.ofUnlimitedBytes()
                 )
 
+                // Some of the world data was previously stored in a separate file.
+                val ProtMgr = Manager.Get<ProtectionManager>(S)
+                if (!Tag.contains(ProtMgr.TagName)) Tag.put(ProtMgr.TagName, Nbt {
+                    for (SW in S.worlds) {
+                        try {
+                            val Path = SW.server.getSavePath(WorldSavePath.ROOT).resolve(
+                                "nguhcraft.extraworlddata.${SW.registryKey.value.path}.dat"
+                            )
+
+                            if (Path.exists()) {
+                                val Regions = NbtIo.readCompressed(Path, NbtSizeTracker.ofUnlimitedBytes())
+                                    .getList("Regions", NbtElement.COMPOUND_TYPE.toInt())
+                                if (!Regions.isNullOrEmpty()) set(Utils.SerialiseWorldToString(SW.registryKey), Regions)
+                            }
+                        } catch (E: Exception) {
+                            LOGGER.error("Nguhcraft: Failed to load external region data: ${E.message}")
+                        }
+                    }
+                })
+
                 // Load global data.
-                SyncedGameRule.Load(Tag)
-                WarpManager.Load(Tag)
-                S.DisplayManager.Load(Tag)
-
-                // Load world data.
-                for (SW in S.worlds) LoadExtraWorldData(SW)
-
-                // Load procedures.
-                S.ProcedureManager.Load(Dir.resolve(DIR_PROCEDURES))
+                Manager.InitFromSaveData(S, Tag)
             } catch (E: Exception) {
                 LOGGER.warn("Nguhcraft: Failed to load persistent state; using defaults: ${E.message}")
             }
 
             LOGGER.info("[SETUP] Done")
-        }
-
-        fun SaveExtraWorldData(SW: ServerWorld) {
-            try {
-                val Tag = NbtCompound()
-                val Path = NguhWorldSaveFile(SW)
-
-                // Save.
-                (ProtectionManager.Get(SW) as ServerProtectionManager).SaveRegions(SW, Tag)
-
-                // Write to disk.
-                NbtIo.writeCompressed(Tag, Path)
-            } catch (E: Exception) {
-                LOGGER.error("Nguhcraft: Failed to save extra world data: ${E.message}")
-            }
         }
 
         private fun SavePath(S: MinecraftServer): Path {
@@ -255,22 +232,9 @@ class Nguhcraft : ModInitializer {
 
         private fun SaveServerState(S: MinecraftServer) {
             LOGGER.info("Saving server state")
-            val Tag = NbtCompound()
-            val Dir = NguhSaveDir(S)
-
-            // Save data.
-            SyncedGameRule.Save(Tag)
-            WarpManager.Save(Tag)
-            S.DisplayManager.Save(Tag)
-
-            // Save world data.
-            for (SW in S.worlds) SaveExtraWorldData(SW)
-
-            // Save procedures.
-            S.ProcedureManager.Save(Dir.resolve(DIR_PROCEDURES))
-
-            // And write to disk.
             try {
+                val Tag = NbtCompound()
+                Manager.SaveAll(S, Tag)
                 NbtIo.writeCompressed(Tag, SavePath(S))
             } catch (E: Exception) {
                 LOGGER.error("Nguhcraft: Failed to save persistent state")

@@ -20,6 +20,7 @@ import net.minecraft.registry.Registries
 import net.minecraft.registry.Registry
 import net.minecraft.registry.RegistryKey
 import net.minecraft.registry.RegistryKeys
+import net.minecraft.registry.tag.TagKey
 import net.minecraft.text.Style
 import net.minecraft.text.Text
 import net.minecraft.util.StringIdentifiable
@@ -69,6 +70,9 @@ object NguhBlocks {
             .packetCodec(ChestVariant.PACKET_CODEC)
             .build()
     )
+
+    // All vertical slabs; this has to be declared before our custom block families.
+    val VERTICAL_SLABS: List<VerticalSlabBlock> = mutableListOf()
 
     // =========================================================================
     //  Miscellaneous Blocks
@@ -193,6 +197,7 @@ object NguhBlocks {
     )
 
     val CINNABAR_SLAB = RegisterVariant(CINNABAR, "slab", ::SlabBlock)
+    val CINNABAR_SLAB_VERTICAL = RegisterVSlab("cinnabar", CINNABAR_SLAB)
     val CINNABAR_STAIRS = RegisterStairs(CINNABAR)
 
     val POLISHED_CINNABAR = Register(
@@ -203,6 +208,7 @@ object NguhBlocks {
     )
 
     val POLISHED_CINNABAR_SLAB = RegisterVariant(POLISHED_CINNABAR, "slab", ::SlabBlock)
+    val POLISHED_CINNABAR_SLAB_VERTICAL = RegisterVSlab("polished_cinnabar", POLISHED_CINNABAR_SLAB)
     val POLISHED_CINNABAR_STAIRS = RegisterStairs(POLISHED_CINNABAR)
     val POLISHED_CINNABAR_WALL = RegisterVariant(POLISHED_CINNABAR, "wall", ::WallBlock)
 
@@ -214,6 +220,7 @@ object NguhBlocks {
     )
 
     val CINNABAR_BRICK_SLAB = RegisterVariant(CINNABAR_BRICKS, "slab", ::SlabBlock)
+    val CINNABAR_BRICK_SLAB_VERTICAL = RegisterVSlab("cinnabar_bricks", CINNABAR_BRICK_SLAB)
     val CINNABAR_BRICK_STAIRS = RegisterStairs(CINNABAR_BRICKS)
     val CINNABAR_BRICK_WALL = RegisterVariant(CINNABAR_BRICKS, "wall", ::WallBlock)
 
@@ -228,6 +235,7 @@ object NguhBlocks {
     )
 
     val POLISHED_CALCITE_SLAB = RegisterVariant(POLISHED_CALCITE, "slab", ::SlabBlock)
+    val POLISHED_CALCITE_SLAB_VERTICAL = RegisterVSlab("polished_calcite", POLISHED_CALCITE_SLAB)
     val POLISHED_CALCITE_STAIRS = RegisterStairs(POLISHED_CALCITE)
     val POLISHED_CALCITE_WALL = RegisterVariant(POLISHED_CALCITE, "wall", ::WallBlock)
 
@@ -246,6 +254,7 @@ object NguhBlocks {
     )
 
     val CALCITE_BRICK_SLAB = RegisterVariant(CALCITE_BRICKS, "slab", ::SlabBlock)
+    val CALCITE_BRICK_SLAB_VERTICAL = RegisterVSlab("calcite_bricks", CALCITE_BRICK_SLAB)
     val CALCITE_BRICK_STAIRS = RegisterStairs(CALCITE_BRICKS)
     val CALCITE_BRICK_WALL = RegisterVariant(CALCITE_BRICKS, "wall", ::WallBlock)
 
@@ -267,6 +276,7 @@ object NguhBlocks {
     )
 
     val GILDED_CALCITE_SLAB = RegisterVariant(GILDED_CALCITE, "slab", ::SlabBlock)
+    val GILDED_CALCITE_SLAB_VERTICAL = RegisterVSlab("gilded_calcite", GILDED_CALCITE_SLAB)
     val GILDED_CALCITE_STAIRS = RegisterStairs(GILDED_CALCITE)
 
     val GILDED_POLISHED_CALCITE = Register(
@@ -277,6 +287,7 @@ object NguhBlocks {
     )
 
     val GILDED_POLISHED_CALCITE_SLAB = RegisterVariant(GILDED_POLISHED_CALCITE, "slab", ::SlabBlock)
+    val GILDED_POLISHED_CALCITE_SLAB_VERTICAL = RegisterVSlab("gilded_polished_calcite", GILDED_POLISHED_CALCITE_SLAB)
     val GILDED_POLISHED_CALCITE_STAIRS = RegisterStairs(GILDED_POLISHED_CALCITE)
     val GILDED_POLISHED_CALCITE_WALL = RegisterVariant(GILDED_POLISHED_CALCITE, "wall", ::WallBlock)
 
@@ -295,6 +306,7 @@ object NguhBlocks {
     )
 
     val GILDED_CALCITE_BRICK_SLAB = RegisterVariant(GILDED_CALCITE_BRICKS, "slab", ::SlabBlock)
+    val GILDED_CALCITE_BRICK_SLAB_VERTICAL = RegisterVSlab("gilded_calcite_bricks", GILDED_CALCITE_BRICK_SLAB)
     val GILDED_CALCITE_BRICK_STAIRS = RegisterStairs(GILDED_CALCITE_BRICKS)
     val GILDED_CALCITE_BRICK_WALL = RegisterVariant(GILDED_CALCITE_BRICKS, "wall", ::WallBlock)
 
@@ -316,6 +328,7 @@ object NguhBlocks {
     )
 
     val TINTED_OAK_SLAB = RegisterVariant(TINTED_OAK_PLANKS, "slab", ::SlabBlock)
+    val TINTED_OAK_SLAB_VERTICAL = RegisterVSlab("tinted_oak", TINTED_OAK_SLAB)
     val TINTED_OAK_STAIRS = RegisterStairs(TINTED_OAK_PLANKS)
     val TINTED_OAK_FENCE = RegisterVariant(TINTED_OAK_PLANKS, "fence", ::FenceBlock)
 
@@ -429,14 +442,76 @@ object NguhBlocks {
     val ALL_VARIANT_FAMILY_BLOCKS = STONE_VARIANT_FAMILY_BLOCKS + WOOD_VARIANT_FAMILY_BLOCKS
 
     // =========================================================================
+    //  Vertical Slabs for Vanilla Blocks
+    // =========================================================================
+    val ACACIA_SLAB_VERTICAL = RegisterVSlab("acacia", Blocks.ACACIA_SLAB)
+    val ANDESITE_SLAB_VERTICAL = RegisterVSlab("andesite", Blocks.ANDESITE_SLAB)
+    val BAMBOO_MOSAIC_SLAB_VERTICAL = RegisterVSlab("bamboo_mosaic", Blocks.BAMBOO_MOSAIC_SLAB)
+    val BAMBOO_SLAB_VERTICAL = RegisterVSlab("bamboo", Blocks.BAMBOO_SLAB)
+    val BIRCH_SLAB_VERTICAL = RegisterVSlab("birch", Blocks.BIRCH_SLAB)
+    val BLACKSTONE_SLAB_VERTICAL = RegisterVSlab("blackstone", Blocks.BLACKSTONE_SLAB)
+    val BRICK_SLAB_VERTICAL = RegisterVSlab("brick", Blocks.BRICK_SLAB)
+    val CHERRY_SLAB_VERTICAL = RegisterVSlab("cherry", Blocks.CHERRY_SLAB)
+    val COBBLED_DEEPSLATE_SLAB_VERTICAL = RegisterVSlab("cobbled_deepslate", Blocks.COBBLED_DEEPSLATE_SLAB)
+    val COBBLESTONE_SLAB_VERTICAL = RegisterVSlab("cobblestone", Blocks.COBBLESTONE_SLAB)
+    val CRIMSON_SLAB_VERTICAL = RegisterVSlab("crimson", Blocks.CRIMSON_SLAB)
+    val CUT_COPPER_SLAB_VERTICAL = RegisterVSlab("cut_copper", Blocks.CUT_COPPER_SLAB)
+    val CUT_RED_SANDSTONE_SLAB_VERTICAL = RegisterVSlab("cut_red_sandstone", Blocks.CUT_RED_SANDSTONE_SLAB)
+    val CUT_SANDSTONE_SLAB_VERTICAL = RegisterVSlab("cut_sandstone", Blocks.CUT_SANDSTONE_SLAB)
+    val DARK_OAK_SLAB_VERTICAL = RegisterVSlab("dark_oak", Blocks.DARK_OAK_SLAB)
+    val DARK_PRISMARINE_SLAB_VERTICAL = RegisterVSlab("dark_prismarine", Blocks.DARK_PRISMARINE_SLAB)
+    val DEEPSLATE_BRICK_SLAB_VERTICAL = RegisterVSlab("deepslate_brick", Blocks.DEEPSLATE_BRICK_SLAB)
+    val DEEPSLATE_TILE_SLAB_VERTICAL = RegisterVSlab("deepslate_tile", Blocks.DEEPSLATE_TILE_SLAB)
+    val DIORITE_SLAB_VERTICAL = RegisterVSlab("diorite", Blocks.DIORITE_SLAB)
+    val END_STONE_BRICK_SLAB_VERTICAL = RegisterVSlab("end_stone_brick", Blocks.END_STONE_BRICK_SLAB)
+    val EXPOSED_CUT_COPPER_SLAB_VERTICAL = RegisterVSlab("exposed_cut_copper", Blocks.EXPOSED_CUT_COPPER_SLAB)
+    val GRANITE_SLAB_VERTICAL = RegisterVSlab("granite", Blocks.GRANITE_SLAB)
+    val JUNGLE_SLAB_VERTICAL = RegisterVSlab("jungle", Blocks.JUNGLE_SLAB)
+    val MANGROVE_SLAB_VERTICAL = RegisterVSlab("mangrove", Blocks.MANGROVE_SLAB)
+    val MOSSY_COBBLESTONE_SLAB_VERTICAL = RegisterVSlab("mossy_cobblestone", Blocks.MOSSY_COBBLESTONE_SLAB)
+    val MOSSY_STONE_BRICK_SLAB_VERTICAL = RegisterVSlab("mossy_stone_brick", Blocks.MOSSY_STONE_BRICK_SLAB)
+    val MUD_BRICK_SLAB_VERTICAL = RegisterVSlab("mud_brick", Blocks.MUD_BRICK_SLAB)
+    val NETHER_BRICK_SLAB_VERTICAL = RegisterVSlab("nether_brick", Blocks.NETHER_BRICK_SLAB)
+    val OAK_SLAB_VERTICAL = RegisterVSlab("oak", Blocks.OAK_SLAB)
+    val OXIDIZED_CUT_COPPER_SLAB_VERTICAL = RegisterVSlab("oxidized_cut_copper", Blocks.OXIDIZED_CUT_COPPER_SLAB)
+    val PALE_OAK_SLAB_VERTICAL = RegisterVSlab("pale_oak", Blocks.PALE_OAK_SLAB)
+    val POLISHED_ANDESITE_SLAB_VERTICAL = RegisterVSlab("polished_andesite", Blocks.POLISHED_ANDESITE_SLAB)
+    val POLISHED_BLACKSTONE_BRICK_SLAB_VERTICAL = RegisterVSlab("polished_blackstone_brick", Blocks.POLISHED_BLACKSTONE_BRICK_SLAB)
+    val POLISHED_BLACKSTONE_SLAB_VERTICAL = RegisterVSlab("polished_blackstone", Blocks.POLISHED_BLACKSTONE_SLAB)
+    val POLISHED_DEEPSLATE_SLAB_VERTICAL = RegisterVSlab("polished_deepslate", Blocks.POLISHED_DEEPSLATE_SLAB)
+    val POLISHED_DIORITE_SLAB_VERTICAL = RegisterVSlab("polished_diorite", Blocks.POLISHED_DIORITE_SLAB)
+    val POLISHED_GRANITE_SLAB_VERTICAL = RegisterVSlab("polished_granite", Blocks.POLISHED_GRANITE_SLAB)
+    val POLISHED_TUFF_SLAB_VERTICAL = RegisterVSlab("polished_tuff", Blocks.POLISHED_TUFF_SLAB)
+    val PRISMARINE_BRICK_SLAB_VERTICAL = RegisterVSlab("prismarine_brick", Blocks.PRISMARINE_BRICK_SLAB)
+    val PRISMARINE_SLAB_VERTICAL = RegisterVSlab("prismarine", Blocks.PRISMARINE_SLAB)
+    val PURPUR_SLAB_VERTICAL = RegisterVSlab("purpur", Blocks.PURPUR_SLAB)
+    val QUARTZ_SLAB_VERTICAL = RegisterVSlab("quartz", Blocks.QUARTZ_SLAB)
+    val RED_NETHER_BRICK_SLAB_VERTICAL = RegisterVSlab("red_nether_brick", Blocks.RED_NETHER_BRICK_SLAB)
+    val RED_SANDSTONE_SLAB_VERTICAL = RegisterVSlab("red_sandstone", Blocks.RED_SANDSTONE_SLAB)
+    val SANDSTONE_SLAB_VERTICAL = RegisterVSlab("sandstone", Blocks.SANDSTONE_SLAB)
+    val SMOOTH_QUARTZ_SLAB_VERTICAL = RegisterVSlab("smooth_quartz", Blocks.SMOOTH_QUARTZ_SLAB)
+    val SMOOTH_RED_SANDSTONE_SLAB_VERTICAL = RegisterVSlab("smooth_red_sandstone", Blocks.SMOOTH_RED_SANDSTONE_SLAB)
+    val SMOOTH_SANDSTONE_SLAB_VERTICAL = RegisterVSlab("smooth_sandstone", Blocks.SMOOTH_SANDSTONE_SLAB)
+    val SMOOTH_STONE_SLAB_VERTICAL = RegisterVSlab("smooth_stone", Blocks.SMOOTH_STONE_SLAB)
+    val SPRUCE_SLAB_VERTICAL = RegisterVSlab("spruce", Blocks.SPRUCE_SLAB)
+    val STONE_BRICK_SLAB_VERTICAL = RegisterVSlab("stone_brick", Blocks.STONE_BRICK_SLAB)
+    val STONE_SLAB_VERTICAL = RegisterVSlab("stone", Blocks.STONE_SLAB)
+    val TUFF_BRICK_SLAB_VERTICAL = RegisterVSlab("tuff_brick", Blocks.TUFF_BRICK_SLAB)
+    val TUFF_SLAB_VERTICAL = RegisterVSlab("tuff", Blocks.TUFF_SLAB)
+    val WARPED_SLAB_VERTICAL = RegisterVSlab("warped", Blocks.WARPED_SLAB)
+    val WAXED_CUT_COPPER_SLAB_VERTICAL = RegisterVSlab("waxed_cut_copper", Blocks.WAXED_CUT_COPPER_SLAB)
+    val WAXED_EXPOSED_CUT_COPPER_SLAB_VERTICAL = RegisterVSlab("waxed_exposed_cut_copper", Blocks.WAXED_EXPOSED_CUT_COPPER_SLAB)
+    val WAXED_OXIDIZED_CUT_COPPER_SLAB_VERTICAL = RegisterVSlab("waxed_oxidized_cut_copper", Blocks.WAXED_OXIDIZED_CUT_COPPER_SLAB)
+    val WAXED_WEATHERED_CUT_COPPER_SLAB_VERTICAL = RegisterVSlab("waxed_weathered_cut_copper", Blocks.WAXED_WEATHERED_CUT_COPPER_SLAB)
+    val WEATHERED_CUT_COPPER_SLAB_VERTICAL = RegisterVSlab("weathered_cut_copper", Blocks.WEATHERED_CUT_COPPER_SLAB)
+
+    // =========================================================================
     // Tags
     // =========================================================================
-    val AXE_MINEABLE = mutableSetOf<Block>().also {
-        it.addAll(WOOD_VARIANT_FAMILY_BLOCKS)
-    }.toTypedArray()
-
     // Note: These are seemingly randomly shuffled everytime datagen runs; I have
     // no idea why, but they all seem to be there so I don’t care.
+    //
+    // Note: Tags for vertical slabs are set directly in the datagen code.
     val PICKAXE_MINEABLE = mutableSetOf(
         DECORATIVE_HOPPER,
         LOCKED_DOOR,
@@ -466,6 +541,9 @@ object NguhBlocks {
         it.addAll(ALL_VARIANT_FAMILY_BLOCKS.filter { it !is SlabBlock })
     }.toTypedArray()
 
+    @JvmField
+    val CAN_DUPLICATE_WITH_BONEMEAL = TagKey.of(RegistryKeys.BLOCK, Id("can_duplicate_with_bonemeal"))
+
     // =========================================================================
     //  Initialisation
     // =========================================================================
@@ -483,6 +561,7 @@ object NguhBlocks {
             it.add(PYRITE)
             it.add(PYRITE_BRICKS)
             for (B in ALL_VARIANT_FAMILY_BLOCKS) it.add(B)
+            for (B in VERTICAL_SLABS) it.add(B)
         }
 
         ItemGroupEvents.modifyEntriesEvent(ItemGroups.FUNCTIONAL).register {
@@ -508,12 +587,12 @@ object NguhBlocks {
         AbstractBlock.Settings.copyShallow(Parent)
     )
 
-    private fun Register(
+    private fun <T : Block> Register(
         Key: String,
-        Ctor: (S: AbstractBlock.Settings) -> Block,
+        Ctor: (S: AbstractBlock.Settings) -> T,
         S: AbstractBlock.Settings,
         ItemCtor: (B: Block, S: Item.Settings) -> Item = ::BlockItem
-    ): Block {
+    ): T {
         // Create registry keys.
         val ItemKey = RegistryKey.of(RegistryKeys.ITEM, Id(Key))
         val BlockKey = RegistryKey.of(RegistryKeys.BLOCK, Id(Key))
@@ -542,4 +621,10 @@ object NguhBlocks {
         Id(Key),
         Type
     )
+
+    fun RegisterVSlab(Name: String, SlabBlock: Block) = Register(
+        "${Name}_slab_vertical",
+        ::VerticalSlabBlock,
+        AbstractBlock.Settings.copy(SlabBlock)
+    ).also { (VERTICAL_SLABS as MutableList).add(it) }
 }

@@ -1,12 +1,10 @@
 package org.nguh.nguhcraft.client.render
 
-import com.mojang.blaze3d.platform.GlStateManager
 import com.mojang.blaze3d.systems.RenderSystem
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents
-import net.minecraft.util.TriState
 import net.minecraft.util.math.ColorHelper
 import net.minecraft.util.math.Vec3d
 import org.joml.Matrix4fStack
@@ -15,7 +13,7 @@ import org.joml.Matrix4fStack
 @Environment(EnvType.CLIENT)
 object Renderer {
     fun ActOnSessionStart() {
-        WorldRendering.RenderRegions = false
+        WorldRendering.ActOnSessionStart()
     }
 
     fun Init() {

@@ -1,5 +1,7 @@
 package org.nguh.nguhcraft.data
 
+import net.fabricmc.api.EnvType
+import net.fabricmc.api.Environment
 import net.minecraft.block.Block
 import net.minecraft.block.Blocks
 import net.minecraft.data.family.BlockFamily
@@ -10,7 +12,6 @@ import net.minecraft.data.recipe.ShapedRecipeJsonBuilder
 import net.minecraft.item.Item
 import net.minecraft.item.ItemConvertible
 import net.minecraft.item.Items
-import net.minecraft.recipe.Recipe
 import net.minecraft.recipe.book.RecipeCategory
 import net.minecraft.registry.Registries
 import net.minecraft.registry.RegistryKey
@@ -19,17 +20,12 @@ import net.minecraft.registry.RegistryWrapper
 import net.minecraft.registry.tag.ItemTags
 import net.minecraft.registry.tag.TagKey
 import org.nguh.nguhcraft.Nguhcraft
-import org.nguh.nguhcraft.block.Chiseled
-import org.nguh.nguhcraft.block.Fence
-import org.nguh.nguhcraft.block.NguhBlocks
-import org.nguh.nguhcraft.block.Polished
-import org.nguh.nguhcraft.block.Slab
-import org.nguh.nguhcraft.block.Stairs
-import org.nguh.nguhcraft.block.Wall
+import org.nguh.nguhcraft.block.*
 import org.nguh.nguhcraft.item.KeyDuplicationRecipe
 import org.nguh.nguhcraft.item.KeyLockPairingRecipe
 import org.nguh.nguhcraft.item.NguhItems
 
+@Environment(EnvType.CLIENT)
 class NguhcraftRecipeGenerator(
     val WL: RegistryWrapper.WrapperLookup,
     val E: RecipeExporter
@@ -67,6 +63,13 @@ class NguhcraftRecipeGenerator(
             pattern("gr")
             cinput('g', Items.GOLD_INGOT)
             cinput('r', Items.REDSTONE)
+        }
+
+        offerShaped(NguhItems.KEY_CHAIN) {
+            pattern(" i ")
+            pattern("i i")
+            pattern(" i ")
+            cinput('i', Items.IRON_NUGGET)
         }
 
         offerShaped(NguhItems.LOCK, 3) {
@@ -234,6 +237,16 @@ class NguhcraftRecipeGenerator(
         offerShapelessRecipe(NguhBlocks.CINNABAR, 2, Items.NETHERRACK to 1, Items.COBBLESTONE to 1)
 
         // =========================================================================
+        //  Vertical Slabs
+        // =========================================================================
+        for (V in NguhBlockModels.VERTICAL_SLABS) offerShaped(V.VerticalSlab, 3) {
+            pattern("#")
+            pattern("#")
+            pattern("#")
+            cinput('#', V.Base)
+        }
+
+        // =========================================================================
         //  Stone Cutting
         // =========================================================================
         for (F in NguhBlocks.STONE_VARIANT_FAMILIES) offerStonecuttingFamily(F)
@@ -241,6 +254,9 @@ class NguhcraftRecipeGenerator(
         offerStonecuttingFamily(NguhBlocks.POLISHED_CALCITE_FAMILY, Blocks.CALCITE)
         offerStonecuttingFamily(NguhBlocks.CALCITE_BRICK_FAMILY, Blocks.CALCITE)
         offerStonecuttingRecipe(RecipeCategory.BUILDING_BLOCKS, NguhBlocks.PYRITE_BRICKS, NguhBlocks.PYRITE)
+
+        for (V in NguhBlockModels.VERTICAL_SLABS.filter { !it.Wood })
+            offerStonecuttingRecipe(RecipeCategory.BUILDING_BLOCKS, V.VerticalSlab, V.Base)
 
         // =========================================================================
         //  Smelting
@@ -317,6 +333,7 @@ class NguhcraftRecipeGenerator(
             = offerSmelting(listOf(Input.asItem()), RecipeCategory.MISC, Output.asItem(), Experience, 200, null)
 
     // offerShapelessRecipe() sucks, so this is a better version.
+    @Suppress("UNCHECKED_CAST")
     inline fun <reified T> offerShapelessRecipe(Output: ItemConvertible, Count: Int, vararg Inputs: Pair<T, Int>) {
         val B = createShapeless(RecipeCategory.MISC, Output, Count)
         for ((I, C) in Inputs) when (I) {
