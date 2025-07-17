@@ -239,7 +239,7 @@ class NguhcraftRecipeGenerator(
         // =========================================================================
         //  Vertical Slabs
         // =========================================================================
-        for (V in NguhBlockModels.VERTICAL_SLABS) offerShaped(V.VerticalSlab, 3) {
+        for (V in NguhBlockModels.VERTICAL_SLABS) offerShaped(V.VerticalSlab, 6) {
             pattern("#")
             pattern("#")
             pattern("#")
@@ -256,7 +256,7 @@ class NguhcraftRecipeGenerator(
         offerStonecuttingRecipe(RecipeCategory.BUILDING_BLOCKS, NguhBlocks.PYRITE_BRICKS, NguhBlocks.PYRITE)
 
         for (V in NguhBlockModels.VERTICAL_SLABS.filter { !it.Wood })
-            offerStonecuttingRecipe(RecipeCategory.BUILDING_BLOCKS, V.VerticalSlab, V.Base)
+            offerStonecuttingRecipe(RecipeCategory.BUILDING_BLOCKS, V.VerticalSlab, V.Base, 2)
 
         // =========================================================================
         //  Smelting
