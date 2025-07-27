@@ -237,9 +237,41 @@ class NguhcraftRecipeGenerator(
         offerShapelessRecipe(NguhBlocks.CINNABAR, 2, Items.NETHERRACK to 1, Items.COBBLESTONE to 1)
 
         // =========================================================================
+        //  Tinting pale oak logs
+        // =========================================================================
+        offerShaped(NguhBlocks.TINTED_OAK_LOG, 2) {
+            pattern("P")
+            pattern("A")
+            pattern("P")
+            cinput('P', Blocks.PALE_OAK_LOG)
+            cinput('A', Items.AMETHYST_SHARD)
+        }
+        offerShaped(NguhBlocks.TINTED_OAK_WOOD, 2) {
+            pattern("P")
+            pattern("A")
+            pattern("P")
+            cinput('P', Blocks.PALE_OAK_WOOD)
+            cinput('A', Items.AMETHYST_SHARD)
+        }
+        offerShaped(NguhBlocks.STRIPPED_TINTED_OAK_LOG, 2) {
+            pattern("P")
+            pattern("A")
+            pattern("P")
+            cinput('P', Blocks.STRIPPED_PALE_OAK_LOG)
+            cinput('A', Items.AMETHYST_SHARD)
+        }
+        offerShaped(NguhBlocks.STRIPPED_TINTED_OAK_WOOD, 2) {
+            pattern("P")
+            pattern("A")
+            pattern("P")
+            cinput('P', Blocks.STRIPPED_PALE_OAK_WOOD)
+            cinput('A', Items.AMETHYST_SHARD)
+        }
+
+        // =========================================================================
         //  Vertical Slabs
         // =========================================================================
-        for (V in NguhBlockModels.VERTICAL_SLABS) offerShaped(V.VerticalSlab, 6) {
+        for (V in NguhBlockModels.VERTICAL_SLABS) offerShaped(V.VerticalSlab, 3) {
             pattern("#")
             pattern("#")
             pattern("#")
@@ -256,7 +288,7 @@ class NguhcraftRecipeGenerator(
         offerStonecuttingRecipe(RecipeCategory.BUILDING_BLOCKS, NguhBlocks.PYRITE_BRICKS, NguhBlocks.PYRITE)
 
         for (V in NguhBlockModels.VERTICAL_SLABS.filter { !it.Wood })
-            offerStonecuttingRecipe(RecipeCategory.BUILDING_BLOCKS, V.VerticalSlab, V.Base, 2)
+            offerStonecuttingRecipe(RecipeCategory.BUILDING_BLOCKS, V.VerticalSlab, V.Base)
 
         // =========================================================================
         //  Smelting

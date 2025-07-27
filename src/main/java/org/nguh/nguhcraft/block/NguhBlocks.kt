@@ -135,6 +135,30 @@ object NguhBlocks {
             .mapColor(MapColor.GOLD)
     )
 
+    val PYRITE_BRICK_SLAB = RegisterVariant(PYRITE_BRICKS, "slab", ::SlabBlock)
+    val PYRITE_BRICK_SLAB_VERTICAL = RegisterVSlab("pyrite_bricks", PYRITE_BRICK_SLAB)
+    val PYRITE_BRICK_STAIRS = RegisterStairs(PYRITE_BRICKS)
+    val PYRITE_BRICK_WALL = RegisterVariant(PYRITE_BRICKS, "wall", ::WallBlock)
+
+    val CHISELED_PYRITE_BRICKS = Register(
+        "chiseled_pyrite_bricks",
+        ::Block,
+        AbstractBlock.Settings.copy(Blocks.GOLD_BLOCK)
+            .mapColor(MapColor.GOLD)
+    )
+
+    val DRIPSTONE_BRICKS = Register(
+        "dripstone_bricks",
+        ::Block,
+        AbstractBlock.Settings.copy(Blocks.DRIPSTONE_BLOCK)
+            .mapColor(MapColor.TERRACOTTA_BROWN)
+    )
+
+    val DRIPSTONE_BRICK_SLAB = RegisterVariant(DRIPSTONE_BRICKS, "slab", ::SlabBlock)
+    val DRIPSTONE_BRICK_SLAB_VERTICAL = RegisterVSlab("dripstone_bricks", DRIPSTONE_BRICK_SLAB)
+    val DRIPSTONE_BRICK_STAIRS = RegisterStairs(DRIPSTONE_BRICKS)
+    val DRIPSTONE_BRICK_WALL = RegisterVariant(DRIPSTONE_BRICKS, "wall", ::WallBlock)
+
     // =========================================================================
     //  Lanterns and Chains
     // =========================================================================
@@ -332,6 +356,27 @@ object NguhBlocks {
     val TINTED_OAK_STAIRS = RegisterStairs(TINTED_OAK_PLANKS)
     val TINTED_OAK_FENCE = RegisterVariant(TINTED_OAK_PLANKS, "fence", ::FenceBlock)
 
+    val TINTED_OAK_LOG = Register(
+        "tinted_oak_log",
+        ::PillarBlock,
+        AbstractBlock.Settings.copy(Blocks.PALE_OAK_LOG).mapColor(MapColor.PALE_PURPLE)
+    )
+    val TINTED_OAK_WOOD = Register(
+        "tinted_oak_wood",
+        ::PillarBlock,
+        AbstractBlock.Settings.copy(Blocks.PALE_OAK_WOOD).mapColor(MapColor.PALE_PURPLE)
+    )
+    val STRIPPED_TINTED_OAK_LOG = Register(
+        "stripped_tinted_oak_log",
+        ::PillarBlock,
+        AbstractBlock.Settings.copy(Blocks.PALE_OAK_LOG).mapColor(MapColor.PALE_PURPLE)
+    )
+    val STRIPPED_TINTED_OAK_WOOD = Register(
+        "stripped_tinted_oak_wood",
+        ::PillarBlock,
+        AbstractBlock.Settings.copy(Blocks.PALE_OAK_WOOD).mapColor(MapColor.PALE_PURPLE)
+    )
+
     // =========================================================================
     //  Block entities
     // =========================================================================
@@ -357,10 +402,17 @@ object NguhBlocks {
         .wall(POLISHED_CINNABAR_WALL)
         .build()
 
-    val CINNABAR_BRICK_FAMILY: BlockFamily = BlockFamilies.register(CINNABAR_BRICKS)
-        .slab(CINNABAR_BRICK_SLAB)
-        .stairs(CINNABAR_BRICK_STAIRS)
-        .wall(CINNABAR_BRICK_WALL)
+    val PYRITE_BRICK_FAMILY: BlockFamily = BlockFamilies.register(PYRITE_BRICKS)
+        .slab(PYRITE_BRICK_SLAB)
+        .stairs(PYRITE_BRICK_STAIRS)
+        .wall(PYRITE_BRICK_WALL)
+        .chiseled(CHISELED_PYRITE_BRICKS)
+        .build()
+
+    val DRIPSTONE_BRICK_FAMILY: BlockFamily = BlockFamilies.register(DRIPSTONE_BRICKS)
+        .slab(DRIPSTONE_BRICK_SLAB)
+        .stairs(DRIPSTONE_BRICK_STAIRS)
+        .wall(DRIPSTONE_BRICK_WALL)
         .build()
 
     val POLISHED_CALCITE_FAMILY: BlockFamily = BlockFamilies.register(POLISHED_CALCITE)
@@ -403,6 +455,12 @@ object NguhBlocks {
         .fence(TINTED_OAK_FENCE)
         .build()
 
+    val CINNABAR_BRICK_FAMILY: BlockFamily = BlockFamilies.register(CINNABAR_BRICKS)
+        .slab(CINNABAR_BRICK_SLAB)
+        .stairs(CINNABAR_BRICK_STAIRS)
+        .wall(CINNABAR_BRICK_WALL)
+        .build()
+
     val CINNABAR_FAMILIES = listOf(CINNABAR_FAMILY, POLISHED_CINNABAR_FAMILY, CINNABAR_BRICK_FAMILY)
     val CALCITE_FAMILIES = listOf(POLISHED_CALCITE_FAMILY, CALCITE_BRICK_FAMILY)
     val GILDED_CALCITE_FAMILIES = listOf(GILDED_CALCITE_FAMILY, GILDED_POLISHED_CALCITE_FAMILY, GILDED_CALCITE_BRICK_FAMILY)
@@ -416,7 +474,9 @@ object NguhBlocks {
         CALCITE_BRICK_FAMILY,
         GILDED_CALCITE_FAMILY,
         GILDED_POLISHED_CALCITE_FAMILY,
-        GILDED_CALCITE_BRICK_FAMILY
+        GILDED_CALCITE_BRICK_FAMILY,
+        PYRITE_BRICK_FAMILY,
+        DRIPSTONE_BRICK_FAMILY
     )
 
     val WOOD_VARIANT_FAMILIES = arrayOf(
@@ -520,7 +580,6 @@ object NguhBlocks {
         GOLD_BARS,
         COMPRESSED_STONE,
         PYRITE,
-        PYRITE_BRICKS,
     ).also {
         it.addAll(CHAINS_AND_LANTERNS.flatten())
         it.addAll(STONE_VARIANT_FAMILY_BLOCKS)
@@ -533,7 +592,6 @@ object NguhBlocks {
         GOLD_BARS,
         COMPRESSED_STONE,
         PYRITE,
-        PYRITE_BRICKS,
     ).also {
         it.addAll(CHAINS_AND_LANTERNS.flatten())
 
