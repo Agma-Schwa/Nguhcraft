@@ -402,6 +402,12 @@ object NguhBlocks {
         .wall(POLISHED_CINNABAR_WALL)
         .build()
 
+    val CINNABAR_BRICK_FAMILY: BlockFamily = BlockFamilies.register(CINNABAR_BRICKS)
+        .slab(CINNABAR_BRICK_SLAB)
+        .stairs(CINNABAR_BRICK_STAIRS)
+        .wall(CINNABAR_BRICK_WALL)
+        .build()
+
     val PYRITE_BRICK_FAMILY: BlockFamily = BlockFamilies.register(PYRITE_BRICKS)
         .slab(PYRITE_BRICK_SLAB)
         .stairs(PYRITE_BRICK_STAIRS)
@@ -453,12 +459,6 @@ object NguhBlocks {
         .slab(TINTED_OAK_SLAB)
         .stairs(TINTED_OAK_STAIRS)
         .fence(TINTED_OAK_FENCE)
-        .build()
-
-    val CINNABAR_BRICK_FAMILY: BlockFamily = BlockFamilies.register(CINNABAR_BRICKS)
-        .slab(CINNABAR_BRICK_SLAB)
-        .stairs(CINNABAR_BRICK_STAIRS)
-        .wall(CINNABAR_BRICK_WALL)
         .build()
 
     val CINNABAR_FAMILIES = listOf(CINNABAR_FAMILY, POLISHED_CINNABAR_FAMILY, CINNABAR_BRICK_FAMILY)
@@ -579,7 +579,7 @@ object NguhBlocks {
         WROUGHT_IRON_BARS,
         GOLD_BARS,
         COMPRESSED_STONE,
-        PYRITE,
+        PYRITE
     ).also {
         it.addAll(CHAINS_AND_LANTERNS.flatten())
         it.addAll(STONE_VARIANT_FAMILY_BLOCKS)
@@ -592,6 +592,10 @@ object NguhBlocks {
         GOLD_BARS,
         COMPRESSED_STONE,
         PYRITE,
+        TINTED_OAK_LOG,
+        TINTED_OAK_WOOD,
+        STRIPPED_TINTED_OAK_LOG,
+        STRIPPED_TINTED_OAK_WOOD,
     ).also {
         it.addAll(CHAINS_AND_LANTERNS.flatten())
 
@@ -617,7 +621,10 @@ object NguhBlocks {
             it.add(WROUGHT_IRON_BARS)
             it.add(GOLD_BARS)
             it.add(PYRITE)
-            it.add(PYRITE_BRICKS)
+            it.add(TINTED_OAK_LOG)
+            it.add(STRIPPED_TINTED_OAK_WOOD)
+            it.add(TINTED_OAK_LOG)
+            it.add(STRIPPED_TINTED_OAK_WOOD)
             for (B in ALL_VARIANT_FAMILY_BLOCKS) it.add(B)
             for (B in VERTICAL_SLABS) it.add(B)
         }

@@ -248,6 +248,12 @@ object NguhBlockModels {
             ChainModelTemplate().upload(Chain, G.modelCollector)
         }
 
+        // Tinted oak logs.
+        G.registerAxisRotated(NguhBlocks.TINTED_OAK_LOG, TexturedModel.END_FOR_TOP_CUBE_COLUMN, TexturedModel.END_FOR_TOP_CUBE_COLUMN_HORIZONTAL);
+        G.registerAxisRotated(NguhBlocks.TINTED_OAK_WOOD, TexturedModel.END_FOR_TOP_CUBE_COLUMN, TexturedModel.END_FOR_TOP_CUBE_COLUMN_HORIZONTAL);
+        G.registerAxisRotated(NguhBlocks.STRIPPED_TINTED_OAK_LOG, TexturedModel.END_FOR_TOP_CUBE_COLUMN, TexturedModel.END_FOR_TOP_CUBE_COLUMN_HORIZONTAL);
+        G.registerAxisRotated(NguhBlocks.STRIPPED_TINTED_OAK_WOOD, TexturedModel.END_FOR_TOP_CUBE_COLUMN, TexturedModel.END_FOR_TOP_CUBE_COLUMN_HORIZONTAL);
+
         // Bars.
         RegisterBarsModel(G, NguhBlocks.WROUGHT_IRON_BARS)
         RegisterBarsModel(G, NguhBlocks.GOLD_BARS)
@@ -261,26 +267,17 @@ object NguhBlockModels {
         for (V in VERTICAL_SLABS) RegisterVerticalSlab(G, V)
 
         // Chest variants. Copied from registerChest().
-        val Template =
-            Models.TEMPLATE_CHEST.upload(Items.CHEST, TextureMap.particle(Blocks.OAK_PLANKS), G.modelCollector)
+        val Template = Models.TEMPLATE_CHEST.upload(Items.CHEST, TextureMap.particle(Blocks.OAK_PLANKS), G.modelCollector)
         val Normal = ItemModels.special(Template, ChestModelRenderer.Unbaked(ChestModelRenderer.NORMAL_ID))
         val Christmas = ItemModels.special(Template, ChestModelRenderer.Unbaked(ChestModelRenderer.CHRISTMAS_ID))
         val ChristmasOrNormal = ItemModels.christmasSelect(Christmas, Normal)
         val PaleOak = ItemModels.special(Template, ChestModelRenderer.Unbaked(Id("pale_oak")))
-        G.itemModelOutput.accept(
-            Items.CHEST, ItemModels.select(
-                ChestVariantProperty(),
-                ChristmasOrNormal,
-                ItemModels.switchCase(ChestVariant.CHRISTMAS, Christmas),
-                ItemModels.switchCase(ChestVariant.PALE_OAK, PaleOak),
-            )
-        )
-
-        // Tinted oak logs.
-        G.registerAxisRotated(NguhBlocks.TINTED_OAK_LOG, TexturedModel.END_FOR_TOP_CUBE_COLUMN, TexturedModel.END_FOR_TOP_CUBE_COLUMN_HORIZONTAL);
-        G.registerAxisRotated(NguhBlocks.TINTED_OAK_WOOD, TexturedModel.END_FOR_TOP_CUBE_COLUMN, TexturedModel.END_FOR_TOP_CUBE_COLUMN_HORIZONTAL);
-        G.registerAxisRotated(NguhBlocks.STRIPPED_TINTED_OAK_LOG, TexturedModel.END_FOR_TOP_CUBE_COLUMN, TexturedModel.END_FOR_TOP_CUBE_COLUMN_HORIZONTAL);
-        G.registerAxisRotated(NguhBlocks.STRIPPED_TINTED_OAK_WOOD, TexturedModel.END_FOR_TOP_CUBE_COLUMN, TexturedModel.END_FOR_TOP_CUBE_COLUMN_HORIZONTAL);
+        G.itemModelOutput.accept(Items.CHEST, ItemModels.select(
+            ChestVariantProperty(),
+            ChristmasOrNormal,
+            ItemModels.switchCase(ChestVariant.CHRISTMAS, Christmas),
+            ItemModels.switchCase(ChestVariant.PALE_OAK, PaleOak),
+        ))
     }
 
     @Environment(EnvType.CLIENT)
