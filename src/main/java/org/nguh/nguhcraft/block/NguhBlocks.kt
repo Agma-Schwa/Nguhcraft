@@ -114,6 +114,20 @@ object NguhBlocks {
             .mapColor(MapColor.YELLOW)
     )
 
+    val IRON_GRATE = Register(
+        "iron_grate",
+        ::GrateBlock,
+        AbstractBlock.Settings.copy(Blocks.IRON_BLOCK)
+            .mapColor(MapColor.GRAY)
+    )
+
+    val WROUGHT_IRON_GRATE = Register(
+        "wrought_iron_grate",
+        ::GrateBlock,
+        AbstractBlock.Settings.copy(Blocks.IRON_BLOCK)
+            .mapColor(MapColor.GRAY)
+    )
+
     val COMPRESSED_STONE = Register(
         "compressed_stone",
         ::Block,
@@ -619,6 +633,8 @@ object NguhBlocks {
             it.add(COMPRESSED_STONE)
             it.add(WROUGHT_IRON_BLOCK)
             it.add(WROUGHT_IRON_BARS)
+            it.add(IRON_GRATE)
+            it.add(WROUGHT_IRON_GRATE)
             it.add(GOLD_BARS)
             it.add(PYRITE)
             it.add(TINTED_OAK_LOG)

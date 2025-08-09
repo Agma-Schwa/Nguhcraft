@@ -237,6 +237,8 @@ object NguhBlockModels {
 
         // Simple blocks.
         G.registerSimpleCubeAll(NguhBlocks.WROUGHT_IRON_BLOCK)
+        G.registerSimpleCubeAll(NguhBlocks.IRON_GRATE)
+        G.registerSimpleCubeAll(NguhBlocks.WROUGHT_IRON_GRATE)
         G.registerSimpleCubeAll(NguhBlocks.COMPRESSED_STONE)
         G.registerSimpleCubeAll(NguhBlocks.PYRITE)
 
