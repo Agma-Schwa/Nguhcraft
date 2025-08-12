@@ -1,6 +1,8 @@
 package org.nguh.nguhcraft.server
 
 import com.mojang.logging.LogUtils
+import com.mojang.serialization.Codec
+import com.mojang.serialization.codecs.RecordCodecBuilder
 import net.fabricmc.api.EnvType
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking
 import net.fabricmc.loader.api.FabricLoader
@@ -51,10 +53,12 @@ import org.nguh.nguhcraft.Effects
 import org.nguh.nguhcraft.Nbt
 import org.nguh.nguhcraft.NguhDamageTypes
 import org.nguh.nguhcraft.SyncedGameRule
+import org.nguh.nguhcraft.Utils
 import org.nguh.nguhcraft.Utils.EnchantLvl
 import org.nguh.nguhcraft.accessors.TridentEntityAccessor
 import org.nguh.nguhcraft.block.LockableBlockEntity
 import org.nguh.nguhcraft.enchantment.NguhcraftEnchantments
+import org.nguh.nguhcraft.entity.EntitySpawnManager
 import org.nguh.nguhcraft.network.ClientFlags
 import org.nguh.nguhcraft.protect.ProtectionManager
 import org.nguh.nguhcraft.server.accessors.LivingEntityAccessor
@@ -344,7 +348,7 @@ object ServerUtils {
         val Pos = Vec3d(Tag.getDouble("X"), Tag.getDouble("Y"), Tag.getDouble("Z"))
         val Yaw = Tag.getFloat("Yaw")
         val Pitch = Tag.getFloat("Pitch")
-        val Dim = RegistryKey.of(RegistryKeys.WORLD, Identifier.of(Tag.getString("World")))
+        val Dim = Utils.DeserialiseWorld(Tag.getString("World"))
         val SW = Server.getWorld(Dim) ?: return null
         return TeleportTarget(SW, Pos, Vec3d.ZERO, Yaw, Pitch, TeleportTarget.NO_OP)
     }
@@ -357,7 +361,14 @@ object ServerUtils {
         set("Z", Target.position.z)
         set("Yaw", Target.yaw)
         set("Pitch", Target.pitch)
-        set("World", Target.world.registryKey.value.toString())
+        set("World", Utils.SerialiseWorld(Target.world.registryKey))
+    }
+
+    /** Called during the world tick on the server. */
+    @JvmStatic
+    fun TickWorld(SW: ServerWorld) {
+        TreeToChop.Tick(SW)
+        SW.server.EntitySpawnManager.Tick(SW)
     }
 
     /** Result of smelting a stack. */

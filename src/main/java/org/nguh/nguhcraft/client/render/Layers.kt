@@ -49,6 +49,8 @@ object Layers {
             .build(false)
     ))
 
+    val LINES = Wrapper(getLines())
+
     val REGION_LINES = Wrapper(of(
         "nguhcraft:region_lines",
         VertexFormats.POSITION_COLOR,

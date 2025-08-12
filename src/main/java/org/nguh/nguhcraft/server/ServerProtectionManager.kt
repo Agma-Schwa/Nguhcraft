@@ -4,7 +4,6 @@ import com.mojang.logging.LogUtils
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.nbt.NbtCompound
 import net.minecraft.nbt.NbtElement
-import net.minecraft.network.RegistryByteBuf
 import net.minecraft.registry.RegistryKey
 import net.minecraft.server.MinecraftServer
 import net.minecraft.server.command.ServerCommandSource
@@ -28,13 +27,20 @@ data class MalformedRegionException(val Msg: Text) : Exception()
 /** Server-side region. */
 class ServerRegion(
     S: MinecraftServer,
-    Name: String,
-    World: RegistryKey<World>,
-    FromX: Int,
-    FromZ: Int,
-    ToX: Int,
-    ToZ: Int
-): Region(Name, World, FromX, FromZ, ToX, ToZ) {
+
+    /** The world that this region belongs to. */
+    val World: RegistryKey<World>,
+
+    RegionData: Region,
+): Region(
+    Name = RegionData.Name,
+    FromX = RegionData.MinX,
+    FromZ = RegionData.MinZ,
+    ToX = RegionData.MaxX,
+    ToZ = RegionData.MaxZ,
+    ColourOverride = Optional.ofNullable(RegionData.ColourOverride),
+    _Flags = RegionData.RegionFlags,
+) {
     /** Make sure that the name is valid . */
     init {
         if (Name.trim().isEmpty() || Name.contains("/") || Name.contains(".."))
@@ -57,39 +63,6 @@ class ServerRegion(
      * actually).
      */
     private var PlayersInRegion = mutableSetOf<UUID>()
-
-    /** Deserialise a region. */
-    constructor(S: MinecraftServer, Tag: NbtCompound, W: RegistryKey<World>) : this(
-        S,
-        Tag.getString(TAG_NAME),
-        W,
-        FromX = Tag.getInt(TAG_MIN_X),
-        FromZ = Tag.getInt(TAG_MIN_Z),
-        ToX = Tag.getInt(TAG_MAX_X),
-        ToZ = Tag.getInt(TAG_MAX_Z)
-    ) {
-        if (Name.isEmpty()) throw IllegalArgumentException("Region name cannot be empty!")
-
-        // Read flags.
-        //
-        // Take care to start with the default flags in the accumulator
-        // so that existing regions inherit new default flags. Note that
-        // a flag may be stored in one of THREE states: true, false, or
-        // not present. The last one is used to indicate that we should
-        // not override the default value and will be true when a region
-        // is first loaded after adding new flags.
-        val FlagsTag = Tag.getCompound(TAG_FLAGS)
-        RegionFlags = Flags.entries.fold(RegionFlags) { Acc, Flag ->
-            val N = Flag.name.lowercase()
-            if (!FlagsTag.contains(N)) Acc
-            else if (FlagsTag.getBoolean(N)) Acc or Flag.Bit()
-            else Acc and Flag.Bit().inv()
-        }
-
-        // Read colour override.
-        if (Tag.contains(TAG_COLOUR_OVERRIDE, NbtElement.INT_TYPE.toInt()))
-            ColourOverride = Tag.getInt(TAG_COLOUR_OVERRIDE)
-    }
 
     /** Display the region’s bounds. */
     fun AppendBounds(MT: MutableText): MutableText = MT.append(Text.literal(" ["))
@@ -137,19 +110,6 @@ class ServerRegion(
         }
     }
 
-    /** Save this region. */
-    fun Save() = Nbt {
-        SaveXZRect(this)
-        set(TAG_NAME, Name)
-
-        // Store flags as strings for robustness.
-        set(TAG_FLAGS, Nbt {
-            Flags.entries.forEach { set(it.name.lowercase(), Test(it)) }
-        })
-
-        if (ColourOverride != null) set(TAG_COLOUR_OVERRIDE, ColourOverride!!)
-    }
-
     /** Set the region colour. */
     fun SetColour(S: MinecraftServer, Colour: Int) {
         if (Colour == ColourOverride) return
@@ -159,9 +119,11 @@ class ServerRegion(
 
     /** Set a region flag. */
     fun SetFlag(S: MinecraftServer, Flag: Flags, Allow: Boolean) {
-        val OldFlags = RegionFlags
-        RegionFlags = if (Allow) OldFlags or Flag.Bit() else OldFlags and Flag.Bit().inv()
-        if (OldFlags != RegionFlags) S.ProtectionManager.Sync(S)
+        if (RegionFlags.IsSet(Flag, Allow))
+            return
+
+        RegionFlags.Set(Flag, Allow)
+        S.ProtectionManager.Sync(S)
     }
 
     /** Display this region’s stats. */
@@ -213,19 +175,8 @@ class ServerRegion(
         InvokePlayerTrigger(SP, PlayerLeaveTrigger)
     }
 
-    /** Write this region to a packet. */
-    fun Write(buf: RegistryByteBuf) {
-        buf.writeString(Name)
-        WriteXZRect(buf)
-        buf.writeLong(RegionFlags)
-        buf.writeInt(ColourOverride ?: COLOUR_OVERRIDE_NONE_ENC)
-    }
-
     companion object {
         private val REGION_TRIGGER_TEXT: Text = Text.of("Region trigger")
-        private const val TAG_FLAGS = "RegionFlags"
-        private const val TAG_NAME = "Name"
-        private const val TAG_COLOUR_OVERRIDE = "ColourOverride"
     }
 }
 
@@ -240,7 +191,7 @@ class ServerRegion(
  */
 class RegionTrigger(
     S: MinecraftServer,
-    Parent: Region,
+    Parent: ServerRegion,
     TriggerName: String,
 ) {
     /** The trigger’s procedure. */
@@ -397,9 +348,11 @@ class ServerRegionList(
  * instead.
  */
 class ServerProtectionManager(private val S: MinecraftServer) : ProtectionManager(
-    OverworldRegions = ServerRegionList(ServerWorld.OVERWORLD),
-    NetherRegions = ServerRegionList(ServerWorld.NETHER),
-    EndRegions = ServerRegionList(ServerWorld.END)
+    mapOf(
+        ServerWorld.OVERWORLD to ServerRegionList(ServerWorld.OVERWORLD),
+        ServerWorld.NETHER to ServerRegionList(ServerWorld.NETHER),
+        ServerWorld.END to ServerRegionList(ServerWorld.END),
+    )
 ) {
     /**
      * This function is the intended way to add a region to a world.
@@ -449,7 +402,7 @@ class ServerProtectionManager(private val S: MinecraftServer) : ProtectionManage
                 val Key = Utils.DeserialiseWorld(K)
                 val List = ServerRegionListFor(Key)
                 val Regions = Tag.getList(K, NbtElement.COMPOUND_TYPE.toInt())
-                for (R in Regions) List.Add(ServerRegion(S, R as NbtCompound, Key))
+                for (R in Regions) List.Add(ServerRegion(S, Key, Region.CODEC.Decode(R as NbtCompound)))
             } catch (E: Exception) {
                 LOGGER.error("Failed to deserialise regions for world '$K': ${E.message}", E)
             }
@@ -458,15 +411,13 @@ class ServerProtectionManager(private val S: MinecraftServer) : ProtectionManage
 
     /** Save regions to a tag. */
     override fun WriteData() = Nbt {
-        fun Write(Key: RegistryKey<World>) {
-            set(Utils.SerialiseWorldToString(Key), NbtListOf {
-                for (R in ServerRegionListFor(Key)) add(R.Save())
+        for (W in S.worlds) {
+            val Key = Utils.SerialiseWorldToString(W.registryKey)
+            set(Key, NbtListOf {
+                for (R in ServerRegionListFor(W.registryKey))
+                    add(Region.CODEC.Encode(R))
             })
         }
-
-        Write(ServerWorld.OVERWORLD)
-        Write(ServerWorld.NETHER)
-        Write(ServerWorld.END)
     }
 
     /** Get the region list for a world. */
@@ -474,11 +425,7 @@ class ServerProtectionManager(private val S: MinecraftServer) : ProtectionManage
     fun ServerRegionListFor(SW: RegistryKey<World>) = (super.RegionListFor(SW) as ServerRegionList)
 
     /** Write the manager state to a packet. */
-    override fun ToPacket() = ClientboundSyncProtectionMgrPacket(
-        OverworldRegions = RegionListFor(ServerWorld.OVERWORLD),
-        NetherRegions = RegionListFor(ServerWorld.NETHER),
-        EndRegions = RegionListFor(ServerWorld.END)
-    )
+    override fun ToPacket(SP: ServerPlayerEntity) = ClientboundSyncProtectionMgrPacket(Regions)
 
     /** Fire events that need to happen when a player leaves the server. */
     fun TickPlayerQuit(SP: ServerPlayerEntity) {

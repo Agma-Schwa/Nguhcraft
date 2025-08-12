@@ -5,6 +5,7 @@ import net.fabricmc.api.Environment
 import net.minecraft.nbt.NbtCompound
 import net.minecraft.nbt.NbtElement
 import net.minecraft.server.MinecraftServer
+import net.minecraft.server.network.ServerPlayerEntity
 import org.nguh.nguhcraft.network.ClientboundSyncGameRulesPacket
 import org.nguh.nguhcraft.server.Manager
 
@@ -44,7 +45,7 @@ enum class SyncedGameRule(
     /** Manager to sync and persist the game rule state. */
     class ManagerImpl : Manager("SyncedGameRules") {
         /** Encode the game rules into a packet. */
-        override fun ToPacket() = ClientboundSyncGameRulesPacket(entries.fold(0L) { Acc, R ->
+        override fun ToPacket(SP: ServerPlayerEntity) = ClientboundSyncGameRulesPacket(entries.fold(0L) { Acc, R ->
             if (R.Value) Acc or R.Flag else Acc
         })
 

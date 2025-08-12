@@ -3,6 +3,7 @@ package org.nguh.nguhcraft
 import com.mojang.logging.LogUtils
 import net.fabricmc.api.ModInitializer
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry
 import net.minecraft.nbt.NbtCompound
 import net.minecraft.nbt.NbtElement
@@ -162,6 +163,7 @@ class Nguhcraft : ModInitializer {
         PayloadTypeRegistry.playS2C().register(ClientboundSyncFlagPacket.ID, ClientboundSyncFlagPacket.CODEC)
         PayloadTypeRegistry.playS2C().register(ClientboundSyncProtectionMgrPacket.ID, ClientboundSyncProtectionMgrPacket.CODEC)
         PayloadTypeRegistry.playS2C().register(ClientboundSyncDisplayPacket.ID, ClientboundSyncDisplayPacket.CODEC)
+        PayloadTypeRegistry.playS2C().register(ClientboundSyncSpawnsPacket.ID, ClientboundSyncSpawnsPacket.CODEC)
 
         // Serverbound packets.
         PayloadTypeRegistry.playC2S().register(ServerboundChatPacket.ID, ServerboundChatPacket.CODEC)
@@ -174,6 +176,7 @@ class Nguhcraft : ModInitializer {
         ServerNetworkHandler.Init()
 
         ServerLifecycleEvents.SERVER_STARTED.register { LoadServerState(it) }
+        ServerTickEvents.START_WORLD_TICK.register { ServerUtils.TickWorld(it) }
         ServerLifecycleEvents.BEFORE_SAVE.register { it, _, _ -> SaveServerState(it) }
     }
 

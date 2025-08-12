@@ -1,23 +1,21 @@
 package org.nguh.nguhcraft.protect
 
-import net.minecraft.registry.RegistryKey
+import com.mojang.serialization.Codec
+import com.mojang.serialization.codecs.RecordCodecBuilder
+import net.minecraft.network.codec.PacketCodec
+import net.minecraft.network.codec.PacketCodecs
 import net.minecraft.util.function.BooleanBiFunction
 import net.minecraft.util.shape.VoxelShape
 import net.minecraft.util.shape.VoxelShapes
-import net.minecraft.world.World
+import org.nguh.nguhcraft.SmallEnumSet
 import org.nguh.nguhcraft.XZRect
+import java.util.*
+import kotlin.jvm.optionals.getOrNull
 
-/**
- * A protected region.
- *
- * This is either a ServerRegion or ClientRegion.
- */
-abstract class Region(
+/** A protected region. */
+open class Region(
     /** Region name. */
     val Name: String,
-
-    /** World the region is in. This is synthesised on creation. */
-    val World: RegistryKey<World>,
 
     /** Region bounds. */
     FromX: Int,
@@ -25,8 +23,16 @@ abstract class Region(
     ToX: Int,
     ToZ: Int,
 
-    /** Barrier colour override, if any. */
-    ColourOverride: Int?  = null
+    /**
+     * Barrier colour override, if any.
+     *
+     * We’re using a stupid Java optional here because DFU explodes if you
+     * try and hand it a 'null' value.
+     */
+    ColourOverride: Optional<Int> = Optional.empty(),
+
+    /** Parameter used in deserialisation. */
+    _Flags: SmallEnumSet<Flags>? = null,
 ) : XZRect(
     FromX = FromX,
     FromZ = FromZ,
@@ -133,9 +139,6 @@ abstract class Region(
          * being able to place or destroy them is fairly useless.
          */
         USE_VEHICLES;
-
-        /** Get the bit mask for this flag. */
-        fun Bit() = 1L shl ordinal
     }
 
     /**
@@ -143,10 +146,10 @@ abstract class Region(
      *
      * By default, players are allowed to enter and exit a region.
      */
-    protected var RegionFlags: Long = Flags.PLAYER_ENTRY.Bit() or Flags.PLAYER_EXIT.Bit()
+    val RegionFlags = _Flags ?: SmallEnumSet(Flags.PLAYER_ENTRY, Flags.PLAYER_EXIT)
 
     /** Colour override, if any. */
-    var ColourOverride: Int? = ColourOverride
+    var ColourOverride: Int? = ColourOverride.getOrNull()
         protected set
 
     /** Voxel shape for collisions from the inside. */
@@ -222,7 +225,7 @@ abstract class Region(
     fun ShouldRenderEntryExitBarrier() = Test(Flags.RENDER_ENTRY_EXIT_BARRIER)
 
     /** Helper to simplify testing flags. */
-    protected fun Test(Flag: Flags) = RegionFlags and Flag.Bit() != 0L
+    protected fun Test(Flag: Flags) = RegionFlags.IsSet(Flag)
 
     /** Get a string representation of this region. */
     override fun toString(): String {
@@ -230,6 +233,27 @@ abstract class Region(
     }
 
     companion object {
-        const val COLOUR_OVERRIDE_NONE_ENC = 0
+        val CODEC: Codec<Region> = RecordCodecBuilder.create {
+            it.group(
+                Codec.STRING.fieldOf("Name").forGetter(Region::Name),
+                Codec.INT.fieldOf("MinX").forGetter(Region::MinX),
+                Codec.INT.fieldOf("MinZ").forGetter(Region::MinZ),
+                Codec.INT.fieldOf("MaxX").forGetter(Region::MaxX),
+                Codec.INT.fieldOf("MaxZ").forGetter(Region::MaxZ),
+                Codec.INT.optionalFieldOf("ColourOverride").forGetter({ Optional.ofNullable(it.ColourOverride) }),
+                SmallEnumSet.CreateCodec(Flags.entries).fieldOf("RegionFlags").forGetter(Region::RegionFlags),
+            ).apply(it, ::Region)
+        }
+
+        val PACKET_CODEC = PacketCodec.tuple(
+            PacketCodecs.STRING, Region::Name,
+            PacketCodecs.INTEGER, Region::MinX,
+            PacketCodecs.INTEGER, Region::MinZ,
+            PacketCodecs.INTEGER, Region::MaxX,
+            PacketCodecs.INTEGER, Region::MaxZ,
+            PacketCodecs.optional(PacketCodecs.INTEGER), { Optional.ofNullable(it.ColourOverride) },
+            SmallEnumSet.CreatePacketCodec<Flags>(), Region::RegionFlags,
+            ::Region
+        )
     }
 }

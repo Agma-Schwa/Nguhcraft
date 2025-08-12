@@ -15,6 +15,7 @@ import org.nguh.nguhcraft.Utils.RBRACK_COMPONENT
 import org.nguh.nguhcraft.client.ClientUtils.Client
 import org.nguh.nguhcraft.client.accessors.ClientPlayerListEntryAccessor
 import org.nguh.nguhcraft.client.accessors.DisplayData
+import org.nguh.nguhcraft.client.render.WorldRendering
 import org.nguh.nguhcraft.network.*
 import org.nguh.nguhcraft.protect.ProtectionManagerAccess
 import java.util.concurrent.CompletableFuture
@@ -126,6 +127,11 @@ object ClientNetworkHandler {
         }
     }
 
+    /** Sync spawn positions. */
+    private fun HandleSyncSpawnsPacket(Packet: ClientboundSyncSpawnsPacket) {
+        WorldRendering.Spawns = Packet.Spawns
+    }
+
     /** Initialise packet handlers. */
     fun Init() {
         ClientLoginNetworking.registerGlobalReceiver(VersionCheck.ID) { _, _, _, _ ->
@@ -138,6 +144,7 @@ object ClientNetworkHandler {
         Register(ClientboundSyncFlagPacket.ID, ::HandleSyncProtectionBypassPacket)
         Register(ClientboundSyncProtectionMgrPacket.ID, ::HandleSyncProtectionMgrPacket)
         Register(ClientboundSyncDisplayPacket.ID, ::HandleSyncDisplayPacket)
+        Register(ClientboundSyncSpawnsPacket.ID, ::HandleSyncSpawnsPacket)
     }
 
     /** Register a packet handler. */

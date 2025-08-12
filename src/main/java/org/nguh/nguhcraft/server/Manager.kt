@@ -42,19 +42,18 @@ abstract class Manager(val TagName: String) {
     abstract fun ReadData(Tag: NbtElement)
 
     /** Sync this manager to a player. */
-    open fun Sync(SP: ServerPlayerEntity) {
-        val Packet = ToPacket()
+    fun Sync(SP: ServerPlayerEntity) {
+        val Packet = ToPacket(SP)
         if (Packet != null) ServerPlayNetworking.send(SP, Packet)
     }
 
     /** Sync this manager to all players. */
-    open fun Sync(S: MinecraftServer) {
-        val Packet = ToPacket()
-        if (Packet != null) S.Broadcast(Packet)
+    fun Sync(S: MinecraftServer) {
+        for (SP in S.playerManager.playerList) Sync(SP)
     }
 
     /** Convert this to a packet that can be synchronised to clients. */
-    open fun ToPacket(): CustomPayload? { return null }
+    open fun ToPacket(SP: ServerPlayerEntity): CustomPayload? { return null }
 
     /** Save this manager to disk. */
     abstract fun WriteData(): NbtElement?

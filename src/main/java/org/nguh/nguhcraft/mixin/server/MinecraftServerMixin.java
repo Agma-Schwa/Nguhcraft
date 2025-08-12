@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableList;
 import net.minecraft.server.MinecraftServer;
 import org.jetbrains.annotations.NotNull;
 import org.nguh.nguhcraft.SyncedGameRule;
+import org.nguh.nguhcraft.entity.EntitySpawnManager;
 import org.nguh.nguhcraft.protect.ProtectionManager;
 import org.nguh.nguhcraft.server.*;
 import org.spongepowered.asm.mixin.Mixin;
@@ -20,7 +21,8 @@ public abstract class MinecraftServerMixin implements ServerManagerInterface {
         MCBASIC.ProcedureManager.class, new MCBASIC.ProcedureManager((MinecraftServer)(Object)this),
         DisplayManager.class, new DisplayManager((MinecraftServer)(Object)(this)),
         SyncedGameRule.ManagerImpl.class, new SyncedGameRule.ManagerImpl(),
-        WarpManager.class, new WarpManager()
+        WarpManager.class, new WarpManager(),
+        EntitySpawnManager.class, new EntitySpawnManager((MinecraftServer)(Object)this)
     );
 
     @Unique private final List<Manager> ALL_MANAGERS = ImmutableList.copyOf(MANAGERS.values());

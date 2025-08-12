@@ -11,12 +11,16 @@ import net.fabricmc.fabric.api.command.v2.ArgumentTypeRegistry
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback
 import net.minecraft.command.CommandRegistryAccess
 import net.minecraft.command.argument.*
+import net.minecraft.command.argument.RegistryEntryReferenceArgumentType
 import net.minecraft.command.argument.serialize.ConstantArgumentSerializer
 import net.minecraft.component.DataComponentTypes
 import net.minecraft.enchantment.Enchantment
 import net.minecraft.entity.Entity
+import net.minecraft.entity.EntityType
 import net.minecraft.entity.LightningEntity
 import net.minecraft.item.ItemStack
+import net.minecraft.nbt.NbtCompound
+import net.minecraft.registry.RegistryKey
 import net.minecraft.registry.RegistryKeys
 import net.minecraft.registry.entry.RegistryEntry
 import net.minecraft.server.command.CommandManager.argument
@@ -39,6 +43,7 @@ import org.nguh.nguhcraft.Constants
 import org.nguh.nguhcraft.server.MCBASIC
 import org.nguh.nguhcraft.Nguhcraft.Companion.Id
 import org.nguh.nguhcraft.SyncedGameRule
+import org.nguh.nguhcraft.entity.EntitySpawnManager
 import org.nguh.nguhcraft.item.KeyItem
 import org.nguh.nguhcraft.network.ClientFlags
 import org.nguh.nguhcraft.protect.ProtectionManager
@@ -109,6 +114,7 @@ object Commands {
             D.register(SayCommand())                   // /say
             D.register(SetHomeCommand())               // /sethome
             D.register(SmiteCommand())                 // /smite
+            D.register(SpawnsCommand(A))               // /spawns
             D.register(SpeedCommand())                 // /speed
             D.register(SubscribeToConsoleCommand())    // /subscribe_to_console
             D.register(literal("tell").redirect(Msg))  // /tell
@@ -488,12 +494,14 @@ object Commands {
             try {
                 val R = ServerRegion(
                     S.server,
-                    Name,
                     W.registryKey,
-                    FromX = From.x,
-                    FromZ = From.z,
-                    ToX = To.x,
-                    ToZ = To.z
+                    Region(
+                        Name,
+                        FromX = From.x,
+                        FromZ = From.z,
+                        ToX = To.x,
+                        ToZ = To.z
+                    )
                 )
 
                 S.server.ProtectionManager.AddRegion(S.server, R)
@@ -620,6 +628,70 @@ object Commands {
         }
     }
 
+    object SpawnsCommands {
+        val NONESUCH = Exn("Could not find a nearest spawn")
+        val INVALID_POS = Exn("Position not valid for spawn;")
+
+        fun AddSpawn(
+            S: ServerCommandSource,
+            W: RegistryKey<World>,
+            Pos: Vec3d,
+            Id: String,
+            EntityType: RegistryEntry.Reference<EntityType<*>>,
+            DataParam: NbtCompound? = null
+        ): Int {
+            if (!World.isValid(BlockPos.ofFloored(Pos)))
+                throw INVALID_POS.create()
+
+            try {
+                val Data = DataParam?.copy() ?: NbtCompound()
+                Data.putString("id", EntityType.registryKey().value.toString()) // See SummonCommand::summon()
+                val Spawn = EntitySpawnManager.ServerSpawn(W, Pos, Id, Data)
+                S.server.EntitySpawnManager.Add(Spawn)
+                S.Success("Added spawn $Spawn")
+            } catch (E: Exception) {
+                S.Error(E.message)
+            }
+
+            return 1
+        }
+
+        fun Find(S: ServerCommandSource): EntitySpawnManager.ServerSpawn {
+            val Pos = S.playerOrThrow.pos
+            val World = S.playerOrThrow.world
+            return S.server.EntitySpawnManager.Spawns.filter { it.World == World.registryKey }.minByOrNull {
+                it.SpawnPos.squaredDistanceTo(Pos)
+            } ?: throw NONESUCH.create()
+        }
+
+        fun DeleteNearest(S: ServerCommandSource): Int {
+            val Spawn = Find(S)
+            S.server.EntitySpawnManager.Delete(Spawn)
+            S.Reply("Deleted spawn $Spawn")
+            return 1
+        }
+
+        fun FindNearest(S: ServerCommandSource): Int {
+            val Spawn = Find(S)
+            S.Reply("The nearest spawn is $Spawn")
+            return 1
+        }
+
+        fun ListSpawns(S: ServerCommandSource): Int {
+            val Msg = Text.literal("Spawns: ")
+            for (S in S.server.EntitySpawnManager.Spawns)
+                Msg.append("\n - ").append(S.toString())
+            S.Reply(Msg)
+            return 0
+        }
+
+        fun TeleportNearest(S: ServerCommandSource): Int {
+            val Spawn = Find(S)
+            S.playerOrThrow.Teleport(S.server.getWorld(Spawn.World)!!, Spawn.SpawnPos, true)
+            return 1
+        }
+    }
+
     object SpeedCommand {
         private val SPEED_LIMIT = Text.of("Speed must be between 1 and 10")
 
@@ -654,11 +726,11 @@ object Commands {
                 .append(" in ")
                 .append(Text.literal(W.World.value.path.toString()).withColor(Constants.Lavender))
                 .append(" at [")
-                .append(Text.literal("${W.Pos.x.toInt()}").formatted(Formatting.GRAY))
+                .append(Text.literal("${W.X.toInt()}").formatted(Formatting.GRAY))
                 .append(", ")
-                .append(Text.literal("${W.Pos.y.toInt()}").formatted(Formatting.GRAY))
+                .append(Text.literal("${W.Y.toInt()}").formatted(Formatting.GRAY))
                 .append(", ")
-                .append(Text.literal("${W.Pos.z.toInt()}").formatted(Formatting.GRAY))
+                .append(Text.literal("${W.Z.toInt()}").formatted(Formatting.GRAY))
                 .append("]")
 
 
@@ -679,7 +751,7 @@ object Commands {
         }
 
         fun Set(S: ServerCommandSource, SP: ServerPlayerEntity, Name: String): Int {
-            val W = WarpManager.Warp(Name, SP.serverWorld.registryKey, SP.pos, SP.yaw, SP.pitch)
+            val W = WarpManager.Warp(Name, SP.serverWorld.registryKey, SP.pos.x, SP.pos.y, SP.pos.z, SP.yaw, SP.pitch)
             S.server.WarpManager.Warps[Name] = W
             S.Reply(Text.literal("Set warp ").append(FormatWarp(W)))
             return 1
@@ -1281,6 +1353,48 @@ object Commands {
                 1
             }
         )
+
+    private fun SpawnsCommand(A: CommandRegistryAccess): LiteralArgumentBuilder<ServerCommandSource> = literal("spawns")
+        .requires { it.hasPermissionLevel(4) && it.isExecutedByPlayer }
+        .executes { SpawnsCommands.ListSpawns(it.source) }
+        .then(literal("add")
+            .then(argument("id", StringArgumentType.word())
+                .then(argument("entity", RegistryEntryReferenceArgumentType.registryEntry(A, RegistryKeys.ENTITY_TYPE))
+                    .then(argument("pos", Vec3ArgumentType.vec3())
+                        .executes {
+                            SpawnsCommands.AddSpawn(
+                                it.source,
+                                it.source.playerOrThrow.world.registryKey,
+                                Vec3ArgumentType.getVec3(it, "pos"),
+                                StringArgumentType.getString(it, "id"),
+                                RegistryEntryReferenceArgumentType.getSummonableEntityType(it, "entity")
+                            )
+                        }
+                        .then(argument("nbt", NbtCompoundArgumentType.nbtCompound())
+                            .executes {
+                                SpawnsCommands.AddSpawn(
+                                    it.source,
+                                    it.source.playerOrThrow.world.registryKey,
+                                    Vec3ArgumentType.getVec3(it, "pos"),
+                                    StringArgumentType.getString(it, "id"),
+                                    RegistryEntryReferenceArgumentType.getSummonableEntityType(it, "entity"),
+                                    NbtCompoundArgumentType.getNbtCompound(it, "nbt")
+                                )
+                            }
+                        )
+                    )
+                )
+            )
+        )
+        .then(literal("del-nearest").executes {
+            SpawnsCommands.DeleteNearest(it.source)
+        })
+        .then(literal("find-nearest").executes {
+            SpawnsCommands.FindNearest(it.source)
+        })
+        .then(literal("tp-nearest").executes {
+            SpawnsCommands.TeleportNearest(it.source)
+        })
 
     private fun SpeedCommand(): LiteralArgumentBuilder<ServerCommandSource> = literal("speed")
         .requires { it.hasPermissionLevel(4) && it.isExecutedByPlayer }

@@ -12,14 +12,19 @@ import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.server.world.ServerWorld
 import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
-import org.nguh.nguhcraft.server.accessors.ServerWorldAccessor
 import java.util.*
+
 
 /**
  * This class handles chopping down an entire tree if a user breaks
  * part of it with an axe.
  */
 class TreeToChop private constructor(private val Owner: ServerPlayerEntity, private val WoodTypes: Array<Block>) {
+    interface Accessor {
+        fun `Nguhcraft$StartChoppingTree`(Tree: TreeToChop?)
+        fun `Nguhcraft$GetTrees`(): MutableList<TreeToChop>
+    }
+
     private val TreeBlocks: ArrayList<BlockPos> = ArrayList()
     private var Index: Int = 0
     private val Axe: ItemStack = Owner.mainHandStack
@@ -58,7 +63,7 @@ class TreeToChop private constructor(private val Owner: ServerPlayerEntity, priv
 
     private fun Finish(SL: ServerWorld) {
         TreeBlocks.sortWith(Comparator.comparingInt { obj: BlockPos -> obj.y })
-        (SL as ServerWorldAccessor).StartChoppingTree(this)
+        (SL as Accessor).`Nguhcraft$StartChoppingTree`(this)
     }
 
     private fun Next(): BlockPos {
@@ -123,7 +128,8 @@ class TreeToChop private constructor(private val Owner: ServerPlayerEntity, priv
         }
 
         @JvmStatic
-        fun Tick(SL: ServerWorld, Trees: MutableList<TreeToChop>) {
+        fun Tick(SL: ServerWorld) {
+            val Trees = (SL as Accessor).`Nguhcraft$GetTrees`()
             Chopping = true
             Trees.forEach { it.Chop(SL) }
             Trees.removeIf { it.Done() }

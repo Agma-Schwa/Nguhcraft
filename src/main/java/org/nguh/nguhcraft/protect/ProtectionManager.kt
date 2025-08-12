@@ -42,6 +42,8 @@ enum class TeleportResult {
     ENTRY_DISALLOWED,
 }
 
+typealias RegionLists = Map<RegistryKey<World>, Collection<Region>>
+
 /**
  * Handler that contains common code paths related to world protection.
  *
@@ -75,12 +77,7 @@ enum class TeleportResult {
  * - [IsProtectedEntity] checks whether an entity is protected from world effects;
  *   this does *not* handle block entities. Use [IsProtectedBlock] for that.
  */
-abstract class ProtectionManager(
-    /** Regions that are currently in each dimension. */
-    val OverworldRegions: Collection<Region>,
-    val NetherRegions: Collection<Region>,
-    val EndRegions: Collection<Region>
-) : Manager("Regions") {
+abstract class ProtectionManager(protected val Regions: RegionLists) : Manager("Regions") {
     /**
      * Check if a player is allowed to break, start breaking, or place a
      * block at this block position.
@@ -423,22 +420,7 @@ abstract class ProtectionManager(
      * For internal use; returns a mutable list instead of an
      * immutable one.
      */
-    private fun TryGetRegionList(Key: RegistryKey<World>) = when (Key) {
-        World.OVERWORLD -> OverworldRegions
-        World.NETHER -> NetherRegions
-        World.END -> EndRegions
-        else -> null
-    }
-
-    /** Dump a string representation of the manager state. */
-    override fun toString(): String {
-        var S = "ProtectionManager {\n"
-        for (R in OverworldRegions) S += "  Overworld: $R\n"
-        for (R in NetherRegions) S += "  Nether: $R\n"
-        for (R in EndRegions) S += "  End: $R\n"
-        S += "}"
-        return S
-    }
+    private fun TryGetRegionList(Key: RegistryKey<World>) = Regions[Key]
 
     companion object {
         /**
