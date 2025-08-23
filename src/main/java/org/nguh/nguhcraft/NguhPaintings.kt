@@ -45,5 +45,6 @@ object NguhPaintings {
         Register("rail_diagram", 3, 3)
         Register("rails_of_eras", 3, 2)
         Register("rauratoshan_loop", 4, 3)
+        Register("great_wave", 3, 2)
     }
 }
