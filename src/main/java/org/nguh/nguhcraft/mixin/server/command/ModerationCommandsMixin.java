@@ -20,6 +20,7 @@ import java.util.function.Predicate;
 public abstract class ModerationCommandsMixin {
     @Redirect(
         method = "register",
+        remap = false,
         at = @At(
             value = "INVOKE",
             target = "Lcom/mojang/brigadier/builder/LiteralArgumentBuilder;requires(Ljava/util/function/Predicate;)Lcom/mojang/brigadier/builder/ArgumentBuilder;"

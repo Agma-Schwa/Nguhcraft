@@ -52,11 +52,19 @@ public abstract class ClientPlayNetworkHandlerMixin extends ClientCommonNetworkH
         NguhcraftClient.InHypershotContext = false;
     }
 
-    /** We can ignore this packet as we never remove messages. */
+    /**
+     * We can ignore this packet as we never remove messages.
+     * @author Sirraide
+     * @reason See above.
+     */
     @Overwrite
     public void onRemoveMessage(RemoveMessageS2CPacket packet) {}
 
-    /** We completely replace this packet with something else. */
+    /**
+     * We completely replace this packet with something else.
+     * @author Sirraide
+     * @reason See above.
+     */
     @Overwrite
     public void onChatMessage(ChatMessageS2CPacket packet) {
         throw new IllegalStateException("Should never be sent by the Nguhcraft server");

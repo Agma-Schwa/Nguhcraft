@@ -55,6 +55,8 @@ public abstract class LockableContainerBlockEntityMixin extends BlockEntity impl
      * This is used to implement the member function of the same name (which we
      * also replace); BeaconBlockEntity also uses it for some ungodly reason, so
      * we replace it there as well.
+     * @author Sirraide
+     * @reason See above.
      */
     @Overwrite
     public static boolean checkUnlocked(PlayerEntity PE, ContainerLock L, Text ContainerName) {
@@ -63,7 +65,11 @@ public abstract class LockableContainerBlockEntityMixin extends BlockEntity impl
         );
     }
 
-    /** Redirect lock check to use our custom locks. */
+    /**
+     * Redirect lock check to use our custom locks.
+     * @author Sirraide
+     * @reason See above.
+     */
     @Overwrite
     public boolean checkUnlocked(PlayerEntity PE) {
         return CheckCanOpen(PE, PE.getMainHandStack());
