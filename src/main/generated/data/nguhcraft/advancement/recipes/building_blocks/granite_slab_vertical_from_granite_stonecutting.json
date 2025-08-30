@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "minecraft:granite_slab_vertical_from_granite_stonecutting"
+        "recipe": "nguhcraft:granite_slab_vertical_from_granite_stonecutting"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
@@ -26,7 +26,7 @@
   ],
   "rewards": {
     "recipes": [
-      "minecraft:granite_slab_vertical_from_granite_stonecutting"
+      "nguhcraft:granite_slab_vertical_from_granite_stonecutting"
     ]
   }
 }

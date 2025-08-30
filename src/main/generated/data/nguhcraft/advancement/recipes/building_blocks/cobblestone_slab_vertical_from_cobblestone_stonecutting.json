@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "minecraft:cobblestone_slab_vertical_from_cobblestone_stonecutting"
+        "recipe": "nguhcraft:cobblestone_slab_vertical_from_cobblestone_stonecutting"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
@@ -26,7 +26,7 @@
   ],
   "rewards": {
     "recipes": [
-      "minecraft:cobblestone_slab_vertical_from_cobblestone_stonecutting"
+      "nguhcraft:cobblestone_slab_vertical_from_cobblestone_stonecutting"
     ]
   }
 }

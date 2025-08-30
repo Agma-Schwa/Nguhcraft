@@ -23,7 +23,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "minecraft:gilded_calcite_bricks_from_calcite_bricks_and_gold_ingot"
+        "recipe": "nguhcraft:gilded_calcite_bricks_from_calcite_bricks_and_gold_ingot"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
@@ -37,7 +37,7 @@
   ],
   "rewards": {
     "recipes": [
-      "minecraft:gilded_calcite_bricks_from_calcite_bricks_and_gold_ingot"
+      "nguhcraft:gilded_calcite_bricks_from_calcite_bricks_and_gold_ingot"
     ]
   }
 }

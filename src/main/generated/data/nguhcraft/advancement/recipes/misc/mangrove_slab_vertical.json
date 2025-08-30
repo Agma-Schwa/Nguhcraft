@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "minecraft:mangrove_slab_vertical"
+        "recipe": "nguhcraft:mangrove_slab_vertical"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
@@ -26,7 +26,7 @@
   ],
   "rewards": {
     "recipes": [
-      "minecraft:mangrove_slab_vertical"
+      "nguhcraft:mangrove_slab_vertical"
     ]
   }
 }

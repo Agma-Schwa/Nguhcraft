@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "minecraft:petrified_oak_slab_from_slablet_16"
+        "recipe": "nguhcraft:petrified_oak_slab_from_slablet_16"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
@@ -26,7 +26,7 @@
   ],
   "rewards": {
     "recipes": [
-      "minecraft:petrified_oak_slab_from_slablet_16"
+      "nguhcraft:petrified_oak_slab_from_slablet_16"
     ]
   }
 }

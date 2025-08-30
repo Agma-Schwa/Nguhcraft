@@ -33,7 +33,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "minecraft:pearlescent_lantern"
+        "recipe": "nguhcraft:pearlescent_lantern"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
@@ -48,7 +48,7 @@
   ],
   "rewards": {
     "recipes": [
-      "minecraft:pearlescent_lantern"
+      "nguhcraft:pearlescent_lantern"
     ]
   }
 }

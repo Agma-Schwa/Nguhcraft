@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "minecraft:cobbled_deepslate_slab_vertical_from_cobbled_deepslate_stonecutting"
+        "recipe": "nguhcraft:cobbled_deepslate_slab_vertical_from_cobbled_deepslate_stonecutting"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
@@ -26,7 +26,7 @@
   ],
   "rewards": {
     "recipes": [
-      "minecraft:cobbled_deepslate_slab_vertical_from_cobbled_deepslate_stonecutting"
+      "nguhcraft:cobbled_deepslate_slab_vertical_from_cobbled_deepslate_stonecutting"
     ]
   }
 }
