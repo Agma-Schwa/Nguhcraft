@@ -23,6 +23,7 @@ import net.minecraft.util.math.Box
 import net.minecraft.util.shape.VoxelShape
 import net.minecraft.world.World
 import org.nguh.nguhcraft.isa
+import org.nguh.nguhcraft.item.IsLocked
 import org.nguh.nguhcraft.item.KeyItem
 import org.nguh.nguhcraft.item.LockableBlockEntity
 import org.nguh.nguhcraft.server.Manager

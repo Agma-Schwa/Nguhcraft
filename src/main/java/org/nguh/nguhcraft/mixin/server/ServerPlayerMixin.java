@@ -35,6 +35,11 @@ public abstract class ServerPlayerMixin extends PlayerEntity implements PlayerDa
         return super.getDisplayName();
     }
 
+    @Override
+    public @NotNull PlayerData Nguhcraft$GetPlayerData() {
+        return Data;
+    }
+
     /**
     * Copy over player data from a to-be-deleted instance.
     * <p>

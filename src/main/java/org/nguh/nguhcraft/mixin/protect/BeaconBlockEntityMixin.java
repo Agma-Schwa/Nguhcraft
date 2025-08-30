@@ -9,6 +9,8 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
+import static org.nguh.nguhcraft.item.LockableBlockEntityKt.CheckCanOpen;
+
 @Mixin(BeaconBlockEntity.class)
 public abstract class BeaconBlockEntityMixin {
     @Redirect(
@@ -19,6 +21,6 @@ public abstract class BeaconBlockEntityMixin {
         )
     )
     private boolean inject$createMenu$checkUnlocked(PlayerEntity PE, ContainerLock Unused1, Text Unused2) {
-        return ((LockableBlockEntity)this).CheckCanOpen(PE, PE.getMainHandStack());
+        return CheckCanOpen(((LockableBlockEntity)this), PE, PE.getMainHandStack());
     }
 }

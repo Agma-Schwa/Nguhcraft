@@ -17,6 +17,8 @@ import net.minecraft.text.Text
 import net.minecraft.text.TextCodecs
 import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
+import org.nguh.nguhcraft.item.DeserialiseLock
+import org.nguh.nguhcraft.item.IsLocked
 import org.nguh.nguhcraft.item.KeyItem
 import org.nguh.nguhcraft.item.LockableBlockEntity
 

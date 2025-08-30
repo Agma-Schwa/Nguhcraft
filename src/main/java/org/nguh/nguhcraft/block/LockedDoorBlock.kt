@@ -16,6 +16,7 @@ import net.minecraft.world.World
 import net.minecraft.world.block.WireOrientation
 import net.minecraft.world.event.GameEvent
 import net.minecraft.world.explosion.Explosion
+import org.nguh.nguhcraft.item.CheckCanOpen
 import org.nguh.nguhcraft.item.KeyItem
 import java.util.function.BiConsumer
 

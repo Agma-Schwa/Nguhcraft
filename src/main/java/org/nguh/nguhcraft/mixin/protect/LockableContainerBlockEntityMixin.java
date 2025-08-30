@@ -31,6 +31,8 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import static org.nguh.nguhcraft.item.LockableBlockEntityKt.CheckCanOpen;
+import static org.nguh.nguhcraft.item.LockableBlockEntityKt.DeserialiseLock;
 import static org.nguh.nguhcraft.server.ExtensionsKt.CreateUpdate;
 
 @Mixin(LockableContainerBlockEntity.class)
@@ -72,7 +74,7 @@ public abstract class LockableContainerBlockEntityMixin extends BlockEntity impl
      */
     @Overwrite
     public boolean checkUnlocked(PlayerEntity PE) {
-        return CheckCanOpen(PE, PE.getMainHandStack());
+        return CheckCanOpen(this, PE, PE.getMainHandStack());
     }
 
     @Inject(method = "readData", at = @At("TAIL"))

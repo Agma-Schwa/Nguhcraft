@@ -153,8 +153,7 @@ class KeyItem : Item(
 
             // If the block is not locked, do nothing; if it is, and the
             // key doesn’t match, then we fail here.
-            val Key = BE.`Nguhcraft$GetLock`()
-            if (Key == null) return ActionResult.PASS
+            val Key = BE.`Nguhcraft$GetLock`() ?: return ActionResult.PASS
             if (!BE.CheckCanOpen(Ctx.player, Ctx.stack)) return ActionResult.FAIL
 
             // Key matches. Drop the lock and clear it.
