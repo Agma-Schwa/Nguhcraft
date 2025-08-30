@@ -75,8 +75,10 @@ class LockedDoorBlock(S: Settings) : DoorBlock(BlockSetType.IRON, S), BlockEntit
         if (BE !is LockedDoorBlockEntity) return ActionResult.PASS
 
         // Check if this block can be opened.
-        if (BE.CheckCanOpen(PE, PE.mainHandStack)) return ActionResult.SUCCESS
+        if (!BE.CheckCanOpen(PE, PE.mainHandStack)) return ActionResult.SUCCESS
 
+        // Actually open the door.
+        //
         // Ugly code duplication from onUse(), but the canOpenByHand() check
         // is really messing w/ how these work here, so we have no choice but
         // to duplicate the section we actually want to use here.

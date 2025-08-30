@@ -64,7 +64,12 @@ fun LockableBlockEntity.CheckCanOpen(PE: PlayerEntity?, Key: ItemStack): Boolean
     if (PE != null && ProtectionManager.BypassesRegionProtection(PE)) return true
     if (CanOpenImpl(Key, `Nguhcraft$GetLock`()!!)) return true
     PE?.sendMessage(FormatLockedMessage(`Nguhcraft$GetLock`()!!, `Nguhcraft$GetName`()), true)
-    PE?.playSoundToPlayer(SoundEvents.BLOCK_CHEST_LOCKED, SoundCategory.BLOCKS, 1.0f, 1.0f)
+    if (PE == null || !PE.world.isClient) PE?.playSoundToPlayer(
+        SoundEvents.BLOCK_CHEST_LOCKED,
+        SoundCategory.BLOCKS,
+        1.0f,
+        1.0f
+    )
     return false
 }
 
