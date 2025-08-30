@@ -274,6 +274,14 @@ internal class Discord : ListenerAdapter() {
 
             // Load the bot config.
             val Config = Json.decodeFromString<ConfigFile>(File("discord-bot-config.json").readText())
+
+            // Sanity check.
+            if (
+                Config.guildId == 697450809390268467L &&
+                System.getenv("NGUHCRAFT_ENVIRONMENT") != "Production"
+            ) throw IllegalStateException("Cannot connect to Agma Schwa Discord server from testing environment; update discord-bot-config.json")
+
+            // Create the client.
             val Intents = EnumSet.allOf(GatewayIntent::class.java).also { it.add(GatewayIntent.GUILD_MEMBERS) }
             Client = JDABuilder.createDefault(Config.token)
                 .setEnabledIntents(Intents)
