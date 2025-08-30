@@ -7,6 +7,7 @@ import net.minecraft.registry.RegistryKey
 import net.minecraft.registry.RegistryKeys
 import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.util.math.BlockPos
+import net.minecraft.world.TeleportTarget
 import net.minecraft.world.World
 import org.nguh.nguhcraft.Decode
 import org.nguh.nguhcraft.Encode
@@ -44,8 +45,8 @@ data class Home(
 
         fun Bed(SP: ServerPlayerEntity) = Home(
             BED_HOME,
-            World.OVERWORLD,
-            SP.spawnPointPosition ?: SP.server.overworld.spawnPos
+            SP.respawn?.dimension ?: World.OVERWORLD,
+            SP.respawn?.pos ?: SP.Server.overworld.spawnPos
         )
 
         @JvmStatic

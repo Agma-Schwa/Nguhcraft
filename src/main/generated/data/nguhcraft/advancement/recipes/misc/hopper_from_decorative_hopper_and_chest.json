@@ -23,7 +23,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "minecraft:hopper_from_decorative_hopper_and_chest"
+        "recipe": "nguhcraft:hopper_from_decorative_hopper_and_chest"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
@@ -37,7 +37,7 @@
   ],
   "rewards": {
     "recipes": [
-      "minecraft:hopper_from_decorative_hopper_and_chest"
+      "nguhcraft:hopper_from_decorative_hopper_and_chest"
     ]
   }
 }

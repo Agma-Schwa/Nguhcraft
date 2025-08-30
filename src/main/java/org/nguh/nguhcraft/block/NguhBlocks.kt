@@ -39,7 +39,7 @@ enum class ChestVariant : StringIdentifiable {
     override fun asString() = name.lowercase()
 
     companion object {
-        val BY_ID: IntFunction<ChestVariant> = ValueLists.createIdToValueFunction(
+        val BY_ID: IntFunction<ChestVariant> = ValueLists.createIndexToValueFunction(
             ChestVariant::ordinal,
             entries.toTypedArray(),
             ValueLists.OutOfBoundsHandling.ZERO

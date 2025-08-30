@@ -4,20 +4,15 @@ import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents
 import net.minecraft.client.data.ItemModelGenerator
 import net.minecraft.client.data.Model
 import net.minecraft.client.data.Models
-import net.minecraft.component.ComponentChanges
 import net.minecraft.component.DataComponentTypes
 import net.minecraft.item.Item
+import net.minecraft.item.ItemConvertible
 import net.minecraft.item.ItemGroups
-import net.minecraft.item.ItemStack
 import net.minecraft.item.Items
 import net.minecraft.item.SmithingTemplateItem
 import net.minecraft.item.equipment.trim.ArmorTrimPattern
 import net.minecraft.recipe.SpecialCraftingRecipe.SpecialRecipeSerializer
-import net.minecraft.registry.Registerable
-import net.minecraft.registry.Registries
-import net.minecraft.registry.Registry
-import net.minecraft.registry.RegistryKey
-import net.minecraft.registry.RegistryKeys
+import net.minecraft.registry.*
 import net.minecraft.text.Text
 import net.minecraft.util.Identifier
 import net.minecraft.util.Rarity
@@ -49,15 +44,20 @@ object NguhItems {
             .jukeboxPlayable(RKey(RegistryKeys.JUKEBOX_SONG, "nguhrovision_2024"))
     )
 
-    val ATLANTIC_ARMOUR_TRIM: Item = CreateSmithingTemplate("atlantic_armour_trim_smithing_template", Item.Settings().rarity(Rarity.RARE))
-    val CENRAIL_ARMOUR_TRIM: Item = CreateSmithingTemplate("cenrail_armour_trim_smithing_template", Item.Settings().rarity(Rarity.RARE))
-    val ICE_COLD_ARMOUR_TRIM: Item = CreateSmithingTemplate("ice_cold_armour_trim_smithing_template", Item.Settings().rarity(Rarity.RARE))
-    val VENEFICIUM_ARMOUR_TRIM: Item = CreateSmithingTemplate("veneficium_armour_trim_smithing_template", Item.Settings().rarity(Rarity.RARE))
+    // =========================================================================
+    //  Armour Trims
+    // =========================================================================
+    class ArmourTrim(Name: String) : ItemConvertible {
+        val Template: Item = CreateSmithingTemplate("${Name}_armour_trim_smithing_template", Item.Settings().rarity(Rarity.RARE))
+        val Trim = RKey(RegistryKeys.TRIM_PATTERN, Name)
+        override fun asItem(): Item = Template
+    }
 
-    // =========================================================================
-    //  Item Data
-    // =========================================================================
-    val SMITHING_TEMPLATES = arrayOf(
+    val ATLANTIC_ARMOUR_TRIM = ArmourTrim("atlantic")
+    val CENRAIL_ARMOUR_TRIM = ArmourTrim("cenrail")
+    val ICE_COLD_ARMOUR_TRIM = ArmourTrim("ice_cold")
+    val VENEFICIUM_ARMOUR_TRIM = ArmourTrim("veneficium")
+    val ALL_NGUHCRAFT_ARMOUR_TRIMS = arrayOf(
         ATLANTIC_ARMOUR_TRIM,
         CENRAIL_ARMOUR_TRIM,
         ICE_COLD_ARMOUR_TRIM,
@@ -68,20 +68,13 @@ object NguhItems {
     //  Initialisation
     // =========================================================================
     fun BootstrapArmourTrims(R: Registerable<ArmorTrimPattern>) {
-        fun Register(Key: String, I: Item) {
-            val K = RKey(RegistryKeys.TRIM_PATTERN, Key)
-            R.register(K, ArmorTrimPattern(
-                K.value,
-                Registries.ITEM.getEntry(I),
-                Text.translatable(Util.createTranslationKey("trim_pattern", K.value)),
+        for (T in ALL_NGUHCRAFT_ARMOUR_TRIMS) {
+            R.register(T.Trim, ArmorTrimPattern(
+                T.Trim.value,
+                Text.translatable(Util.createTranslationKey("trim_pattern", T.Trim.value)),
                 false
             ))
         }
-
-        Register("atlantic", ATLANTIC_ARMOUR_TRIM)
-        Register("cenrail", CENRAIL_ARMOUR_TRIM)
-        Register("ice_cold", ICE_COLD_ARMOUR_TRIM)
-        Register("veneficium", VENEFICIUM_ARMOUR_TRIM)
     }
 
     fun BootstrapModels(G: ItemModelGenerator) {
@@ -99,12 +92,10 @@ object NguhItems {
         Register(SLABLET_8)
         Register(SLABLET_16)
         Register(NGUHROVISION_2024_DISC, Models.TEMPLATE_MUSIC_DISC)
-        SMITHING_TEMPLATES.forEach { Register(it) }
+        ALL_NGUHCRAFT_ARMOUR_TRIMS.forEach { Register(it.Template) }
     }
 
     fun Init() {
-        LockPredicate.RunStaticInitialisation()
-
         ItemGroupEvents.modifyEntriesEvent(ItemGroups.FUNCTIONAL).register {
             it.add(LOCK)
             it.add(KEY)
@@ -129,7 +120,7 @@ object NguhItems {
         }
 
         ItemGroupEvents.modifyEntriesEvent(ItemGroups.INGREDIENTS).register {
-            for (T in SMITHING_TEMPLATES) it.add(T)
+            for (T in ALL_NGUHCRAFT_ARMOUR_TRIMS) it.add(T)
         }
 
         KeyLockPairingRecipe.SERIALISER = Registry.register(

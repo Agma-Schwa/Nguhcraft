@@ -38,56 +38,43 @@ import net.minecraft.server.BannedPlayerEntry
 import net.minecraft.server.command.ServerCommandSource
 import net.minecraft.server.dedicated.MinecraftDedicatedServer
 import net.minecraft.server.network.ServerPlayerEntity
+import net.minecraft.storage.NbtReadView
 import net.minecraft.text.ClickEvent
 import net.minecraft.text.MutableText
 import net.minecraft.text.Text
+import net.minecraft.util.ErrorReporter
 import net.minecraft.util.Formatting
 import net.minecraft.util.WorldSavePath
 import net.minecraft.world.GameMode
 import org.jetbrains.annotations.Contract
 import org.nguh.nguhcraft.Constants
+import org.nguh.nguhcraft.NguhErrorReporter
 import org.nguh.nguhcraft.Utils
 import org.nguh.nguhcraft.Utils.NormaliseNFKCLower
 import org.nguh.nguhcraft.mixin.server.MinecraftServerAccessor
 import org.nguh.nguhcraft.network.ClientboundChatPacket
 import org.nguh.nguhcraft.network.ClientboundLinkUpdatePacket
 import org.nguh.nguhcraft.server.Broadcast
-import org.nguh.nguhcraft.server.IsVanished
+import org.nguh.nguhcraft.server.Data
 import org.nguh.nguhcraft.server.PlayerByUUID
-import org.nguh.nguhcraft.server.accessors.ServerPlayerAccessor
-import org.nguh.nguhcraft.server.accessors.ServerPlayerDiscordAccessor
+import org.nguh.nguhcraft.server.PlayerData
+import org.nguh.nguhcraft.server.ServerUtils
 import org.nguh.nguhcraft.server.command.Commands.Exn
 import org.nguh.nguhcraft.server.command.Error
 import org.nguh.nguhcraft.server.command.Reply
 import org.nguh.nguhcraft.server.dedicated.PlayerList.Companion.UpdateCacheEntry
 import org.slf4j.Logger
 import java.io.File
+import java.net.URI
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.regex.PatternSyntaxException
+import kotlin.collections.set
+import kotlin.jvm.optionals.getOrNull
 
-private val ServerPlayerEntity.isLinked get() = (this as ServerPlayerDiscordAccessor).isLinked
+private val ServerPlayerEntity.isLinked get() = this.Data.IsLinked
 private val ServerPlayerEntity.isOperator get() = hasPermissionLevel(4)
 private val ServerPlayerEntity.isLinkedOrOperator get() = isLinked || isOperator
-
-private var ServerPlayerEntity.discordId
-    get() = (this as ServerPlayerDiscordAccessor).discordId
-    set(value) { (this as ServerPlayerDiscordAccessor).discordId = value }
-private var ServerPlayerEntity.discordColour
-    get() = (this as ServerPlayerDiscordAccessor).discordColour
-    set(value) { (this as ServerPlayerDiscordAccessor).discordColour = value }
-private var ServerPlayerEntity.discordName: String
-    get() = (this as ServerPlayerDiscordAccessor).discordName
-    set(value) { (this as ServerPlayerDiscordAccessor).discordName = value }
-private var ServerPlayerEntity.discordAvatarURL: String
-    get() = (this as ServerPlayerDiscordAccessor).discordAvatarURL
-    set(value) { (this as ServerPlayerDiscordAccessor).discordAvatarURL = value }
-private var ServerPlayerEntity.discordDisplayName: Text?
-    get() = (this as ServerPlayerDiscordAccessor).nguhcraftDisplayName
-    set(value) { (this as ServerPlayerDiscordAccessor).nguhcraftDisplayName = value }
-private var ServerPlayerEntity.isMuted
-    get() = (this as ServerPlayerDiscordAccessor).muted
-    set(value) { (this as ServerPlayerDiscordAccessor).muted = value }
 
 private lateinit var Server: MinecraftDedicatedServer
 
@@ -206,7 +193,7 @@ internal class Discord : ListenerAdapter() {
 
                     for (SP in PL) {
                         append("\n- ")
-                        append(if (SP.isLinked) "<@${SP.discordId}>" else SP.nameForScoreboard)
+                        append(if (SP.isLinked) "<@${SP.Data.DiscordId}>" else SP.nameForScoreboard)
                     }
                 }
 
@@ -287,6 +274,14 @@ internal class Discord : ListenerAdapter() {
 
             // Load the bot config.
             val Config = Json.decodeFromString<ConfigFile>(File("discord-bot-config.json").readText())
+
+            // Sanity check.
+            if (
+                Config.guildId == 697450809390268467L &&
+                System.getenv("NGUHCRAFT_ENVIRONMENT") != "Production"
+            ) throw IllegalStateException("Cannot connect to Agma Schwa Discord server from testing environment; update discord-bot-config.json")
+
+            // Create the client.
             val Intents = EnumSet.allOf(GatewayIntent::class.java).also { it.add(GatewayIntent.GUILD_MEMBERS) }
             Client = JDABuilder.createDefault(Config.token)
                 .setEnabledIntents(Intents)
@@ -320,7 +315,7 @@ internal class Discord : ListenerAdapter() {
 
         @JvmStatic
         fun BroadcastAdvancement(SP: ServerPlayerEntity, AdvancementMessage: Text) {
-            if (SP.IsVanished) return
+            if (SP.Data.Vanished) return
             if (!Ready) return
             try {
                 val Text = AdvancementMessage.string
@@ -343,13 +338,13 @@ internal class Discord : ListenerAdapter() {
 
             // Send all other players’ names to this player.
             for (P in Server.playerManager.playerList)
-                if (P != SP && !P.IsVanished)
+                if (P != SP && !P.Data.Vanished)
                     ServerPlayNetworking.send(SP, ClientboundLinkUpdatePacket(P))
         }
 
         @JvmStatic
         fun BroadcastDeathMessage(SP: ServerPlayerEntity, DeathMessage: Text) {
-            if (SP.IsVanished) return
+            if (SP.Data.Vanished) return
             if (!Ready) return
 
             // Convoluted setup to both resend an abbreviated message if the actual
@@ -375,14 +370,14 @@ internal class Discord : ListenerAdapter() {
 
         @JvmStatic
         fun BroadcastJoinQuitMessage(SP: ServerPlayerEntity, Joined: Boolean) {
-            if (SP.IsVanished) return
+            if (SP.Data.Vanished) return
             BroadcastJoinQuitMessageImpl(SP, Joined)
         }
 
         fun BroadcastJoinQuitMessageImpl(SP: ServerPlayerEntity, Joined: Boolean) {
             if (!Ready) return
             try {
-                val Name = if (SP.isLinked) SP.discordName
+                val Name = if (SP.isLinked) SP.Data.DiscordName
                 else SP.nameForScoreboard
                 val Text = "$Name ${if (Joined) "joined" else "left"} the game"
                 SendSimpleEmbed(Text, if (Joined) Constants.Green else Constants.Red, SP)
@@ -398,8 +393,8 @@ internal class Discord : ListenerAdapter() {
                 ClientboundLinkUpdatePacket(
                     SP.uuid,
                     SP.gameProfile.name,
-                    SP.discordColour,
-                    SP.discordName,
+                    SP.Data.DiscordColour,
+                    SP.Data.DiscordName,
                     SP.isLinked
                 )
             )
@@ -418,12 +413,12 @@ internal class Discord : ListenerAdapter() {
             val Entry = PlayerList.Player(GP) ?: return null
 
             // Likewise, if the player is not linked, give up.
-            if (!Entry.isLinked) return null
+            if (!Entry.Data.IsLinked) return null
 
             // Get the member, if this fails, the rest of the code will just
             // unlink them and put them in adventure mode on join, so there’s
             // no reason to do that here.
-            val M = MemberByID(Entry.DiscordID) ?: return null
+            val M = MemberByID(Entry.Data.DiscordId) ?: return null
 
             // Finally, check if they have the muted role.
             if (M.roles.contains(MutedRole)) return Text.translatable("multiplayer.disconnect.muted")
@@ -556,7 +551,7 @@ internal class Discord : ListenerAdapter() {
         fun __IsLinkedOrOperatorImpl(SP: ServerPlayerEntity): Boolean = SP.isLinkedOrOperator
 
         /** Check if a player is muted. */
-        fun IsMuted(SP: ServerPlayerEntity): Boolean = SP.isMuted
+        fun IsMuted(SP: ServerPlayerEntity): Boolean = SP.Data.Muted
 
         /** Attempt to initiate a link of a player to a member w/ the given ID */
         @Throws(CommandSyntaxException::class)
@@ -584,7 +579,7 @@ internal class Discord : ListenerAdapter() {
                     )
                     .withColor(Constants.Green)
                     .append(Utils.LINK)
-                    .styled { style -> style.withClickEvent(ClickEvent(ClickEvent.Action.OPEN_URL, Mess.jumpUrl)) })
+                    .styled { style -> style.withClickEvent(ClickEvent.OpenUrl(URI(Mess.jumpUrl))) })
             } catch (E: ErrorResponseException) {
                 if (E.errorResponse == ErrorResponse.CANNOT_SEND_TO_USER) throw MUST_ENABLE_DMS.create()
 
@@ -594,7 +589,7 @@ internal class Discord : ListenerAdapter() {
         }
 
         private fun LinkedPlayerForMember(ID: Long): ServerPlayerEntity?
-            = Server.playerManager.playerList.find { it.discordId == ID }
+            = Server.playerManager.playerList.find { it.Data.DiscordId == ID }
 
         private fun MemberByID(ID: Long): Member? {
             return try {
@@ -627,7 +622,7 @@ internal class Discord : ListenerAdapter() {
          */
         private fun MemberForPlayer(SP: ServerPlayerEntity): Member? {
             if (!SP.isLinked) return null
-            return MemberByID(SP.discordId)
+            return MemberByID(SP.Data.DiscordId)
         }
 
         /**
@@ -650,7 +645,7 @@ internal class Discord : ListenerAdapter() {
          * Send a message as a player.
          */
         private fun Message(SP: ServerPlayerEntity, Content: String?) {
-            if (SP.isLinked) Message(SP.discordName, SP.discordAvatarURL, Content)
+            if (SP.isLinked) Message(SP.Data.DiscordName, SP.Data.DiscordAvatar, Content)
             else {
                 val N = SP.nameForScoreboard
                 Message("$N (unlinked)", DefaultAvatarURL(N.length), Content)
@@ -658,7 +653,7 @@ internal class Discord : ListenerAdapter() {
         }
 
         private fun PerformUnlink(SP: ServerPlayerEntity) {
-            val ID = SP.discordId
+            val ID = SP.Data.DiscordId
             UpdatePlayer(SP, INVALID_ID, null, null, Constants.Grey)
 
             // Remove the @ŋguhcrafter role. This can fail if the user is no
@@ -791,10 +786,15 @@ internal class Discord : ListenerAdapter() {
             SendEmbed(
                 "[Server]",
                 ServerAvatarURL,
-                Player?.discordAvatarURL,
+                Player?.Data?.DiscordAvatar,
                 Text,
                 Colour
             )
+        }
+
+        @JvmStatic
+        fun TickPlayer(SP: ServerPlayerEntity) {
+            if (!ServerUtils.IsLinkedOrOperator(SP)) SP.changeGameMode(GameMode.ADVENTURE)
         }
 
         fun Unlink(S: ServerCommandSource, SP: ServerPlayerEntity) {
@@ -838,13 +838,13 @@ internal class Discord : ListenerAdapter() {
 
             // Only resend the command tree if this has changed, so compute
             // this before we update the id below.
-            val LinkStatusChanged = SP.discordId != ID
+            val LinkStatusChanged = SP.Data.DiscordId != ID
 
             // Dew it.
-            SP.discordId = ID
-            SP.discordName = SanitiseForMinecraft(DisplayName ?: "", "[Invalid Username]")
-            SP.discordColour = NameColour
-            SP.discordAvatarURL = AvatarURL ?: ""
+            SP.Data.DiscordId = ID
+            SP.Data.DiscordName = SanitiseForMinecraft(DisplayName ?: "", "[Invalid Username]")
+            SP.Data.DiscordColour = NameColour
+            SP.Data.DiscordAvatar = AvatarURL ?: ""
             UpdatePlayerName(SP)
 
             // Broadcast this player’s info to everyone.
@@ -859,7 +859,7 @@ internal class Discord : ListenerAdapter() {
 
         private fun UpdatePlayer(SP: ServerPlayerEntity, M: Member) {
             // Compute whether they’re muted.
-            SP.isMuted = M.roles.contains(MutedRole)
+            SP.Data.Muted = M.roles.contains(MutedRole)
 
             // Update the name etc.
             UpdatePlayer(
@@ -871,7 +871,7 @@ internal class Discord : ListenerAdapter() {
             )
 
             // Kick them if they are now muted.
-            if (SP.isMuted) SP.networkHandler.disconnect(Text.translatable("multiplayer.disconnect.muted"))
+            if (SP.Data.Muted) SP.networkHandler.disconnect(Text.translatable("multiplayer.disconnect.muted"))
         }
 
         /**
@@ -888,13 +888,13 @@ internal class Discord : ListenerAdapter() {
             // Retrieve the member to see if they’re still on the server and because
             // their name, avatar, etc. may have changed since we last saw them.
             val UUID = SP.uuid
-            AgmaSchwaGuild.retrieveMemberById(SP.discordId).useCache(false).queue({ M ->
+            AgmaSchwaGuild.retrieveMemberById(SP.Data.DiscordId).useCache(false).queue({ M ->
                 WithPlayer(UUID) { UpdatePlayer(it, M) }
             }, { failure ->
                 WithPlayer(UUID) {
                     // Failure likely indicates that the player is no longer on the
                     // server; unlink them just in case and log the error.
-                    HandleMemberRemoved(it.discordId)
+                    HandleMemberRemoved(it.Data.DiscordId)
 
                     // The call to HandleMemberRemoved() may have just banned this
                     // player, so do nothing here if that’s the case.
@@ -915,11 +915,11 @@ internal class Discord : ListenerAdapter() {
             SP.isCustomNameVisible = false
 
             // Save this since we’ll be needing it constantly.
-            SP.discordDisplayName = ComputePlayerName(
+            SP.Data.NguhcraftDisplayName = ComputePlayerName(
                 SP.isLinked,
                 SP.nameForScoreboard,
-                SP.discordName,
-                SP.discordColour
+                SP.Data.DiscordName,
+                SP.Data.DiscordColour
             )
 
             UpdateCacheEntry(SP)
@@ -950,16 +950,12 @@ internal class Discord : ListenerAdapter() {
  */
 @Environment(EnvType.SERVER)
 class PlayerList private constructor(private val ByID: HashMap<UUID, Entry>) : Iterable<PlayerList.Entry> {
-    class Entry(
-        val ID: UUID,
-        val DiscordID: Long,
-        val DiscordColour: Int,
-        val MinecraftName: String,
-        val DiscordName: String
+    class Entry (
+        val MinecraftId: UUID,
+        val MinecraftName: String?,
+        val Data: PlayerData
     ) {
-        val NormalisedDiscordName: String = NormaliseNFKCLower(DiscordName)
-        val isLinked: Boolean get() = DiscordID != Discord.INVALID_ID
-        override fun toString() = MinecraftName.ifEmpty { ID.toString() }
+        override fun toString() = MinecraftName.orEmpty().ifEmpty { MinecraftId.toString() }
     }
 
     private val Data = ByID.values.toTypedArray()
@@ -987,7 +983,7 @@ class PlayerList private constructor(private val ByID: HashMap<UUID, Entry>) : I
         private val CACHE = ConcurrentHashMap<UUID, Entry?>()
 
         /** Null entry. */
-        private val NULL_ENTRY = Entry(UUID(0, 0), Discord.INVALID_ID, 0, "", "")
+        private val NULL_ENTRY = Entry(UUID(0, 0), "", PlayerData())
 
         /** Player data directory */
         private val PlayerDataDir get() = (Server as MinecraftServerAccessor)
@@ -998,12 +994,21 @@ class PlayerList private constructor(private val ByID: HashMap<UUID, Entry>) : I
             val DatFiles = PlayerDataDir.list { _, name -> name.endsWith(".dat") }
             val PlayerData = HashMap<UUID, Entry>()
 
+            // For online players, prefer to get their data directly from the server.
+            for (P in Server.playerManager.playerList) {
+                PlayerData[P.uuid] = Entry(
+                    P.uuid,
+                    P.nameForScoreboard,
+                    P.Data,
+                )
+            }
+
             // Enumerate all players for which we have an entry, adding them to the list.
-            assert(Server.isOnThread) { "Must run on the server thread" }
             for (F in DatFiles) {
                 try {
-                    val ID = UUID.fromString(F.substring(0, F.length - 4))
-                    AddPlayerData(PlayerData, ID)
+                    val Id = UUID.fromString(F.dropLast(4))
+                    if (PlayerData.contains(Id)) continue
+                    GetOfflinePlayerData(Id)?.let { PlayerData[Id] = it }
                 }
 
                 // Filename parsing failed. Ignore random garbage in this directory.
@@ -1011,8 +1016,6 @@ class PlayerList private constructor(private val ByID: HashMap<UUID, Entry>) : I
                 catch (_: IndexOutOfBoundsException) { }
             }
 
-            // Also add online players that haven’t been saved yet.
-            for (P in Server.playerManager.playerList) AddPlayerData(PlayerData, P.uuid)
             return PlayerList(PlayerData)
         }
 
@@ -1027,76 +1030,47 @@ class PlayerList private constructor(private val ByID: HashMap<UUID, Entry>) : I
         }
 
         /** Retrieve Nguhcraft-specific data for a game profile. */
-        fun Player(GP: GameProfile) = GetPlayerData(GP.id)
+        fun Player(GP: GameProfile) = GetOfflinePlayerData(GP.id)
 
         /** Override the cache entry for a player that is online. */
         @JvmStatic
         fun UpdateCacheEntry(SP: ServerPlayerEntity): Entry {
-            val NewData = Entry(
-                SP.uuid,
-                SP.discordId,
-                SP.discordColour,
-                SP.nameForScoreboard,
-                SP.discordName
-            )
-
+            val NewData = Entry(SP.uuid, SP.nameForScoreboard, SP.Data)
             CACHE[SP.uuid] = NewData
             return NewData
         }
 
-        /** Add a player’s data to a set, fetching it from wherever appropriate.  */
-        private fun AddPlayerData(Map: HashMap<UUID, Entry>, PlayerId: UUID) {
-            if (Map.containsKey(PlayerId)) return
-            GetPlayerData(PlayerId)?.let { Map[PlayerId] = it }
-        }
-
-        private fun GetPlayerData(PlayerId: UUID): Entry? {
+        private fun GetOfflinePlayerData(PlayerId: UUID): Entry? {
             // If we’ve cached their data, use that.
             val Data = CACHE[PlayerId]
             if (Data != null) return if (Data != NULL_ENTRY) Data else null
 
             // Otherwise, load the player from disk. If this fails, there is nothing we can do.
-            val Nbt = ReadPlayerData(PlayerId)
-            if (Nbt == null) {
-                CACHE[PlayerId] = NULL_ENTRY
-                return null
+            CACHE[PlayerId] = NULL_ENTRY
+            val Nbt = ReadPlayerNbtSaveFile(PlayerId) ?: return null
+
+            // If the player data exists, load it.
+            ErrorReporter.Logging(NguhErrorReporter(), LOGGER).use {
+                val RV = NbtReadView.create(it, Server.registryManager, Nbt)
+
+                // Once upon a time, this was a paper server; remnants of that should still be
+                // in the player data; don’t rely on them for the name, but use them if we don’t
+                // have anything else.
+                val PaperName = RV.getReadView("bukkit").getOptionalString("lastKnownName").getOrNull()
+
+                // Extract our custom player data.
+                val Data = PlayerData.Load(RV).getOrNull() ?: PlayerData()
+                CACHE[PlayerId] = Entry(
+                    PlayerId,
+                    Data.LastKnownMinecraftName.ifEmpty { PaperName.orEmpty() }.ifEmpty { null },
+                    Data
+                )
             }
 
-            // There no longer is a way to get a player’s name from their UUID (thanks
-            // a lot for that, Mojang), so we have to store it ourselves.
-            var Name = ""
-            var DiscordName = ""
-            var DiscordID = Discord.INVALID_ID
-            var RoleColour: Int = Constants.Grey
-            if (Nbt.contains(ServerPlayerAccessor.TAG_ROOT)) {
-                val Nguhcraft = Nbt.getCompound(ServerPlayerAccessor.TAG_ROOT)
-                Name = Nguhcraft.getString(ServerPlayerDiscordAccessor.TAG_LAST_KNOWN_NAME)
-                DiscordID = Nguhcraft.getLong(ServerPlayerDiscordAccessor.TAG_DISCORD_ID)
-                RoleColour = Nguhcraft.getInt(ServerPlayerDiscordAccessor.TAG_DISCORD_COLOUR)
-                DiscordName = Nguhcraft.getString(ServerPlayerDiscordAccessor.TAG_DISCORD_NAME)
-            }
-
-            // Once upon a time, this was a paper server; remnants of that should still be
-            // in the player data; don’t rely on them for the name, but use them if we don’t
-            // have anything else.
-            if (Name.isEmpty() && Nbt.contains("bukkit"))
-                Name = Nbt.getCompound("bukkit").getString("lastKnownName")
-
-            // Get the rest of the data from the tag and cache it.
-            val NewData = Entry(
-                PlayerId,
-                DiscordID,
-                RoleColour,
-                Name,
-                DiscordName
-            )
-
-            // Save the data and add it to the map.
-            CACHE[PlayerId] = NewData
-            return NewData
+            return CACHE[PlayerId]
         }
 
-        private fun ReadPlayerData(PlayerID: UUID): NbtCompound? {
+        private fun ReadPlayerNbtSaveFile(PlayerID: UUID): NbtCompound? {
             val file = File(PlayerDataDir, "$PlayerID.dat")
             if (file.exists() && file.isFile) {
                 try {
@@ -1139,13 +1113,13 @@ object DiscordCommand {
     """.trimIndent())
 
     private fun AddPlayer(List: MutableText, PD: PlayerList.Entry) {
-        if (PD.isLinked) {
+        if (PD.Data.IsLinked) {
             List.append(LIST_ENTRY)
                 .append(Text.literal(PD.toString()).formatted(Formatting.AQUA))
                 .append(IS_LINKED_TO)
-                .append(Text.literal(PD.DiscordName).withColor(PD.DiscordColour))
+                .append(Text.literal(PD.Data.DiscordName).withColor(PD.Data.DiscordColour))
                 .append(LPAREN)
-                .append(Text.literal(PD.DiscordID.toString()).formatted(Formatting.GRAY))
+                .append(Text.literal(PD.Data.DiscordId.toString()).formatted(Formatting.GRAY))
                 .append(RPAREN)
         } else {
             List.append(LIST_ENTRY)
@@ -1169,7 +1143,7 @@ object DiscordCommand {
 
         // List all players that are linked.
         val List = Text.literal("Linked players:")
-        for (PD in Players) if (All || PD.isLinked) AddPlayer(List, PD)
+        for (PD in Players) if (All || PD.Data.IsLinked) AddPlayer(List, PD)
 
         // Send the list to the player.
         S.Reply(List)

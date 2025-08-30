@@ -1,15 +1,12 @@
 package org.nguh.nguhcraft.mixin.discord.server;
 
-import com.llamalad7.mixinextras.sugar.Local;
 import com.mojang.authlib.GameProfile;
-import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.ClientConnection;
 import net.minecraft.server.PlayerManager;
 import net.minecraft.server.network.ConnectedClientData;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import org.nguh.nguhcraft.server.dedicated.Discord;
-import org.nguh.nguhcraft.server.accessors.ServerPlayerDiscordAccessor;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -17,7 +14,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.net.SocketAddress;
-import java.util.Optional;
 
 @Mixin(value = PlayerManager.class, priority = 1)
 public abstract class PlayerManagerMixin {
@@ -28,7 +24,7 @@ public abstract class PlayerManagerMixin {
         if (Message != null) CIR.setReturnValue(Message);
     }
 
-    /** Load custom player data early. */
+    /** Update the discord player name early. */
     @Inject(
         method = "onPlayerConnect(Lnet/minecraft/network/ClientConnection;Lnet/minecraft/server/network/ServerPlayerEntity;Lnet/minecraft/server/network/ConnectedClientData;)V",
         at = @At(
@@ -41,11 +37,11 @@ public abstract class PlayerManagerMixin {
         ClientConnection Connection,
         ServerPlayerEntity SP,
         ConnectedClientData Data,
-        CallbackInfo Info,
-        @Local Optional<NbtCompound> Nbt
+        CallbackInfo Info
     ) {
-        var NSP = ((ServerPlayerDiscordAccessor)SP);
-        Nbt.ifPresent(NSP::LoadDiscordNguhcraftNbt);
+        // We used to have to load player data early here, but Mojang for
+        // once did something sensible and moved data loading up to before
+        // this, so we can assume that everything is already loaded.
         Discord.UpdatePlayerName(SP);
     }
 

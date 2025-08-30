@@ -23,7 +23,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "minecraft:ochre_chain"
+        "recipe": "nguhcraft:ochre_chain"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
@@ -37,7 +37,7 @@
   ],
   "rewards": {
     "recipes": [
-      "minecraft:ochre_chain"
+      "nguhcraft:ochre_chain"
     ]
   }
 }

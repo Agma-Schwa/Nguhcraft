@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "minecraft:gilded_chiseled_calcite_bricks_from_gilded_polished_calcite_stonecutting"
+        "recipe": "nguhcraft:gilded_chiseled_calcite_bricks_from_gilded_polished_calcite_stonecutting"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
@@ -26,7 +26,7 @@
   ],
   "rewards": {
     "recipes": [
-      "minecraft:gilded_chiseled_calcite_bricks_from_gilded_polished_calcite_stonecutting"
+      "nguhcraft:gilded_chiseled_calcite_bricks_from_gilded_polished_calcite_stonecutting"
     ]
   }
 }

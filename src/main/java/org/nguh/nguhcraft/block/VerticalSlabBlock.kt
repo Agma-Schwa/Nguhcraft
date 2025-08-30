@@ -5,6 +5,7 @@ import net.minecraft.block.Block
 import net.minecraft.block.BlockState
 import net.minecraft.block.ShapeContext
 import net.minecraft.block.Waterloggable
+import net.minecraft.entity.LivingEntity
 import net.minecraft.entity.ai.pathing.NavigationType
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.fluid.Fluid
@@ -99,7 +100,7 @@ class VerticalSlabBlock(S: Settings) : Block(S), Waterloggable {
     ) = St.get(TYPE) != Type.DOUBLE && super.tryFillWithFluid(W, Pos, St, FS)
 
     override fun canFillWithFluid(
-        PE: PlayerEntity?,
+        PE: LivingEntity?,
         W: BlockView,
         Pos: BlockPos,
         St: BlockState,

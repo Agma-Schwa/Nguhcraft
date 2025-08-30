@@ -7,10 +7,8 @@ import net.minecraft.item.ItemPlacementContext
 import net.minecraft.item.ItemStack
 import net.minecraft.server.world.ServerWorld
 import net.minecraft.sound.SoundCategory
-import net.minecraft.sound.SoundEvents
 import net.minecraft.state.StateManager
 import net.minecraft.state.property.BooleanProperty
-import net.minecraft.text.Text
 import net.minecraft.util.ActionResult
 import net.minecraft.util.hit.BlockHitResult
 import net.minecraft.util.math.BlockPos
@@ -18,11 +16,9 @@ import net.minecraft.world.World
 import net.minecraft.world.block.WireOrientation
 import net.minecraft.world.event.GameEvent
 import net.minecraft.world.explosion.Explosion
+import org.nguh.nguhcraft.item.CheckCanOpen
 import org.nguh.nguhcraft.item.KeyItem
-import org.nguh.nguhcraft.item.LockItem
-import org.nguh.nguhcraft.protect.ProtectionManager
 import java.util.function.BiConsumer
-
 
 class LockedDoorBlock(S: Settings) : DoorBlock(BlockSetType.IRON, S), BlockEntityProvider {
     init { defaultState = stateManager.defaultState.with(LOCKED, false) }
@@ -78,17 +74,11 @@ class LockedDoorBlock(S: Settings) : DoorBlock(BlockSetType.IRON, S), BlockEntit
         // Somehow, this is not a locked door. Ignore.
         if (BE !is LockedDoorBlockEntity) return ActionResult.PASS
 
-        // Allow opening locked doors in '/bypass' mode; otherwise, if
-        // the door is locked, we can’t open it.
-        if (
-            !ProtectionManager.BypassesRegionProtection(PE) &&
-            !BE.lock.canOpen(PE.mainHandStack)
-        ) {
-            PE.sendMessage(LockItem.FormatLockedMessage(BE.Lock, BE.CustomName ?: DOOR_TEXT), true)
-            if (W.isClient) PE.playSoundToPlayer(SoundEvents.BLOCK_CHEST_LOCKED, SoundCategory.BLOCKS, 1.0F, 1.0F)
-            return ActionResult.SUCCESS
-        }
+        // Check if this block can be opened.
+        if (!BE.CheckCanOpen(PE, PE.mainHandStack)) return ActionResult.SUCCESS
 
+        // Actually open the door.
+        //
         // Ugly code duplication from onUse(), but the canOpenByHand() check
         // is really messing w/ how these work here, so we have no choice but
         // to duplicate the section we actually want to use here.
@@ -109,7 +99,6 @@ class LockedDoorBlock(S: Settings) : DoorBlock(BlockSetType.IRON, S), BlockEntit
 
     override fun getCodec() = CODEC
     companion object {
-        val DOOR_TEXT: Text = Text.translatable("nguhcraft.door") // Separate key so we don’t show ‘Locked Door is locked’.
         val CODEC: MapCodec<LockedDoorBlock> = createCodec(::LockedDoorBlock)
         val LOCKED: BooleanProperty = BooleanProperty.of("nguhcraft_locked") // Property to render a locked door.
     }

@@ -33,7 +33,7 @@ object WorldRendering {
     }
 
     fun RenderWorld(Ctx: WorldRenderContext) {
-        Profilers.get().push("nguhcraft:world_rendering")
+        /*Profilers.get().push("nguhcraft:world_rendering")
 
         // Transform all points relative to the camera position.
         Renderer.PushModelViewMatrix(-Ctx.camera().pos) {
@@ -49,10 +49,10 @@ object WorldRendering {
             if (RenderSpawns) Layers.LINES.Use { RenderSpawns(Ctx, it) }
         }
 
-        Profilers.get().pop()
+        Profilers.get().pop()*/
     }
 
-    private fun RenderBarriers(Ctx: WorldRenderContext, VA: VertexAllocator, DT: Float) {
+    /*private fun RenderBarriers(Ctx: WorldRenderContext, VA: VertexAllocator, DT: Float) {
         val CW = Ctx.world()
         val WR = Ctx.worldRenderer()
         val MinY = CW.bottomY
@@ -203,5 +203,5 @@ object WorldRendering {
                 1f,
             )
         }
-    }
+    }*/
 }

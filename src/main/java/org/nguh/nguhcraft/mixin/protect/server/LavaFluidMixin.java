@@ -12,9 +12,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(LavaFluid.class)
 public abstract class LavaFluidMixin {
-    @Inject(method = "hasBurnableBlock", at = @At("HEAD"), cancellable = true)
-
     /** Disable lava lighting protected blocks on fire. */
+    @Inject(method = "hasBurnableBlock", at = @At("HEAD"), cancellable = true)
     private void onHasBurnableBlock(WorldView WV, BlockPos Pos, CallbackInfoReturnable<Boolean> CIR) {
         if (!(WV instanceof ServerWorld SW)) return; // Ignore during world generation.
         if (ProtectionManager.IsProtectedBlock(SW, Pos)) CIR.setReturnValue(false);

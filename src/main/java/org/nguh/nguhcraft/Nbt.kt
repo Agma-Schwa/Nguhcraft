@@ -17,13 +17,3 @@ fun Nbt(Builder: NbtCompound.() -> Unit): NbtCompound {
     T.Builder()
     return T
 }
-
-fun NbtListOf(Builder: NbtList.() -> Unit): NbtList {
-    val T = NbtList()
-    T.Builder()
-    return T
-}
-
-fun<T> NbtListOf(Vals: Collection<T>, Builder: NbtCompound.(Value: T) -> Unit) = NbtListOf {
-    for (V in Vals) add(Nbt { Builder(V) })
-}

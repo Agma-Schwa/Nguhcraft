@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "minecraft:polished_calcite_stairs"
+        "recipe": "nguhcraft:polished_calcite_stairs"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
@@ -26,7 +26,7 @@
   ],
   "rewards": {
     "recipes": [
-      "minecraft:polished_calcite_stairs"
+      "nguhcraft:polished_calcite_stairs"
     ]
   }
 }

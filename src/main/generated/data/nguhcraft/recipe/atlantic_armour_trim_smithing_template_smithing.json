@@ -2,5 +2,6 @@
   "type": "minecraft:smithing_trim",
   "addition": "#minecraft:trim_materials",
   "base": "#minecraft:trimmable_armor",
+  "pattern": "nguhcraft:atlantic",
   "template": "nguhcraft:atlantic_armour_trim_smithing_template"
 }

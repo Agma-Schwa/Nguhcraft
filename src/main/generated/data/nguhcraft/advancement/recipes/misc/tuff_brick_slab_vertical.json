@@ -3,7 +3,7 @@
   "criteria": {
     "has_the_recipe": {
       "conditions": {
-        "recipe": "minecraft:tuff_brick_slab_vertical"
+        "recipe": "nguhcraft:tuff_brick_slab_vertical"
       },
       "trigger": "minecraft:recipe_unlocked"
     },
@@ -26,7 +26,7 @@
   ],
   "rewards": {
     "recipes": [
-      "minecraft:tuff_brick_slab_vertical"
+      "nguhcraft:tuff_brick_slab_vertical"
     ]
   }
 }

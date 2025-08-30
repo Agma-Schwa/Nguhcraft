@@ -3,7 +3,7 @@
   "criteria": {
     "has_the_recipe": {
       "conditions": {
-        "recipe": "minecraft:warped_slab_vertical"
+        "recipe": "nguhcraft:warped_slab_vertical"
       },
       "trigger": "minecraft:recipe_unlocked"
     },
@@ -26,7 +26,7 @@
   ],
   "rewards": {
     "recipes": [
-      "minecraft:warped_slab_vertical"
+      "nguhcraft:warped_slab_vertical"
     ]
   }
 }

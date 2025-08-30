@@ -12,10 +12,9 @@ import net.minecraft.block.enums.DoubleBlockHalf
 import net.minecraft.component.ComponentType
 import net.minecraft.component.DataComponentTypes
 import net.minecraft.component.type.BundleContentsComponent
-import net.minecraft.entity.Entity
+import net.minecraft.component.type.TooltipDisplayComponent
 import net.minecraft.entity.LivingEntity
 import net.minecraft.entity.player.PlayerEntity
-import net.minecraft.inventory.ContainerLock
 import net.minecraft.inventory.StackReference
 import net.minecraft.item.BundleItem
 import net.minecraft.item.Item
@@ -30,7 +29,6 @@ import net.minecraft.screen.slot.Slot
 import net.minecraft.server.world.ServerWorld
 import net.minecraft.sound.SoundCategory
 import net.minecraft.sound.SoundEvents
-import net.minecraft.text.MutableText
 import net.minecraft.text.Text
 import net.minecraft.util.ActionResult
 import net.minecraft.util.ClickType
@@ -39,17 +37,9 @@ import net.minecraft.util.Rarity
 import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
 import org.nguh.nguhcraft.Nguhcraft.Companion.Id
-import org.nguh.nguhcraft.block.LockableBlockEntity
 import org.nguh.nguhcraft.block.LockedDoorBlockEntity
 import org.nguh.nguhcraft.server.ServerUtils.UpdateLock
-
-/**
- * Get the key associated with a container lock.
- *
- * If the lock somehow has multiple lock components, only the
- * first one is returned.
- */
-fun ContainerLock.GetKey() = (this.predicate.subPredicates[LockPredicate.TYPE] as? LockPredicate)?.Key
+import java.util.function.Consumer
 
 class KeyItem : Item(
     Settings()
@@ -57,12 +47,14 @@ class KeyItem : Item(
     .rarity(Rarity.UNCOMMON)
     .registryKey(RegistryKey.of(RegistryKeys.ITEM, ID))
 ) {
+    @Deprecated("Deprecated by Mojang")
     override fun appendTooltip(
         S: ItemStack,
         Ctx: TooltipContext,
-        TT: MutableList<Text>,
+        TDC: TooltipDisplayComponent,
+        TC: Consumer<Text>,
         Ty: TooltipType
-    ) { TT.add(GetLockTooltip(S, Ty, KEY_PREFIX)) }
+    ) { TC.accept(GetLockTooltip(S, Ty, KEY_PREFIX)) }
 
     override fun useOnBlock(Ctx: ItemUsageContext) = UseOnBlock(Ctx)
 
@@ -70,6 +62,7 @@ class KeyItem : Item(
         @JvmField val ID = Id("key")
         @JvmField val COMPONENT_ID = ID
 
+        @JvmField
         val COMPONENT: ComponentType<String> = Registry.register(
             Registries.DATA_COMPONENT_TYPE,
             COMPONENT_ID,
@@ -83,7 +76,7 @@ class KeyItem : Item(
                 Left: ChestBlockEntity,
                 Right: ChestBlockEntity
             ): ChestBlockEntity {
-                if ((Left as LockableBlockEntity).lock != ContainerLock.EMPTY) return Left
+                if ((Left as LockableBlockEntity).IsLocked()) return Left
                 return Right
             }
 
@@ -149,7 +142,7 @@ class KeyItem : Item(
         fun IsChestLocked(BE: BlockEntity): Boolean {
             val W = BE.world ?: return false
             val E = GetLockableEntity(W, BE.pos) ?: return false
-            return E.lock != ContainerLock.EMPTY
+            return E.IsLocked()
         }
 
         /** Run when a key is used on a block. */
@@ -160,22 +153,14 @@ class KeyItem : Item(
 
             // If the block is not locked, do nothing; if it is, and the
             // key doesn’t match, then we fail here.
-            if (BE.lock == ContainerLock.EMPTY) return ActionResult.PASS
-            if (!BE.lock.canOpen(Ctx.stack)) return ActionResult.FAIL
+            val Key = BE.`Nguhcraft$GetLock`() ?: return ActionResult.PASS
+            if (!BE.CheckCanOpen(Ctx.player, Ctx.stack)) return ActionResult.FAIL
 
             // Key matches. Drop the lock and clear it.
             if (W is ServerWorld) {
-                // This could theoretically fail if someone creates a container
-                // lock that uses some other random item predicate, so only drop
-                // a lock if we can extract a stored key.
-                val Key = BE.lock.GetKey()
-                if (Key != null) {
-                    val Lock = LockItem.Create(Key)
-                    Block.dropStack(W, Ctx.blockPos, Lock)
-                }
-
-                // Remove the component from the block entity either way.
-                UpdateLock(BE, ContainerLock.EMPTY)
+                val Lock = LockItem.Create(Key)
+                Block.dropStack(W, Ctx.blockPos, Lock)
+                UpdateLock(BE, null)
             }
 
             W.playSound(

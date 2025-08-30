@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "minecraft:cinnabar_bricks_stairs"
+        "recipe": "nguhcraft:cinnabar_bricks_stairs"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
@@ -26,7 +26,7 @@
   ],
   "rewards": {
     "recipes": [
-      "minecraft:cinnabar_bricks_stairs"
+      "nguhcraft:cinnabar_bricks_stairs"
     ]
   }
 }
