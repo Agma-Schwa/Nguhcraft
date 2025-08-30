@@ -19,7 +19,6 @@ import net.minecraft.registry.RegistryKeys
 import net.minecraft.registry.RegistryWrapper
 import net.minecraft.registry.tag.ItemTags
 import net.minecraft.registry.tag.TagKey
-import org.nguh.nguhcraft.Nguhcraft
 import org.nguh.nguhcraft.Nguhcraft.Companion.Id
 import org.nguh.nguhcraft.block.*
 import org.nguh.nguhcraft.item.KeyDuplicationRecipe
@@ -37,8 +36,9 @@ class NguhcraftRecipeGenerator(
         // =========================================================================
         //  Armour Trims
         // =========================================================================
-        NguhItems.SMITHING_TEMPLATES.forEach { offerSmithingTrimRecipe(
-            it,
+        NguhItems.ALL_NGUHCRAFT_ARMOUR_TRIMS.forEach { offerSmithingTrimRecipe(
+            it.Template,
+            it.Trim,
             RegistryKey.of(RegistryKeys.RECIPE, Id("${getItemPath(it)}_smithing"))
         ) }
 
