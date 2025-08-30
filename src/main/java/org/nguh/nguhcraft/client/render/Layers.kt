@@ -1,12 +1,13 @@
 package org.nguh.nguhcraft.client.render
 
+import com.mojang.blaze3d.vertex.VertexFormat
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
 import net.minecraft.client.render.*
 import net.minecraft.client.render.RenderLayer.*
 import net.minecraft.util.Colors
 import net.minecraft.util.TriState
-
+/*
 @Environment(EnvType.CLIENT)
 class VertexAllocator(private val L: RenderLayer) {
     fun Draw(C: (VertexConsumer) -> Unit) {
@@ -66,3 +67,4 @@ object Layers {
             .build(false)
     ))
 }
+ */

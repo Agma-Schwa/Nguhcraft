@@ -32,7 +32,7 @@ object ServerNetworkHandler {
 
     @JvmStatic fun HandleCommand(Handler: ServerPlayNetworkHandler, Command: String) {
         if (!ValidateIncomingMessage(Command, Handler.player, true)) return
-        Handler.player.server.execute { Chat.ProcessCommand(Handler, Command) }
+        Handler.player.Server.execute { Chat.ProcessCommand(Handler, Command) }
     }
 
     private fun HandleVersionCheck(
@@ -80,7 +80,7 @@ object ServerNetworkHandler {
         SP: ServerPlayerEntity,
         IsCommand: Boolean
     ): Boolean {
-        val S = SP.server
+        val S = SP.Server
 
         // Server is shutting down.
         if (S.isStopped) return false

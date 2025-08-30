@@ -13,16 +13,13 @@ import net.minecraft.entity.LivingEntity
 import net.minecraft.entity.SpawnReason
 import net.minecraft.entity.effect.StatusEffect
 import net.minecraft.entity.effect.StatusEffectInstance
-import net.minecraft.entity.effect.StatusEffects
 import net.minecraft.entity.mob.AbstractPiglinEntity
 import net.minecraft.entity.mob.Monster
 import net.minecraft.entity.passive.IronGolemEntity
 import net.minecraft.entity.passive.VillagerEntity
 import net.minecraft.entity.projectile.ProjectileUtil
 import net.minecraft.entity.projectile.TridentEntity
-import net.minecraft.inventory.ContainerLock
 import net.minecraft.item.ItemStack
-import net.minecraft.nbt.NbtCompound
 import net.minecraft.network.packet.CustomPayload
 import net.minecraft.network.packet.s2c.play.SubtitleS2CPacket
 import net.minecraft.network.packet.s2c.play.TitleS2CPacket
@@ -39,7 +36,6 @@ import net.minecraft.server.world.ServerWorld
 import net.minecraft.text.Text
 import net.minecraft.util.Formatting
 import net.minecraft.util.Hand
-import net.minecraft.util.Identifier
 import net.minecraft.util.hit.HitResult
 import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.Box
@@ -50,21 +46,16 @@ import net.minecraft.world.TeleportTarget
 import net.minecraft.world.World
 import org.nguh.nguhcraft.Constants.MAX_HOMING_DISTANCE
 import org.nguh.nguhcraft.Effects
-import org.nguh.nguhcraft.Nbt
 import org.nguh.nguhcraft.NguhDamageTypes
-import org.nguh.nguhcraft.SyncedGameRule
-import org.nguh.nguhcraft.Utils
 import org.nguh.nguhcraft.Utils.EnchantLvl
 import org.nguh.nguhcraft.accessors.TridentEntityAccessor
-import org.nguh.nguhcraft.block.LockableBlockEntity
 import org.nguh.nguhcraft.enchantment.NguhcraftEnchantments
 import org.nguh.nguhcraft.entity.EntitySpawnManager
+import org.nguh.nguhcraft.item.LockableBlockEntity
 import org.nguh.nguhcraft.network.ClientFlags
 import org.nguh.nguhcraft.protect.ProtectionManager
 import org.nguh.nguhcraft.server.accessors.LivingEntityAccessor
-import org.nguh.nguhcraft.server.accessors.ServerPlayerAccessor
 import org.nguh.nguhcraft.server.dedicated.Discord
-import org.nguh.nguhcraft.set
 import org.slf4j.Logger
 
 /** A TeleportTarget that doesn’t store the world directly and can actually be saved. */
@@ -135,11 +126,10 @@ object ServerUtils {
     fun ActOnPlayerJoin(SP: ServerPlayerEntity) {
         // Sync data with the client.
         val LEA = SP as LivingEntityAccessor
-        val SPA = SP as ServerPlayerAccessor
         Manager.SendAll(SP)
-        SP.SetClientFlag(ClientFlags.BYPASSES_REGION_PROTECTION, SPA.bypassesRegionProtection)
+        SP.SetClientFlag(ClientFlags.BYPASSES_REGION_PROTECTION, SP.Data.BypassesRegionProtection)
         SP.SetClientFlag(ClientFlags.IN_HYPERSHOT_CONTEXT, LEA.hypershotContext != null)
-        SP.SetClientFlag(ClientFlags.VANISHED, SP.IsVanished)
+        SP.SetClientFlag(ClientFlags.VANISHED, SP.Data.Vanished)
     }
 
     /**
@@ -163,13 +153,13 @@ object ServerUtils {
             LOGGER.warn("Player {} tried to leave the border.", SP.displayName!!.string)
         }
 
-        SP.server!!.ProtectionManager.TickRegionsForPlayer(SP)
+        SP.Server.ProtectionManager.TickRegionsForPlayer(SP)
     }
 
     /** Broadcast a join message for a player. */
     @JvmStatic
     fun ActOnPlayerQuit(SP: ServerPlayerEntity, Msg: Text) {
-        SP.server!!.ProtectionManager.TickPlayerQuit(SP)
+        SP.Server.ProtectionManager.TickPlayerQuit(SP)
         SendPlayerJoinQuitMessage(SP, Msg)
     }
 
@@ -215,7 +205,8 @@ object ServerUtils {
 
     /** Check if this server command source has moderator permissions. */
     @JvmStatic
-    fun IsModerator(S: ServerCommandSource) = S.hasPermissionLevel(4) || S.player?.IsModerator == true
+    fun IsModerator(S: ServerCommandSource) =
+        S.hasPermissionLevel(4) || S.player?.Data?.IsModerator == true
 
     /** @return `true` if the entity entered or was already in a hypershot context. */
     @JvmStatic
@@ -343,7 +334,7 @@ object ServerUtils {
     /** Broadcast a join message for a player. */
     @JvmStatic
     fun SendPlayerJoinQuitMessage(SP: ServerPlayerEntity, Msg: Text) {
-        if (!SP.IsVanished) SP.server!!.Broadcast(Msg)
+        if (!SP.Data.Vanished) SP.Server.Broadcast(Msg)
     }
 
     /**
@@ -400,10 +391,10 @@ object ServerUtils {
         return SmeltingResult(Smelted.copyWithCount(I.count), RoundExp(Recipe.experience))
     }
 
-    /** Update the lock on a container. */
-    fun UpdateLock(LE: LockableBlockEntity, NewLock: ContainerLock) {
+    /** Update the lock on a container. Pass null to unlock it. */
+    fun UpdateLock(LE: LockableBlockEntity, NewLock: String?) {
         LE as BlockEntity // Every LockableBlockEntity is a BlockEntity.
-        LE.SetLockInternal(NewLock)
+        LE.`Nguhcraft$SetLockInternal`(NewLock)
         (LE.world as ServerWorld).chunkManager.markForUpdate(LE.pos)
         LE.markDirty()
     }

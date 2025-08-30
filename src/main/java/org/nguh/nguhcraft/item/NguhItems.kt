@@ -4,20 +4,14 @@ import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents
 import net.minecraft.client.data.ItemModelGenerator
 import net.minecraft.client.data.Model
 import net.minecraft.client.data.Models
-import net.minecraft.component.ComponentChanges
 import net.minecraft.component.DataComponentTypes
 import net.minecraft.item.Item
 import net.minecraft.item.ItemGroups
-import net.minecraft.item.ItemStack
 import net.minecraft.item.Items
 import net.minecraft.item.SmithingTemplateItem
 import net.minecraft.item.equipment.trim.ArmorTrimPattern
 import net.minecraft.recipe.SpecialCraftingRecipe.SpecialRecipeSerializer
-import net.minecraft.registry.Registerable
-import net.minecraft.registry.Registries
-import net.minecraft.registry.Registry
-import net.minecraft.registry.RegistryKey
-import net.minecraft.registry.RegistryKeys
+import net.minecraft.registry.*
 import net.minecraft.text.Text
 import net.minecraft.util.Identifier
 import net.minecraft.util.Rarity
@@ -68,20 +62,19 @@ object NguhItems {
     //  Initialisation
     // =========================================================================
     fun BootstrapArmourTrims(R: Registerable<ArmorTrimPattern>) {
-        fun Register(Key: String, I: Item) {
+        fun Register(Key: String) {
             val K = RKey(RegistryKeys.TRIM_PATTERN, Key)
             R.register(K, ArmorTrimPattern(
                 K.value,
-                Registries.ITEM.getEntry(I),
                 Text.translatable(Util.createTranslationKey("trim_pattern", K.value)),
                 false
             ))
         }
 
-        Register("atlantic", ATLANTIC_ARMOUR_TRIM)
-        Register("cenrail", CENRAIL_ARMOUR_TRIM)
-        Register("ice_cold", ICE_COLD_ARMOUR_TRIM)
-        Register("veneficium", VENEFICIUM_ARMOUR_TRIM)
+        Register("atlantic")
+        Register("cenrail")
+        Register("ice_cold")
+        Register("veneficium")
     }
 
     fun BootstrapModels(G: ItemModelGenerator) {
@@ -103,8 +96,6 @@ object NguhItems {
     }
 
     fun Init() {
-        LockPredicate.RunStaticInitialisation()
-
         ItemGroupEvents.modifyEntriesEvent(ItemGroups.FUNCTIONAL).register {
             it.add(LOCK)
             it.add(KEY)

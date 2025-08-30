@@ -8,8 +8,6 @@ import net.minecraft.entity.EquipmentSlot
 import net.minecraft.entity.SpawnReason
 import net.minecraft.entity.mob.MobEntity
 import net.minecraft.nbt.NbtCompound
-import net.minecraft.nbt.NbtElement
-import net.minecraft.nbt.NbtList
 import net.minecraft.network.codec.PacketCodec
 import net.minecraft.network.codec.PacketCodecs
 import net.minecraft.network.packet.CustomPayload
@@ -18,18 +16,21 @@ import net.minecraft.registry.RegistryKeys
 import net.minecraft.server.MinecraftServer
 import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.server.world.ServerWorld
+import net.minecraft.storage.ReadView
+import net.minecraft.storage.WriteView
 import net.minecraft.util.Uuids
 import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.Vec3d
 import net.minecraft.world.World
-import org.nguh.nguhcraft.Decode
-import org.nguh.nguhcraft.Encode
-import org.nguh.nguhcraft.NbtListOf
+import org.nguh.nguhcraft.Named
+import org.nguh.nguhcraft.Read
+import org.nguh.nguhcraft.Write
 import org.nguh.nguhcraft.network.ClientboundSyncSpawnsPacket
+import org.nguh.nguhcraft.server.Data
 import org.nguh.nguhcraft.server.Manager
 import java.util.*
 
-class EntitySpawnManager(val S: MinecraftServer) : Manager("EntitySpawns") {
+class EntitySpawnManager(val S: MinecraftServer) : Manager() {
     /** Spawn data shared between client and server. */
     open class Spawn(
         val World: RegistryKey<World>,
@@ -110,7 +111,7 @@ class EntitySpawnManager(val S: MinecraftServer) : Manager("EntitySpawns") {
             //        for defining entity spawns.
             Sp.Entity = Optional.empty()
             val NewEntity = EntityType.loadEntityWithPassengers(Sp.Nbt.copy(), SW, SpawnReason.SPAWNER) {
-                (it as EntityAccess).`Nguhcraft$SetManagedBySpawnPos`()
+                it.Data.ManagedBySpawnPos = true
                 it.refreshPositionAndAngles(Sp.SpawnPos, 0.0f, 0.0f)
                 it
             }
@@ -133,21 +134,16 @@ class EntitySpawnManager(val S: MinecraftServer) : Manager("EntitySpawns") {
         }
     }
 
-    override fun ReadData(Tag: NbtElement) {
-        if (Tag !is NbtList) return
-        for (Sp in Tag) Add(ServerSpawn.CODEC.Decode(Sp), false) // Don’t try to sync at load time.
-    }
+    override fun ReadData(RV: ReadView) = RV.Read(CODEC).ifPresent(Spawns::addAll)
+    override fun WriteData(WV: WriteView) = WV.Write(CODEC, Spawns)
 
     override fun ToPacket(SP: ServerPlayerEntity): CustomPayload? {
         if (!SP.hasPermissionLevel(4)) return null
         return ClientboundSyncSpawnsPacket(Spawns)
     }
 
-    override fun WriteData() = NbtListOf {
-        for (Sp in Spawns) add(ServerSpawn.CODEC.Encode(Sp))
-    }
-
     companion object {
+        private val CODEC = ServerSpawn.CODEC.listOf().Named("EntitySpawns")
         private val LOGGER = LogUtils.getLogger()
     }
 }

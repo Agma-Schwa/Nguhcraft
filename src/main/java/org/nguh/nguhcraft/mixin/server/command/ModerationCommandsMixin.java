@@ -17,7 +17,7 @@ import java.util.function.Predicate;
 
 /** Set moderator permissions for a bunch of commands.*/
 @Mixin({BanCommand.class, BanIpCommand.class, KickCommand.class, PardonCommand.class, PardonIpCommand.class})
-public abstract class BanCommandMixin {
+public abstract class ModerationCommandsMixin {
     @Redirect(
         method = "register",
         at = @At(

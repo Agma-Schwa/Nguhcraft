@@ -2,10 +2,10 @@ package org.nguh.nguhcraft
 
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
-import net.minecraft.nbt.NbtCompound
-import net.minecraft.nbt.NbtElement
 import net.minecraft.server.MinecraftServer
 import net.minecraft.server.network.ServerPlayerEntity
+import net.minecraft.storage.ReadView
+import net.minecraft.storage.WriteView
 import org.nguh.nguhcraft.network.ClientboundSyncGameRulesPacket
 import org.nguh.nguhcraft.server.Manager
 
@@ -43,27 +43,26 @@ enum class SyncedGameRule(
     fun IsSet() = Value
 
     /** Manager to sync and persist the game rule state. */
-    class ManagerImpl : Manager("SyncedGameRules") {
+    class ManagerImpl : Manager() {
         /** Encode the game rules into a packet. */
         override fun ToPacket(SP: ServerPlayerEntity) = ClientboundSyncGameRulesPacket(entries.fold(0L) { Acc, R ->
             if (R.Value) Acc or R.Flag else Acc
         })
 
         /** Load the rules from disk. */
-        override fun ReadData(Tag: NbtElement) {
-            if (Tag !is NbtCompound) return
-            for (R in entries)
-                if (Tag.contains(R.Name))
-                    R.Value = Tag.getBoolean(R.Name)
+        override fun ReadData(RV: ReadView) = RV.With(KEY) {
+            for (R in entries) R.Value = getBoolean(R.Name, R.Value)
         }
 
         /** Save the rules to disk. */
-        override fun WriteData() = Nbt {
-            for (R in entries) set(R.Name, R.Value)
+        override fun WriteData(WV: WriteView) = WV.With(KEY) {
+            for (R in entries) putBoolean(R.Name, R.Value)
         }
     }
 
     companion object {
+        private const val KEY = "SyncedGameRules"
+
         /** Update the game rules. */
         @JvmStatic
         @Environment(EnvType.CLIENT)

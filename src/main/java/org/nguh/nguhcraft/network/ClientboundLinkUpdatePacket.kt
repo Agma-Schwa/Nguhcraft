@@ -6,7 +6,7 @@ import net.minecraft.network.RegistryByteBuf
 import net.minecraft.network.packet.CustomPayload
 import net.minecraft.server.network.ServerPlayerEntity
 import org.nguh.nguhcraft.Utils
-import org.nguh.nguhcraft.server.accessors.ServerPlayerDiscordAccessor
+import org.nguh.nguhcraft.server.Data
 import java.util.*
 
 data class ClientboundLinkUpdatePacket(
@@ -39,9 +39,9 @@ data class ClientboundLinkUpdatePacket(
     constructor(SP: ServerPlayerEntity) : this(
         SP.uuid,
         SP.nameForScoreboard,
-        (SP as ServerPlayerDiscordAccessor).discordColour,
-        SP.discordName ?: "",
-        SP.isLinked
+        SP.Data.DiscordColour,
+        SP.Data.DiscordName,
+        SP.Data.IsLinked
     )
 
     private fun Write(buf: RegistryByteBuf) {

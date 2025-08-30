@@ -3,9 +3,15 @@ package org.nguh.nguhcraft.server
 import com.mojang.serialization.Codec
 import com.mojang.serialization.codecs.RecordCodecBuilder
 import net.minecraft.server.network.ServerPlayerEntity
+import net.minecraft.storage.ReadView
+import net.minecraft.storage.WriteView
 import net.minecraft.text.Text
+import org.nguh.nguhcraft.Named
+import org.nguh.nguhcraft.Read
+import org.nguh.nguhcraft.Write
 import java.util.*
 import kotlin.jvm.optionals.getOrNull
+import kotlin.text.ifEmpty
 
 /**
  * Custom data saved with players.
@@ -48,7 +54,12 @@ class PlayerData {
     /** If this player is linked, their Discord avatar. */
     var DiscordAvatar: String = ""
 
-    /** The scoreboard name recorded the last time the player was on the server. */
+    /**
+     * The scoreboard name recorded the last time the player was on the server.
+     *
+     * There no longer is a way to get a player’s name from their UUID (thanks
+     * a lot for that, Mojang), so we have to store it ourselves.
+     */
     var LastKnownMinecraftName: String = ""
 
     /** If this player is linked, their Discord display name. */
@@ -60,9 +71,11 @@ class PlayerData {
     /** Whether this player is linked. */
     val IsLinked get() = DiscordId != 0L
 
+    /** Serialise. */
+    fun Save(WV: WriteView) = WV.Write(CODEC, this)
+
     companion object {
-        @JvmField val TAG_ROOT: String = "Nguhcraft"
-        @JvmField val CODEC: Codec<PlayerData> = RecordCodecBuilder.create {
+        private val CODEC = RecordCodecBuilder.create {
             it.group(
                 Codec.BOOL.optionalFieldOf("Vanished", false).forGetter(PlayerData::Vanished),
                 Codec.BOOL.optionalFieldOf("IsModerator", false).forGetter(PlayerData::IsModerator),
@@ -92,7 +105,10 @@ class PlayerData {
                     it.LastKnownMinecraftName = LastName
                 }
             }
-        }
+        }.Named("Nguhcraft")
+
+        @JvmStatic
+        fun Load(RV: ReadView) = RV.Read(CODEC)
     }
 }
 

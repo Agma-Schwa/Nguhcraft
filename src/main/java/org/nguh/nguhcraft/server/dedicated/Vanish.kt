@@ -15,7 +15,8 @@ import net.minecraft.text.Text
 import net.minecraft.util.Formatting
 import org.nguh.nguhcraft.network.ClientFlags
 import org.nguh.nguhcraft.server.Broadcast
-import org.nguh.nguhcraft.server.IsVanished
+import org.nguh.nguhcraft.server.Data
+import org.nguh.nguhcraft.server.Server
 import org.nguh.nguhcraft.server.SetClientFlag
 
 /**
@@ -42,14 +43,14 @@ object Vanish {
     */
     @JvmStatic
     fun BroadcastIfNotVanished(SP: ServerPlayerEntity, Packet: CustomPayload) {
-        if (SP.IsVanished) ServerPlayNetworking.send(SP, Packet)
-        else SP.server.Broadcast(Packet)
+        if (SP.Data.Vanished) ServerPlayNetworking.send(SP, Packet)
+        else SP.Server.Broadcast(Packet)
     }
 
     @JvmStatic
     fun BroadcastIfNotVanished(SP: ServerPlayerEntity, Packet: Packet<*>) {
-        if (SP.IsVanished) SP.networkHandler.sendPacket(Packet)
-        else SP.server.Broadcast(Packet)
+        if (SP.Data.Vanished) SP.networkHandler.sendPacket(Packet)
+        else SP.Server.Broadcast(Packet)
     }
 
     @JvmStatic
@@ -74,7 +75,7 @@ object Vanish {
             // If we can’t get the profile here, then something probably went wrong
             // so send the player anyway.
             val SP = S.playerManager.getPlayer(it.profileId)
-            SP == null || !SP.IsVanished
+            SP == null || !SP.Data.Vanished
         }
 
         // If that had no effect, keep the same packet.
@@ -88,16 +89,16 @@ object Vanish {
     }
 
     @JvmStatic
-    fun IsVanished(SP: ServerPlayerEntity): Boolean = SP.IsVanished
+    fun IsVanished(SP: ServerPlayerEntity): Boolean = SP.Data.Vanished
 
     fun Toggle(SP: ServerPlayerEntity) {
         // Toggle this first since some of the code below depends on it
         // having the correct value.
-        SP.IsVanished = !SP.IsVanished
+        SP.Data.Vanished = !SP.Data.Vanished
 
         // And then broadcast the appropriate packets.
-        if (!SP.IsVanished) ShowPlayer(SP) else HidePlayer(SP)
-        SP.SetClientFlag(ClientFlags.VANISHED, SP.IsVanished)
+        if (!SP.Data.Vanished) ShowPlayer(SP) else HidePlayer(SP)
+        SP.SetClientFlag(ClientFlags.VANISHED, SP.Data.Vanished)
     }
 
     private fun HidePlayer(SP: ServerPlayerEntity) {
@@ -109,10 +110,10 @@ object Vanish {
         SP.detach()
 
         // Broadcast the packet to all players.
-        SP.server.Broadcast(SP, P)
+        SP.Server.Broadcast(SP, P)
 
         // As well as a fake quit message.
-        SP.server.Broadcast(Text.translatable("multiplayer.player.left", SP.displayName).formatted(Formatting.YELLOW))
+        SP.Server.Broadcast(Text.translatable("multiplayer.player.left", SP.displayName).formatted(Formatting.YELLOW))
         Discord.BroadcastJoinQuitMessageImpl(SP, false)
     }
 
@@ -120,7 +121,7 @@ object Vanish {
         val P = PlayerListS2CPacket.entryFromPlayer(listOf(SP))
 
         // Broadcast the packet to all players.
-        SP.server.Broadcast(SP, P)
+        SP.Server.Broadcast(SP, P)
 
         // Also re-send this player’s Discord name to everyone in case this
         // player joined while vanished (or if a player joined while they
@@ -130,6 +131,6 @@ object Vanish {
         Discord.BroadcastClientStateOnJoin(SP)
 
         // Also send out a fake join message.
-        SP.server.Broadcast(Text.translatable("multiplayer.player.joined", SP.displayName).formatted(Formatting.YELLOW))
+        SP.Server.Broadcast(Text.translatable("multiplayer.player.joined", SP.displayName).formatted(Formatting.YELLOW))
     }
 }

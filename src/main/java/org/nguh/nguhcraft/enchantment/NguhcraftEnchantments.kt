@@ -1,13 +1,8 @@
 package org.nguh.nguhcraft.enchantment
 
-import net.minecraft.component.EnchantmentEffectComponentTypes
-import net.minecraft.component.type.AttributeModifierSlot
 import net.minecraft.enchantment.Enchantment
-import net.minecraft.enchantment.Enchantments
-import net.minecraft.registry.Registerable
 import net.minecraft.registry.RegistryKey
 import net.minecraft.registry.RegistryKeys
-import net.minecraft.registry.tag.ItemTags
 import org.nguh.nguhcraft.Nguhcraft.Companion.Id
 
 object NguhcraftEnchantments {

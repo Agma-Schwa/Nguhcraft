@@ -159,6 +159,6 @@ object Treasures {
             = apply { it.set(type, value) }
 
         /** Make this item stack unbreakable. */
-        fun unbreakable() = set(DataComponentTypes.UNBREAKABLE, UnbreakableComponent(true))
+        fun unbreakable() = set(DataComponentTypes.UNBREAKABLE, net.minecraft.util.Unit.INSTANCE)
     }
 }

@@ -9,6 +9,8 @@ import net.minecraft.server.MinecraftServer
 import net.minecraft.server.command.ServerCommandSource
 import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.server.world.ServerWorld
+import net.minecraft.storage.ReadView
+import net.minecraft.storage.WriteView
 import net.minecraft.text.MutableText
 import net.minecraft.text.Text
 import net.minecraft.util.Formatting
@@ -18,7 +20,6 @@ import org.nguh.nguhcraft.*
 import org.nguh.nguhcraft.network.ClientboundSyncProtectionMgrPacket
 import org.nguh.nguhcraft.protect.ProtectionManager
 import org.nguh.nguhcraft.protect.Region
-import org.nguh.nguhcraft.server.accessors.ServerPlayerAccessor
 import java.util.*
 
 /** Used to signal that a region’s properties are invalid. */
@@ -90,7 +91,7 @@ class ServerRegion(
             SP.server,
             SP.pos,
             SP.rotationClient,
-            SP.serverWorld,
+            SP.world,
             RegionTrigger.PERMISSION_LEVEL,
             "Region Trigger",
             REGION_TRIGGER_TEXT,
@@ -106,7 +107,7 @@ class ServerRegion(
             Path.append("\n    Invoked by player '").append(SP.displayName)
                 .append("':\n    ").append(E.message ?: "Unknown error")
             S.sendError(Path)
-            SP.server.BroadcastToOperators(Path.formatted(Formatting.RED))
+            S.server?.BroadcastToOperators(Path.formatted(Formatting.RED))
         }
     }
 
@@ -372,7 +373,7 @@ class ServerProtectionManager(private val S: MinecraftServer) : ProtectionManage
 
     /** Check if this player bypasses region protection. */
     override fun _BypassesRegionProtection(PE: PlayerEntity) =
-        (PE as ServerPlayerAccessor).bypassesRegionProtection
+        (PE as ServerPlayerEntity).Data.BypassesRegionProtection
 
     /**
      * This function is the intended way to delete a region from a world.
@@ -395,29 +396,23 @@ class ServerProtectionManager(private val S: MinecraftServer) : ProtectionManage
      *
      * The existing list of regions is cleared.
      */
-    override fun ReadData(Tag: NbtElement) {
-        if (Tag !is NbtCompound) return
-        for (K in Tag.keys) {
-            try {
-                val Key = Utils.DeserialiseWorld(K)
-                val List = ServerRegionListFor(Key)
-                val Regions = Tag.getList(K, NbtElement.COMPOUND_TYPE.toInt())
-                for (R in Regions) List.Add(ServerRegion(S, Key, Region.CODEC.Decode(R as NbtCompound)))
-            } catch (E: Exception) {
-                LOGGER.error("Failed to deserialise regions for world '$K': ${E.message}", E)
-            }
+    override fun ReadData(RV: ReadView) = RV.With(KEY) {
+        for (SW in S.worlds) {
+            val Key = SW.registryKey
+            val List = ServerRegionListFor(Key)
+            read(Utils.SerialiseWorldToString(Key), LIST_CODEC).ifPresent { it.forEach {
+                List.Add(ServerRegion(S, Key, it))
+            } }
         }
     }
 
     /** Save regions to a tag. */
-    override fun WriteData() = Nbt {
-        for (W in S.worlds) {
-            val Key = Utils.SerialiseWorldToString(W.registryKey)
-            set(Key, NbtListOf {
-                for (R in ServerRegionListFor(W.registryKey))
-                    add(Region.CODEC.Encode(R))
-            })
-        }
+    override fun WriteData(WV: WriteView) = WV.With(KEY) {
+        for (W in S.worlds) put(
+            Utils.SerialiseWorldToString(W.registryKey),
+            LIST_CODEC,
+            ServerRegionListFor(W.registryKey).Regions
+        )
     }
 
     /** Get the region list for a world. */
@@ -430,7 +425,7 @@ class ServerProtectionManager(private val S: MinecraftServer) : ProtectionManage
     /** Fire events that need to happen when a player leaves the server. */
     fun TickPlayerQuit(SP: ServerPlayerEntity) {
         Profilers.get().push("Nguhcraft: Region tick")
-        for (R in RegionListFor(SP.serverWorld)) R.TickPlayer(SP, InRegion = false)
+        for (R in RegionListFor(SP.world)) R.TickPlayer(SP, InRegion = false)
     }
 
     /**
@@ -444,12 +439,14 @@ class ServerProtectionManager(private val S: MinecraftServer) : ProtectionManage
         Profilers.get().push("Nguhcraft: Region tick")
 
         // Tick all regions.
-        for (R in RegionListFor(SP.serverWorld)) R.TickPlayer(SP)
+        for (R in RegionListFor(SP.world)) R.TickPlayer(SP)
 
         Profilers.get().pop()
     }
 
     companion object {
         val LOGGER = LogUtils.getLogger()
+        val KEY = "Regions"
+        val LIST_CODEC = Region.CODEC.listOf()
     }
 }

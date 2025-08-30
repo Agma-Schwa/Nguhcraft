@@ -14,6 +14,7 @@ import net.minecraft.command.argument.*
 import net.minecraft.command.argument.RegistryEntryReferenceArgumentType
 import net.minecraft.command.argument.serialize.ConstantArgumentSerializer
 import net.minecraft.component.DataComponentTypes
+import net.minecraft.component.type.TooltipDisplayComponent
 import net.minecraft.enchantment.Enchantment
 import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityType
@@ -52,8 +53,6 @@ import org.nguh.nguhcraft.protect.TeleportResult
 import org.nguh.nguhcraft.server.*
 import org.nguh.nguhcraft.server.ServerUtils.IsIntegratedServer
 import org.nguh.nguhcraft.server.ServerUtils.StrikeLightning
-import org.nguh.nguhcraft.server.accessors.ServerPlayerAccessor
-import org.nguh.nguhcraft.server.accessors.ServerPlayerDiscordAccessor
 import org.nguh.nguhcraft.server.dedicated.Vanish
 
 fun ServerCommandSource.Error(Msg: String?) = sendError(Text.of(Msg))
@@ -69,7 +68,7 @@ fun ServerCommandSource.Success(Msg: Text) = Success(Text.empty().append(Msg))
 fun ServerCommandSource.Success(Msg: MutableText) = sendMessage(Msg.formatted(Formatting.GREEN))
 
 val ServerCommandSource.HasModeratorPermissions: Boolean get() =
-    hasPermissionLevel(4) || (isExecutedByPlayer && playerOrThrow.IsModerator)
+    hasPermissionLevel(4) || (isExecutedByPlayer && playerOrThrow.Data.IsModerator)
 
 fun ReplyMsg(Msg: String): Text = Text.literal(Msg).formatted(Formatting.YELLOW)
 
@@ -144,9 +143,8 @@ object Commands {
         private val ERR_NO_TARGET = Exn("No saved target to teleport back to!")
 
         fun Teleport(SP: ServerPlayerEntity): Int {
-            val Pos = (SP as ServerPlayerAccessor).lastPositionBeforeTeleport
-            if (Pos == null) throw ERR_NO_TARGET.create()
-            SP.Teleport(Pos, true)
+            val Pos = SP.Data.LastPositionBeforeTeleport ?: throw ERR_NO_TARGET.create()
+            SP.Teleport(Pos.Instantiate(SP.Server), true)
             return 1
         }
     }
@@ -156,9 +154,8 @@ object Commands {
         private val NOT_BYPASSING = ReplyMsg("No longer bypassing region protection.")
 
         fun Toggle(S: ServerCommandSource, SP: ServerPlayerEntity): Int {
-            val A = SP as ServerPlayerAccessor
-            val NewState = !A.bypassesRegionProtection
-            A.bypassesRegionProtection = NewState
+            val NewState = !SP.Data.BypassesRegionProtection
+            SP.Data.BypassesRegionProtection = NewState
             SP.SetClientFlag(ClientFlags.BYPASSES_REGION_PROTECTION, NewState)
             S.sendMessage(if (NewState) BYPASSING else NOT_BYPASSING)
             return 1
@@ -242,9 +239,7 @@ object Commands {
         }
 
         fun FixAll(S: ServerCommandSource, SP: ServerPlayerEntity): Int {
-            for (St in SP.inventory.main) FixStack(St)
-            for (St in SP.inventory.armor) FixStack(St)
-            FixStack(SP.inventory.offHand[0])
+            for (St in SP.inventory.mainStacks) FixStack(St)
             S.sendMessage(FIXED_ALL)
             return 1
         }
@@ -252,7 +247,7 @@ object Commands {
         private fun FixStack(St: ItemStack) {
             if (St.isEmpty) return
             St.remove(DataComponentTypes.LORE)
-            St.remove(DataComponentTypes.HIDE_TOOLTIP)
+            St.set(DataComponentTypes.TOOLTIP_DISPLAY, TooltipDisplayComponent.DEFAULT)
         }
     }
 
@@ -266,13 +261,13 @@ object Commands {
 
         fun Delete(S: ServerCommandSource, SP: ServerPlayerEntity, H: Home): Int {
             if (H.Name == Home.BED_HOME) throw CANT_TOUCH_THIS.create()
-            (SP as ServerPlayerAccessor).Homes().remove(H)
+            SP.Data.Homes.remove(H)
             S.Reply(Text.literal("Deleted home ").append(Text.literal(H.Name).formatted(Formatting.AQUA)))
             return 1
         }
 
         fun DeleteDefault(S: ServerCommandSource, SP: ServerPlayerEntity): Int {
-            val H = (SP as ServerPlayerAccessor).Homes().find { it.Name == Home.DEFAULT_HOME }?: return 0
+            val H = SP.Data.Homes.find { it.Name == Home.DEFAULT_HOME }?: return 0
             return Delete(S, SP, H)
         }
 
@@ -290,7 +285,7 @@ object Commands {
                 .append("]")
 
         fun List(S: ServerCommandSource, SP: ServerPlayerEntity): Int {
-            val Homes = (SP as ServerPlayerAccessor).Homes()
+            val Homes = SP.Data.Homes
             if (Homes.isEmpty()) {
                 S.sendMessage(NO_HOMES)
                 return 0
@@ -306,7 +301,7 @@ object Commands {
         fun Set(S: ServerCommandSource, SP: ServerPlayerEntity, RawName: String): Int {
             val (TargetPlayer, Name) = HomeArgumentType.MapOrThrow(SP, RawName)
             if (Name == Home.BED_HOME) throw CANT_TOUCH_THIS.create()
-            val Homes = (TargetPlayer as ServerPlayerAccessor).Homes()
+            val Homes = SP.Data.Homes
 
             // If this region doesn’t allow entry by teleport, then setting a home here makes
             // no sense as we can’t use it, which might not be obvious to people.
@@ -332,7 +327,7 @@ object Commands {
         }
 
         fun Teleport(SP: ServerPlayerEntity, H: Home): Int {
-            val World = SP.server.getWorld(H.World)!!
+            val World = SP.Server.getWorld(H.World)!!
             when (ProtectionManager.GetTeleportResult(SP, World, H.Pos)) {
                 TeleportResult.ENTRY_DISALLOWED -> throw CANT_ENTER.create(H.Name)
                 TeleportResult.EXIT_DISALLOWED -> throw CANT_LEAVE.create(H.Name)
@@ -344,7 +339,7 @@ object Commands {
         }
 
         fun TeleportToDefault(SP: ServerPlayerEntity): Int {
-            val H = (SP as ServerPlayerAccessor).Homes().firstOrNull() ?: Home.Bed(SP)
+            val H = SP.Data.Homes.firstOrNull() ?: Home.Bed(SP)
             return Teleport(SP, H)
         }
     }
@@ -751,7 +746,7 @@ object Commands {
         }
 
         fun Set(S: ServerCommandSource, SP: ServerPlayerEntity, Name: String): Int {
-            val W = WarpManager.Warp(Name, SP.serverWorld.registryKey, SP.pos.x, SP.pos.y, SP.pos.z, SP.yaw, SP.pitch)
+            val W = WarpManager.Warp(Name, SP.world.registryKey, SP.pos.x, SP.pos.y, SP.pos.z, SP.yaw, SP.pitch)
             S.server.WarpManager.Warps[Name] = W
             S.Reply(Text.literal("Set warp ").append(FormatWarp(W)))
             return 1
@@ -924,7 +919,7 @@ object Commands {
             )
         )
         .then(literal("link")
-            .requires { it.entity is ServerPlayerEntity && !(it.entity as ServerPlayerDiscordAccessor).isLinked }
+            .requires { it.isExecutedByPlayer && !(it.entity as ServerPlayerEntity).Data.IsLinked }
             .then(argument("id", LongArgumentType.longArg())
                 .executes {
                     org.nguh.nguhcraft.server.dedicated.DiscordCommand.TryLink(
@@ -960,7 +955,7 @@ object Commands {
                 }
             )
             .requires {
-                (it.entity is ServerPlayerEntity && (it.entity as ServerPlayerDiscordAccessor).isLinked) ||
+                (it.isExecutedByPlayer && (it.entity as ServerPlayerEntity).Data.IsLinked) ||
                 it.hasPermissionLevel(4)
             }
             .executes {
@@ -1073,10 +1068,10 @@ object Commands {
             .executes {
                 val S = it.source
                 val SP = EntityArgumentType.getPlayer(it, "player")
-                SP.IsModerator = !SP.IsModerator
+                SP.Data.IsModerator = !SP.Data.IsModerator
                 S.server.commandManager.sendCommandTree(SP)
                 S.sendMessage(
-                    Text.literal("Player '${SP.displayName?.string}' is ${if (SP.IsModerator) "now" else "no longer"} a moderator")
+                    Text.literal("Player '${SP.displayName?.string}' is ${if (SP.Data.IsModerator) "now" else "no longer"} a moderator")
                     .formatted(Formatting.YELLOW)
                 )
                 1
@@ -1411,9 +1406,9 @@ object Commands {
         .requires { it.isExecutedByPlayer && it.hasPermissionLevel(4) }
         .executes {
             val SP = it.source.playerOrThrow
-            SP.IsSubscribedToConsole = !SP.IsSubscribedToConsole
+            SP.Data.IsSubscribedToConsole = !SP.Data.IsSubscribedToConsole
             it.source.sendMessage(Text.literal(
-                "You are ${if (SP.IsSubscribedToConsole) "now" else "no longer"} receiving console messages"
+                "You are ${if (SP.Data.IsSubscribedToConsole) "now" else "no longer"} receiving console messages"
             ).formatted(Formatting.YELLOW))
             1
         }
@@ -1422,7 +1417,7 @@ object Commands {
         .requires { it.hasPermissionLevel(4) && it.isExecutedByPlayer }
         .executes {
             val SP = it.source.playerOrThrow
-            val SW = SP.serverWorld
+            val SW = SP.world
             val TopY = SW.getTopY(Heightmap.Type.WORLD_SURFACE, SP.x.toInt(), SP.z.toInt()) - 1
 
             // Make sure this doesn’t put us in the void.
@@ -1462,7 +1457,7 @@ object Commands {
             val SP = it.source.playerOrThrow
             Vanish.Toggle(SP)
             it.source.sendMessage(Text.literal(
-                "You are ${if (SP.IsVanished) "now" else "no longer"} vanished"
+                "You are ${if (SP.Data.Vanished) "now" else "no longer"} vanished"
             ).formatted(Formatting.YELLOW))
             1
         }
@@ -1474,7 +1469,7 @@ object Commands {
             .executes {
                 val W = WarpArgumentType.Resolve(it, "warp")
                 val SP = it.source.playerOrThrow
-                SP.Teleport(SP.server.getWorld(W.World)!!, W.Pos, W.Yaw, W.Pitch, true)
+                SP.Teleport(SP.Server.getWorld(W.World)!!, W.Pos, W.Yaw, W.Pitch, true)
                 1
             }
         )

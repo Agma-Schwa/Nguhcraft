@@ -55,13 +55,13 @@ public abstract class ServerPlayerMixin extends PlayerEntity implements PlayerDa
     /** Save Nbt data to the player file. */
     @Inject(method = "writeCustomData", at = @At("TAIL"))
     private void inject$saveData(WriteView WV, CallbackInfo CI) {
-        WV.put(PlayerData.TAG_ROOT, PlayerData.CODEC, Data);
+        Data.Save(WV);
     }
 
     /** Read Nbt data from the player file. */
     @Inject(method = "readCustomData", at = @At("TAIL"))
     private void inject$saveData(ReadView RV, CallbackInfo CI) {
-        RV.read(PlayerData.TAG_ROOT, PlayerData.CODEC).ifPresent(D -> Data = D);
+        PlayerData.Load(RV).ifPresent(D -> Data = D);
     }
 
     /**

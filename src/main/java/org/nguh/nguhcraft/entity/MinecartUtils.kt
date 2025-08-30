@@ -8,7 +8,6 @@ import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.server.world.ServerWorld
 import net.minecraft.sound.SoundEvents
 import org.nguh.nguhcraft.NguhDamageTypes
-import org.nguh.nguhcraft.mapIf
 import kotlin.math.abs
 
 object MinecartUtils {

@@ -2,16 +2,19 @@ package org.nguh.nguhcraft.server
 
 import com.mojang.serialization.Codec
 import com.mojang.serialization.codecs.RecordCodecBuilder
-import net.minecraft.nbt.NbtElement
 import net.minecraft.registry.RegistryKey
 import net.minecraft.registry.RegistryKeys
 import net.minecraft.server.MinecraftServer
+import net.minecraft.storage.ReadView
+import net.minecraft.storage.WriteView
 import net.minecraft.util.math.Vec3d
 import net.minecraft.world.World
-import org.nguh.nguhcraft.Decode
 import org.nguh.nguhcraft.Encode
+import org.nguh.nguhcraft.Named
+import org.nguh.nguhcraft.Read
+import org.nguh.nguhcraft.Write
 
-class WarpManager : Manager("Warps") {
+class WarpManager : Manager() {
     /** A single warp. */
     data class Warp(
         val Name: String,
@@ -42,13 +45,17 @@ class WarpManager : Manager("Warps") {
     val Warps = mutableMapOf<String, Warp>()
 
     /** Load warps from save file. */
-    override fun ReadData(Tag: NbtElement) { Warps.putAll(CODEC.Decode(Tag).associateBy { it.Name }) }
+    override fun ReadData(RV: ReadView) {
+        RV.Read(CODEC).ifPresent {
+            Warps.putAll(it.associateBy { it.Name })
+        }
+    }
 
     /** Save warps to save file. */
-    override fun WriteData() = CODEC.Encode(Warps.values.toList())
+    override fun WriteData(WV: WriteView) = WV.Write(CODEC, Warps.values.toList())
 
     companion object {
-        val CODEC = Warp.CODEC.listOf()
+        val CODEC = Warp.CODEC.listOf().Named("Warps")
     }
 }
 
