@@ -1,5 +1,6 @@
 package org.nguh.nguhcraft.item
 
+import com.mojang.logging.LogUtils
 import net.minecraft.component.DataComponentTypes
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.item.ItemStack
@@ -73,6 +74,10 @@ fun LockableBlockEntity.CheckCanOpen(PE: PlayerEntity?, Key: ItemStack): Boolean
     return false
 }
 
+object LockDeserialisation {
+    val LOGGER = LogUtils.getLogger()
+}
+
 /** Extract a container lock from saved data. */
 fun DeserialiseLock(RV: ReadView, PreferredKey: String = "Lock"): String? {
     // I’m done dealing with stupid data fixer nonsense to try and
@@ -94,9 +99,20 @@ fun DeserialiseLock(RV: ReadView, PreferredKey: String = "Lock"): String? {
     //
     // Do not use SetLock() here as that will crash during loading.
     return RV.getOptionalString(PreferredKey).or {
-        RV.getReadView("lock")
+        val LegacyLock = RV.getReadView("lock")
             .getReadView("predicates")
             .getOptionalString("nguhcraft:lock_predicate")
+
+        // Report whether we managed to extract the lock if there was one.
+        if (RV.contains("lock")) {
+            LegacyLock.ifPresentOrElse({
+                LockDeserialisation.LOGGER.info("Successfully parsed legacy lock '{}'. Disregard warning below.", it)
+            }) {
+                LockDeserialisation.LOGGER.error("Failed to parse legacy lock")
+            }
+        }
+
+        LegacyLock
     }.getOrNull()
 }
 
