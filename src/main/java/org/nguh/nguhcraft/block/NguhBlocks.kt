@@ -39,7 +39,7 @@ enum class ChestVariant : StringIdentifiable {
     override fun asString() = name.lowercase()
 
     companion object {
-        val BY_ID: IntFunction<ChestVariant> = ValueLists.createIdToValueFunction(
+        val BY_ID: IntFunction<ChestVariant> = ValueLists.createIndexToValueFunction(
             ChestVariant::ordinal,
             entries.toTypedArray(),
             ValueLists.OutOfBoundsHandling.ZERO
@@ -73,6 +73,124 @@ object NguhBlocks {
 
     // All vertical slabs; this has to be declared before our custom block families.
     val VERTICAL_SLABS: List<VerticalSlabBlock> = mutableListOf()
+
+    // =========================================================================
+    //  Brocade Blocks
+    // =========================================================================
+    val BROCADE_WHITE = Register(
+        "brocade_white",
+        ::Block,
+        AbstractBlock.Settings.copy(Blocks.WHITE_WOOL)
+    )
+
+    val BROCADE_LIGHT_GREY = Register(
+        "brocade_light_grey",
+        ::Block,
+        AbstractBlock.Settings.copy(Blocks.LIGHT_GRAY_WOOL)
+    )
+
+    val BROCADE_GREY = Register(
+        "brocade_grey",
+        ::Block,
+        AbstractBlock.Settings.copy(Blocks.GRAY_WOOL)
+    )
+
+    val BROCADE_BLACK = Register(
+        "brocade_black",
+        ::Block,
+        AbstractBlock.Settings.copy(Blocks.BLACK_WOOL)
+    )
+
+    val BROCADE_BROWN = Register(
+        "brocade_brown",
+        ::Block,
+        AbstractBlock.Settings.copy(Blocks.BROWN_WOOL)
+    )
+
+    val BROCADE_RED = Register(
+        "brocade_red",
+        ::Block,
+        AbstractBlock.Settings.copy(Blocks.RED_WOOL)
+    )
+
+    val BROCADE_ORANGE = Register(
+        "brocade_orange",
+        ::Block,
+        AbstractBlock.Settings.copy(Blocks.ORANGE_WOOL)
+    )
+
+    val BROCADE_YELLOW = Register(
+        "brocade_yellow",
+        ::Block,
+        AbstractBlock.Settings.copy(Blocks.YELLOW_WOOL)
+    )
+
+    val BROCADE_LIME = Register(
+        "brocade_lime",
+        ::Block,
+        AbstractBlock.Settings.copy(Blocks.LIME_WOOL)
+    )
+
+    val BROCADE_GREEN = Register(
+        "brocade_green",
+        ::Block,
+        AbstractBlock.Settings.copy(Blocks.GREEN_WOOL)
+    )
+
+    val BROCADE_CYAN = Register(
+        "brocade_cyan",
+        ::Block,
+        AbstractBlock.Settings.copy(Blocks.CYAN_WOOL)
+    )
+
+    val BROCADE_LIGHT_BLUE = Register(
+        "brocade_light_blue",
+        ::Block,
+        AbstractBlock.Settings.copy(Blocks.LIGHT_BLUE_WOOL)
+    )
+
+    val BROCADE_BLUE = Register(
+        "brocade_blue",
+        ::Block,
+        AbstractBlock.Settings.copy(Blocks.BLUE_WOOL)
+    )
+
+    val BROCADE_PURPLE = Register(
+        "brocade_purple",
+        ::Block,
+        AbstractBlock.Settings.copy(Blocks.PURPLE_WOOL)
+    )
+
+    val BROCADE_MAGENTA = Register(
+        "brocade_magenta",
+        ::Block,
+        AbstractBlock.Settings.copy(Blocks.MAGENTA_WOOL)
+    )
+
+    val BROCADE_PINK = Register(
+        "brocade_pink",
+        ::Block,
+        AbstractBlock.Settings.copy(Blocks.PINK_WOOL)
+    )
+
+    val ALL_BROCADE_BLOCKS = arrayOf(
+        BROCADE_BLACK,
+        BROCADE_BLUE,
+        BROCADE_BROWN,
+        BROCADE_CYAN,
+        BROCADE_GREEN,
+        BROCADE_GREY,
+        BROCADE_LIGHT_BLUE,
+        BROCADE_LIGHT_GREY,
+        BROCADE_LIME,
+        BROCADE_MAGENTA,
+        BROCADE_ORANGE,
+        BROCADE_PINK,
+        BROCADE_PURPLE,
+        BROCADE_RED,
+        BROCADE_WHITE,
+        BROCADE_YELLOW,
+    )
 
     // =========================================================================
     //  Miscellaneous Blocks
@@ -612,6 +730,7 @@ object NguhBlocks {
         STRIPPED_TINTED_OAK_WOOD,
     ).also {
         it.addAll(CHAINS_AND_LANTERNS.flatten())
+        it.addAll(ALL_BROCADE_BLOCKS)
 
         // Slabs may drop 2 or 1 and are thus handled separately.
         it.addAll(ALL_VARIANT_FAMILY_BLOCKS.filter { it !is SlabBlock })
@@ -643,6 +762,7 @@ object NguhBlocks {
             it.add(STRIPPED_TINTED_OAK_WOOD)
             for (B in ALL_VARIANT_FAMILY_BLOCKS) it.add(B)
             for (B in VERTICAL_SLABS) it.add(B)
+            for (B in ALL_BROCADE_BLOCKS) it.add(B)
         }
 
         ItemGroupEvents.modifyEntriesEvent(ItemGroups.FUNCTIONAL).register {

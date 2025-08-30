@@ -9,6 +9,8 @@ import net.minecraft.nbt.NbtElement
 import net.minecraft.server.MinecraftServer
 import net.minecraft.server.command.ServerCommandSource
 import net.minecraft.server.network.ServerPlayerEntity
+import net.minecraft.storage.ReadView
+import net.minecraft.storage.WriteView
 import net.minecraft.text.ClickEvent
 import net.minecraft.text.MutableText
 import net.minecraft.text.Text
@@ -132,10 +134,7 @@ object MCBASIC {
                     Text.literal(S)
                     .formatted(Formatting.AQUA)
                     .styled { it.withClickEvent(
-                        ClickEvent(
-                            ClickEvent.Action.SUGGEST_COMMAND,
-                            "/procedure set $Name $I $S"
-                        )
+                        ClickEvent.SuggestCommand("/procedure set $Name $I $S")
                     )
                 })
             }
@@ -185,7 +184,7 @@ object MCBASIC {
     }
 
     /** Helper that manages procedure storage. */
-    class ProcedureManager(private val S: MinecraftServer): Manager("Procedures") {
+    class ProcedureManager(private val S: MinecraftServer): Manager() {
         /**
          * Save directory.
          *
@@ -248,7 +247,7 @@ object MCBASIC {
         fun GetOrCreateManaged(Name: String) = GetOrCreateImpl(Name, true)
 
         /** Load stored procedures. */
-        override fun ReadData(Tag: NbtElement) {
+        override fun ReadData(RV: ReadView) {
             SaveDir = S.getSavePath(WorldSavePath.ROOT).resolve("nguhcraft").resolve("procedures")
             if (SaveDir == null || !SaveDir!!.exists()) return
             val Dir = SaveDir!!.toFile()
@@ -269,8 +268,8 @@ object MCBASIC {
          *
          * Empty procedures are not saved.
          */
-        override fun WriteData(): NbtElement? {
-            if (SaveDir == null) return null
+        override fun WriteData(WV: WriteView) {
+            if (SaveDir == null) return
             val Dir = SaveDir!!.toFile()
             Dir.mkdirs()
             for (Proc in LoadedProcs.values) {
@@ -284,7 +283,6 @@ object MCBASIC {
                     LOGGER.error("Could not save stored procedure '{}': {}", Proc.Name, E.message)
                 }
             }
-            return null
         }
     }
 

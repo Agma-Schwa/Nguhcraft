@@ -18,20 +18,16 @@ class NguhcraftDedicatedServer : DedicatedServerModInitializer {
     override fun onInitializeServer() {
         // The stack deobfuscator likes to replace our appender, so replace
         // it again, but make sure to grab the rewriter so we can use it.
-        if (FabricLoader.getInstance().isModLoaded(STACK_DEOBFUSCATOR_MOD_ID)) {
-            val Root = LogManager.getRootLogger()
-            val Ctx = LogManager.getContext(false) as LoggerContext
-            val Config = Ctx.configuration.getLoggerConfig(Root.name)
-            val Rewriter = Config.appenders[STACK_DEOBFUSCATOR_APPENDER_NAME] as? RewriteAppender
-            if (Rewriter != null) {
-                ReplaceLogger(STACK_DEOBFUSCATOR_APPENDER_NAME, Rewriter)
-                LOGGER.info("Successfully wrapped stack deobfuscator!")
-            }
-        }
+        if (FabricLoader.getInstance().isModLoaded(STACK_DEOBFUSCATOR_MOD_ID))
+            DoReplaceLogger()
 
         ServerLifecycleEvents.SERVER_STARTING.register {
             NguhcraftAppender.Server = it as MinecraftDedicatedServer
             Discord.Start(it)
+
+            // Attempt to replace the logger again here in case there we hit
+            // a race condition.
+            DoReplaceLogger()
         }
 
         ServerLifecycleEvents.SERVER_STOPPING.register {
@@ -39,9 +35,23 @@ class NguhcraftDedicatedServer : DedicatedServerModInitializer {
         }
     }
 
+    fun DoReplaceLogger() {
+        if (LoggerReplaced) return
+        val Root = LogManager.getRootLogger()
+        val Ctx = LogManager.getContext(false) as LoggerContext
+        val Config = Ctx.configuration.getLoggerConfig(Root.name)
+        val Rewriter = Config.appenders[STACK_DEOBFUSCATOR_APPENDER_NAME] as? RewriteAppender
+        if (Rewriter != null) {
+            LoggerReplaced = true
+            ReplaceLogger(STACK_DEOBFUSCATOR_APPENDER_NAME, Rewriter)
+            LOGGER.info("Successfully wrapped stack deobfuscator!")
+        }
+    }
+
     companion object {
         const val STACK_DEOBFUSCATOR_APPENDER_NAME = "StackDeobfAppender"
         const val STACK_DEOBFUSCATOR_MOD_ID = "stackdeobfuscator"
+        var LoggerReplaced = false
 
         internal fun ReplaceLogger(ToReplace: String, Rewriter: RewriteAppender? = null) {
             val Root = LogManager.getRootLogger()

@@ -17,11 +17,11 @@ object Renderer {
     }
 
     fun Init() {
-        WorldRenderEvents.BEFORE_DEBUG_RENDER.register { Ctx -> WorldRendering.RenderWorld(Ctx) }
-        HudRenderCallback.EVENT.register { Ctx, _ -> HUDRenderer.RenderHUD(Ctx) }
+        /*WorldRenderEvents.BEFORE_DEBUG_RENDER.register { Ctx -> WorldRendering.RenderWorld(Ctx) }
+        HudRenderCallback.EVENT.register { Ctx, _ -> HUDRenderer.RenderHUD(Ctx) }*/
     }
 
-    fun PushModelViewMatrix(Translation: Vec3d, C: (MS: Matrix4fStack) -> Unit) {
+    /*fun PushModelViewMatrix(Translation: Vec3d, C: (MS: Matrix4fStack) -> Unit) {
         val MS: Matrix4fStack = RenderSystem.getModelViewStack()
         MS.pushMatrix()
         MS.translate(Translation.x.toFloat(), Translation.y.toFloat(), Translation.z.toFloat())
@@ -36,5 +36,5 @@ object Renderer {
             ColorHelper.getBlue(colour) / 255.0f,
             ColorHelper.getAlpha(colour) / 255.0f
         )
-    }
+    }*/
 }

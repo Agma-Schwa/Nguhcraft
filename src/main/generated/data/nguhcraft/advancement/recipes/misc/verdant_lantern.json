@@ -23,7 +23,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "minecraft:verdant_lantern"
+        "recipe": "nguhcraft:verdant_lantern"
       },
       "trigger": "minecraft:recipe_unlocked"
     },
@@ -48,7 +48,7 @@
   ],
   "rewards": {
     "recipes": [
-      "minecraft:verdant_lantern"
+      "nguhcraft:verdant_lantern"
     ]
   }
 }

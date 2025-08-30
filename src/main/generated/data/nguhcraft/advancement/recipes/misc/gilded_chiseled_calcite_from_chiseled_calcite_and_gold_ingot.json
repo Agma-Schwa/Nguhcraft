@@ -23,7 +23,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "minecraft:gilded_chiseled_calcite_from_chiseled_calcite_and_gold_ingot"
+        "recipe": "nguhcraft:gilded_chiseled_calcite_from_chiseled_calcite_and_gold_ingot"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
@@ -37,7 +37,7 @@
   ],
   "rewards": {
     "recipes": [
-      "minecraft:gilded_chiseled_calcite_from_chiseled_calcite_and_gold_ingot"
+      "nguhcraft:gilded_chiseled_calcite_from_chiseled_calcite_and_gold_ingot"
     ]
   }
 }

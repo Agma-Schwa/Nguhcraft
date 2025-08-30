@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "minecraft:crimson_slab_vertical"
+        "recipe": "nguhcraft:crimson_slab_vertical"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
@@ -26,7 +26,7 @@
   ],
   "rewards": {
     "recipes": [
-      "minecraft:crimson_slab_vertical"
+      "nguhcraft:crimson_slab_vertical"
     ]
   }
 }

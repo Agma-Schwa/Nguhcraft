@@ -23,7 +23,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "minecraft:cinnabar_from_netherrack_and_cobblestone"
+        "recipe": "nguhcraft:cinnabar_from_netherrack_and_cobblestone"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
@@ -37,7 +37,7 @@
   ],
   "rewards": {
     "recipes": [
-      "minecraft:cinnabar_from_netherrack_and_cobblestone"
+      "nguhcraft:cinnabar_from_netherrack_and_cobblestone"
     ]
   }
 }

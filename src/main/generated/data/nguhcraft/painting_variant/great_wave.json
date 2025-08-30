@@ -1,0 +1,13 @@
+{
+  "asset_id": "nguhcraft:great_wave",
+  "author": {
+    "color": "gray",
+    "translate": "painting.nguhcraft.great_wave.author"
+  },
+  "height": 2,
+  "title": {
+    "color": "yellow",
+    "translate": "painting.nguhcraft.great_wave.title"
+  },
+  "width": 3
+}

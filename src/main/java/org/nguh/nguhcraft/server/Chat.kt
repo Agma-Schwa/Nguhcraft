@@ -19,7 +19,6 @@ import org.nguh.nguhcraft.network.ClientboundChatPacket
 import org.nguh.nguhcraft.server.ServerUtils.IsIntegratedServer
 import org.nguh.nguhcraft.server.ServerUtils.IsLinkedOrOperator
 import org.nguh.nguhcraft.server.ServerUtils.Multicast
-import org.nguh.nguhcraft.server.accessors.ServerPlayerDiscordAccessor
 import org.nguh.nguhcraft.server.dedicated.Discord
 
 /** This handles everything related to chat and messages */
@@ -63,7 +62,7 @@ object Chat {
             else Text.empty()
                 .append(Sender.displayName!!)
                 .append(COLON_COMPONENT.copy().withColor(
-                    (Sender as ServerPlayerDiscordAccessor).discordColour)
+                    Sender.Data.DiscordColour)
                 )
         )
 
@@ -95,7 +94,7 @@ object Chat {
     fun LogChat(SP: ServerPlayerEntity, Message: String, IsCommand: Boolean) {
         val Linked = IsLinkedOrOperator(SP)
         if (IsCommand) BroadcastCommand(
-            SP.server,
+            SP.Server,
             SP.displayName?.copy() ?: Text.literal(SP.nameForScoreboard),
             Message,
             SP
@@ -155,7 +154,7 @@ object Chat {
         }
 
         // Dew it.
-        val S = SP.server
+        val S = SP.Server
         val ParsedCommand = S.commandManager.dispatcher.parse(Command, SP.commandSource)
         S.commandManager.execute(ParsedCommand, Command)
     }

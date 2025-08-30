@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "minecraft:mud_brick_slab_vertical"
+        "recipe": "nguhcraft:mud_brick_slab_vertical"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
@@ -26,7 +26,7 @@
   ],
   "rewards": {
     "recipes": [
-      "minecraft:mud_brick_slab_vertical"
+      "nguhcraft:mud_brick_slab_vertical"
     ]
   }
 }

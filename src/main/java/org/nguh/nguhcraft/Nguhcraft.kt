@@ -12,6 +12,10 @@ import net.minecraft.nbt.NbtSizeTracker
 import net.minecraft.registry.Registry
 import net.minecraft.registry.RegistryKey
 import net.minecraft.server.MinecraftServer
+import net.minecraft.storage.NbtReadView
+import net.minecraft.storage.NbtWriteView
+import net.minecraft.storage.ReadView
+import net.minecraft.util.ErrorReporter
 import net.minecraft.util.Identifier
 import net.minecraft.util.WorldSavePath
 import org.nguh.nguhcraft.block.NguhBlocks
@@ -197,28 +201,10 @@ class Nguhcraft : ModInitializer {
                     NbtSizeTracker.ofUnlimitedBytes()
                 )
 
-                // Some of the world data was previously stored in a separate file.
-                val ProtMgr = Manager.Get<ProtectionManager>(S)
-                if (!Tag.contains(ProtMgr.TagName)) Tag.put(ProtMgr.TagName, Nbt {
-                    for (SW in S.worlds) {
-                        try {
-                            val Path = SW.server.getSavePath(WorldSavePath.ROOT).resolve(
-                                "nguhcraft.extraworlddata.${SW.registryKey.value.path}.dat"
-                            )
-
-                            if (Path.exists()) {
-                                val Regions = NbtIo.readCompressed(Path, NbtSizeTracker.ofUnlimitedBytes())
-                                    .getList("Regions", NbtElement.COMPOUND_TYPE.toInt())
-                                if (!Regions.isNullOrEmpty()) set(Utils.SerialiseWorldToString(SW.registryKey), Regions)
-                            }
-                        } catch (E: Exception) {
-                            LOGGER.error("Nguhcraft: Failed to load external region data: ${E.message}")
-                        }
-                    }
-                })
-
                 // Load global data.
-                Manager.InitFromSaveData(S, Tag)
+                ErrorReporter.Logging(NguhErrorReporter(), LOGGER).use {
+                    Manager.InitFromSaveData(S, NbtReadView.create(it, S.registryManager, Tag))
+                }
             } catch (E: Exception) {
                 LOGGER.warn("Nguhcraft: Failed to load persistent state; using defaults: ${E.message}")
             }
@@ -233,9 +219,11 @@ class Nguhcraft : ModInitializer {
         private fun SaveServerState(S: MinecraftServer) {
             LOGGER.info("Saving server state")
             try {
-                val Tag = NbtCompound()
-                Manager.SaveAll(S, Tag)
-                NbtIo.writeCompressed(Tag, SavePath(S))
+                ErrorReporter.Logging(NguhErrorReporter(), LOGGER).use {
+                    val WV = NbtWriteView.create(it)
+                    Manager.SaveAll(S, WV)
+                    NbtIo.writeCompressed(WV.nbt, SavePath(S))
+                }
             } catch (E: Exception) {
                 LOGGER.error("Nguhcraft: Failed to save persistent state")
                 E.printStackTrace()

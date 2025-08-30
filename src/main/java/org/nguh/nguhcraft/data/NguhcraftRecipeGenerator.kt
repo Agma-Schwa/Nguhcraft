@@ -19,7 +19,7 @@ import net.minecraft.registry.RegistryKeys
 import net.minecraft.registry.RegistryWrapper
 import net.minecraft.registry.tag.ItemTags
 import net.minecraft.registry.tag.TagKey
-import org.nguh.nguhcraft.Nguhcraft
+import org.nguh.nguhcraft.Nguhcraft.Companion.Id
 import org.nguh.nguhcraft.block.*
 import org.nguh.nguhcraft.item.KeyDuplicationRecipe
 import org.nguh.nguhcraft.item.KeyLockPairingRecipe
@@ -36,9 +36,10 @@ class NguhcraftRecipeGenerator(
         // =========================================================================
         //  Armour Trims
         // =========================================================================
-        NguhItems.SMITHING_TEMPLATES.forEach { offerSmithingTrimRecipe(
-            it,
-            RegistryKey.of(RegistryKeys.RECIPE, Nguhcraft.Companion.Id("${getItemPath(it)}_smithing"))
+        NguhItems.ALL_NGUHCRAFT_ARMOUR_TRIMS.forEach { offerSmithingTrimRecipe(
+            it.Template,
+            it.Trim,
+            RegistryKey.of(RegistryKeys.RECIPE, Id("${getItemPath(it)}_smithing"))
         ) }
 
         offerSmithingTemplateCopyingRecipe(NguhItems.ATLANTIC_ARMOUR_TRIM, Items.NAUTILUS_SHELL)
@@ -283,6 +284,26 @@ class NguhcraftRecipeGenerator(
         }
 
         // =========================================================================
+        //  Brocade Blocks
+        // =========================================================================
+        offerBrocade(NguhBlocks.BROCADE_BLACK, Blocks.BLACK_WOOL)
+        offerBrocade(NguhBlocks.BROCADE_BLUE, Blocks.BLUE_WOOL)
+        offerBrocade(NguhBlocks.BROCADE_BROWN, Blocks.BROWN_WOOL)
+        offerBrocade(NguhBlocks.BROCADE_CYAN, Blocks.CYAN_WOOL)
+        offerBrocade(NguhBlocks.BROCADE_GREEN, Blocks.GREEN_WOOL)
+        offerBrocade(NguhBlocks.BROCADE_GREY, Blocks.GRAY_WOOL)
+        offerBrocade(NguhBlocks.BROCADE_LIGHT_BLUE, Blocks.LIGHT_BLUE_WOOL)
+        offerBrocade(NguhBlocks.BROCADE_LIGHT_GREY, Blocks.LIGHT_GRAY_WOOL)
+        offerBrocade(NguhBlocks.BROCADE_LIME, Blocks.LIME_WOOL)
+        offerBrocade(NguhBlocks.BROCADE_MAGENTA, Blocks.MAGENTA_WOOL)
+        offerBrocade(NguhBlocks.BROCADE_ORANGE, Blocks.ORANGE_WOOL)
+        offerBrocade(NguhBlocks.BROCADE_PINK, Blocks.PINK_WOOL)
+        offerBrocade(NguhBlocks.BROCADE_PURPLE, Blocks.PURPLE_WOOL)
+        offerBrocade(NguhBlocks.BROCADE_RED, Blocks.RED_WOOL)
+        offerBrocade(NguhBlocks.BROCADE_WHITE, Blocks.WHITE_WOOL)
+        offerBrocade(NguhBlocks.BROCADE_YELLOW, Blocks.YELLOW_WOOL)
+
+        // =========================================================================
         //  Vertical Slabs
         // =========================================================================
         for (V in NguhBlockModels.VERTICAL_SLABS) offerShaped(V.VerticalSlab, 6) {
@@ -317,6 +338,17 @@ class NguhcraftRecipeGenerator(
         // =========================================================================
         ComplexRecipeJsonBuilder.create(::KeyLockPairingRecipe).offerTo(E, "key_lock_pairing")
         ComplexRecipeJsonBuilder.create(::KeyDuplicationRecipe).offerTo(E, "key_duplication")
+    }
+
+    /** Add a recipe for a brocade block. */
+    fun offerBrocade(B: Block, Wool: Block) {
+        offerShaped(B, 4) {
+            pattern("SWS")
+            pattern("WSW")
+            pattern("SWS")
+            cinput('W', Wool)
+            cinput('S', Items.STRING)
+        }
     }
 
     /** Add stonecutting recipes for a family. */

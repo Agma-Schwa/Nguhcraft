@@ -45,7 +45,7 @@ public abstract class PlayerEntityMixin extends LivingEntity {
 
     /** Prevent fall damage in certain regions. */
     @Inject(method = "handleFallDamage", at = @At("HEAD"), cancellable = true)
-    private void inject$handleFallDamage(float FD, float DM, DamageSource DS, CallbackInfoReturnable<Boolean> CIR) {
+    private void inject$handleFallDamage(double FD, float DM, DamageSource DS, CallbackInfoReturnable<Boolean> CIR) {
         if (!ProtectionManager.AllowFallDamage(This()))
             CIR.setReturnValue(false);
     }

@@ -55,31 +55,35 @@ class NguhcraftBlockTagProvider(
     RF: CompletableFuture<RegistryWrapper.WrapperLookup>
 ) : FabricTagProvider.BlockTagProvider(O, RF) {
     override fun configure(WL: RegistryWrapper.WrapperLookup) {
-        getOrCreateTagBuilder(BlockTags.PICKAXE_MINEABLE).let { T ->
+        valueLookupBuilder(BlockTags.PICKAXE_MINEABLE).let { T ->
             for (B in NguhBlocks.PICKAXE_MINEABLE) T.add(B)
             for (B in NguhBlockModels.VERTICAL_SLABS.filter { !it.Wood }) T.add(B.VerticalSlab)
         }
 
+        valueLookupBuilder(BlockTags.WOOL).let {
+            for (B in NguhBlocks.ALL_BROCADE_BLOCKS) it.add(B)
+        }
+
         // Block tags for miscellaneous custom blocks.
-        getOrCreateTagBuilder(BlockTags.PLANKS).add(NguhBlocks.TINTED_OAK_PLANKS)
-        getOrCreateTagBuilder(BlockTags.DOORS).add(NguhBlocks.LOCKED_DOOR)
-        getOrCreateTagBuilder(BlockTags.WOODEN_SLABS)
+        valueLookupBuilder(BlockTags.PLANKS).add(NguhBlocks.TINTED_OAK_PLANKS)
+        valueLookupBuilder(BlockTags.DOORS).add(NguhBlocks.LOCKED_DOOR)
+        valueLookupBuilder(BlockTags.WOODEN_SLABS)
             .add(NguhBlocks.TINTED_OAK_SLAB)
             .let {
                 for (B in NguhBlockModels.VERTICAL_SLABS.filter { it.Wood })
                     it.add(B.VerticalSlab)
             }
 
-        getOrCreateTagBuilder(BlockTags.WOODEN_STAIRS).add(NguhBlocks.TINTED_OAK_STAIRS)
-        getOrCreateTagBuilder(BlockTags.WOODEN_FENCES).add(NguhBlocks.TINTED_OAK_FENCE)
-        getOrCreateTagBuilder(BlockTags.LOGS_THAT_BURN)
+        valueLookupBuilder(BlockTags.WOODEN_STAIRS).add(NguhBlocks.TINTED_OAK_STAIRS)
+        valueLookupBuilder(BlockTags.WOODEN_FENCES).add(NguhBlocks.TINTED_OAK_FENCE)
+        valueLookupBuilder(BlockTags.LOGS_THAT_BURN)
             .add(NguhBlocks.TINTED_OAK_LOG)
             .add(NguhBlocks.TINTED_OAK_WOOD)
             .add(NguhBlocks.STRIPPED_TINTED_OAK_LOG)
             .add(NguhBlocks.STRIPPED_TINTED_OAK_WOOD)
 
         // Block tag for bonemealing flowers.
-        getOrCreateTagBuilder(NguhBlocks.CAN_DUPLICATE_WITH_BONEMEAL)
+        valueLookupBuilder(NguhBlocks.CAN_DUPLICATE_WITH_BONEMEAL)
             .add(Blocks.DANDELION)
             .add(Blocks.POPPY)
             .add(Blocks.BLUE_ORCHID)
@@ -94,10 +98,10 @@ class NguhcraftBlockTagProvider(
             .add(Blocks.LILY_OF_THE_VALLEY)
 
         // Add blocks from families.
-        val Fences = getOrCreateTagBuilder(BlockTags.FENCES)
-        val Walls = getOrCreateTagBuilder(BlockTags.WALLS)
-        val Stairs = getOrCreateTagBuilder(BlockTags.STAIRS)
-        val Slabs = getOrCreateTagBuilder(BlockTags.SLABS)
+        val Fences = valueLookupBuilder(BlockTags.FENCES)
+        val Walls = valueLookupBuilder(BlockTags.WALLS)
+        val Stairs = valueLookupBuilder(BlockTags.STAIRS)
+        val Slabs = valueLookupBuilder(BlockTags.SLABS)
         for (B in NguhBlocks.ALL_VARIANT_FAMILIES) {
             B.Fence?.let { Fences.add(it) }
             B.Slab?.let { Slabs.add(it) }
@@ -119,14 +123,14 @@ class NguhcraftDamageTypeTagProvider(
         AddAll(DamageTypeTags.BYPASSES_ARMOR)
         AddAll(DamageTypeTags.BYPASSES_ENCHANTMENTS)
         AddAll(DamageTypeTags.BYPASSES_RESISTANCE)
-        getOrCreateTagBuilder(DamageTypeTags.BYPASSES_INVULNERABILITY)
+        builder(DamageTypeTags.BYPASSES_INVULNERABILITY)
             .add(NguhDamageTypes.OBLITERATED)
-        getOrCreateTagBuilder(DamageTypeTags.NO_KNOCKBACK)
+        builder(DamageTypeTags.NO_KNOCKBACK)
             .add(NguhDamageTypes.OBLITERATED)
     }
 
     fun AddAll(T: TagKey<DamageType>) {
-        getOrCreateTagBuilder(T).let { for (DT in NguhDamageTypes.ALL) it.add(DT) }
+        builder(T).let { for (DT in NguhDamageTypes.ALL) it.add(DT) }
     }
 }
 
@@ -197,7 +201,7 @@ class NguhcraftPaintingVariantTagProvider(
     RF: CompletableFuture<RegistryWrapper.WrapperLookup>
 ) : FabricTagProvider<PaintingVariant>(O, RegistryKeys.PAINTING_VARIANT, RF) {
     override fun configure(WL: RegistryWrapper.WrapperLookup) {
-        getOrCreateTagBuilder(PaintingVariantTags.PLACEABLE).let { for (P in NguhPaintings.PLACEABLE) it.add(P) }
+        builder(PaintingVariantTags.PLACEABLE).let { for (P in NguhPaintings.PLACEABLE) it.add(P) }
     }
 }
 

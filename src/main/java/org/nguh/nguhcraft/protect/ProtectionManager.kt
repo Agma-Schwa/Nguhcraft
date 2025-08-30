@@ -10,7 +10,6 @@ import net.minecraft.entity.mob.Monster
 import net.minecraft.entity.passive.VillagerEntity
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.entity.vehicle.VehicleEntity
-import net.minecraft.inventory.ContainerLock
 import net.minecraft.item.BoatItem
 import net.minecraft.item.ItemStack
 import net.minecraft.item.MinecartItem
@@ -23,9 +22,10 @@ import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.Box
 import net.minecraft.util.shape.VoxelShape
 import net.minecraft.world.World
-import org.nguh.nguhcraft.block.LockableBlockEntity
 import org.nguh.nguhcraft.isa
+import org.nguh.nguhcraft.item.IsLocked
 import org.nguh.nguhcraft.item.KeyItem
+import org.nguh.nguhcraft.item.LockableBlockEntity
 import org.nguh.nguhcraft.server.Manager
 import org.nguh.nguhcraft.server.ServerProtectionManager
 import java.util.function.Consumer
@@ -77,7 +77,7 @@ typealias RegionLists = Map<RegistryKey<World>, Collection<Region>>
  * - [IsProtectedEntity] checks whether an entity is protected from world effects;
  *   this does *not* handle block entities. Use [IsProtectedBlock] for that.
  */
-abstract class ProtectionManager(protected val Regions: RegionLists) : Manager("Regions") {
+abstract class ProtectionManager(protected val Regions: RegionLists) : Manager() {
     /**
      * Check if a player is allowed to break, start breaking, or place a
      * block at this block position.
@@ -294,7 +294,7 @@ abstract class ProtectionManager(protected val Regions: RegionLists) : Manager("
     /** Check if a block is a locked chest. */
     private fun _IsLockedBlock(W: World, Pos: BlockPos): Boolean {
         val BE = KeyItem.GetLockableEntity(W, Pos)
-        return BE is LockableBlockEntity && BE.lock != ContainerLock.EMPTY
+        return BE is LockableBlockEntity && BE.IsLocked()
     }
 
     /** Check if a pressure plate is enabled. */

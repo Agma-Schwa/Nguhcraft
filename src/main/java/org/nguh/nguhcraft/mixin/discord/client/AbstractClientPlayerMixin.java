@@ -18,8 +18,8 @@ import org.spongepowered.asm.mixin.Shadow;
 public abstract class AbstractClientPlayerMixin extends PlayerEntity implements AbstractClientPlayerEntityAccessor {
     @Shadow private @Nullable PlayerListEntry playerListEntry;
 
-    public AbstractClientPlayerMixin(World world, BlockPos pos, float yaw, GameProfile gameProfile) {
-        super(world, pos, yaw, gameProfile);
+    public AbstractClientPlayerMixin(World world, GameProfile profile) {
+        super(world, profile);
     }
 
     /**
