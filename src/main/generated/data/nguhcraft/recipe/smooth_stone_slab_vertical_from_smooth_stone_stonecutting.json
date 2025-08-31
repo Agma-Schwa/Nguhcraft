@@ -2,7 +2,7 @@
   "type": "minecraft:stonecutting",
   "ingredient": "minecraft:smooth_stone",
   "result": {
-    "count": 1,
+    "count": 2,
     "id": "nguhcraft:smooth_stone_slab_vertical"
   }
 }

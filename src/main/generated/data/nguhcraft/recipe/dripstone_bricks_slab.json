@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "#": "nguhcraft:dripstone_bricks"
+  },
+  "pattern": [
+    "###"
+  ],
+  "result": {
+    "count": 3,
+    "id": "nguhcraft:dripstone_bricks_slab"
+  }
+}

@@ -2,7 +2,7 @@
   "type": "minecraft:stonecutting",
   "ingredient": "nguhcraft:gilded_calcite",
   "result": {
-    "count": 1,
+    "count": 2,
     "id": "nguhcraft:gilded_calcite_slab_vertical"
   }
 }

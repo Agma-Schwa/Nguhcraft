@@ -2,7 +2,7 @@
   "type": "minecraft:stonecutting",
   "ingredient": "minecraft:tuff",
   "result": {
-    "count": 1,
+    "count": 2,
     "id": "nguhcraft:tuff_slab_vertical"
   }
 }

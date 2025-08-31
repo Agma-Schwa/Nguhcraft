@@ -2,7 +2,7 @@
   "type": "minecraft:stonecutting",
   "ingredient": "minecraft:cobbled_deepslate",
   "result": {
-    "count": 1,
+    "count": 2,
     "id": "nguhcraft:cobbled_deepslate_slab_vertical"
   }
 }

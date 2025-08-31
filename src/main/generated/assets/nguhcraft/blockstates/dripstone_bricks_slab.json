@@ -1,0 +1,13 @@
+{
+  "variants": {
+    "type=bottom": {
+      "model": "nguhcraft:block/dripstone_bricks_slab"
+    },
+    "type=double": {
+      "model": "nguhcraft:block/dripstone_bricks"
+    },
+    "type=top": {
+      "model": "nguhcraft:block/dripstone_bricks_slab_top"
+    }
+  }
+}

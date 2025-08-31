@@ -2,7 +2,7 @@
   "type": "minecraft:stonecutting",
   "ingredient": "minecraft:polished_andesite",
   "result": {
-    "count": 1,
+    "count": 2,
     "id": "nguhcraft:polished_andesite_slab_vertical"
   }
 }

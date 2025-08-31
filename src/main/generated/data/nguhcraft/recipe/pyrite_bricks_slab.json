@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "#": "nguhcraft:pyrite_bricks"
+  },
+  "pattern": [
+    "###"
+  ],
+  "result": {
+    "count": 3,
+    "id": "nguhcraft:pyrite_bricks_slab"
+  }
+}

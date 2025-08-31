@@ -2,7 +2,7 @@
   "type": "minecraft:stonecutting",
   "ingredient": "minecraft:polished_blackstone_bricks",
   "result": {
-    "count": 1,
+    "count": 2,
     "id": "nguhcraft:polished_blackstone_brick_slab_vertical"
   }
 }

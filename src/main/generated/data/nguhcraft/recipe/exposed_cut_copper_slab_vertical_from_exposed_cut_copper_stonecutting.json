@@ -2,7 +2,7 @@
   "type": "minecraft:stonecutting",
   "ingredient": "minecraft:exposed_cut_copper",
   "result": {
-    "count": 1,
+    "count": 2,
     "id": "nguhcraft:exposed_cut_copper_slab_vertical"
   }
 }

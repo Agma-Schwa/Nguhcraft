@@ -1,0 +1,13 @@
+{
+  "variants": {
+    "type=bottom": {
+      "model": "nguhcraft:block/pyrite_bricks_slab"
+    },
+    "type=double": {
+      "model": "nguhcraft:block/pyrite_bricks"
+    },
+    "type=top": {
+      "model": "nguhcraft:block/pyrite_bricks_slab_top"
+    }
+  }
+}
