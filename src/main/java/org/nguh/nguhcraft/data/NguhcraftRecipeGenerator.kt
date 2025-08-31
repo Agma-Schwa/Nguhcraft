@@ -182,14 +182,6 @@ class NguhcraftRecipeGenerator(
             cinput('#', Items.CALCITE)
         }
 
-        offerShaped(NguhBlocks.TINTED_OAK_PLANKS, 4) {
-            pattern(" # ")
-            pattern("#A#")
-            pattern(" # ")
-            cinput('#', Items.PALE_OAK_PLANKS)
-            cinput('A', Items.AMETHYST_SHARD)
-        }
-
         // Usual crafting recipes for custom stone types.
         for (F in NguhBlocks.ALL_VARIANT_FAMILIES) {
             F.Fence?.let {
@@ -252,8 +244,16 @@ class NguhcraftRecipeGenerator(
         offerShapelessRecipe(NguhBlocks.CINNABAR, 2, Items.NETHERRACK to 1, Items.COBBLESTONE to 1)
 
         // =========================================================================
-        //  Tinting pale oak logs
+        //  Tinted Oak
         // =========================================================================
+        offerShaped(NguhBlocks.TINTED_OAK_PLANKS, 4) {
+            pattern(" # ")
+            pattern("#A#")
+            pattern(" # ")
+            cinput('#', Items.PALE_OAK_PLANKS)
+            cinput('A', Items.AMETHYST_SHARD)
+        }
+
         offerShaped(NguhBlocks.TINTED_OAK_LOG, 2) {
             pattern("P")
             pattern("A")
@@ -261,6 +261,7 @@ class NguhcraftRecipeGenerator(
             cinput('P', Blocks.PALE_OAK_LOG)
             cinput('A', Items.AMETHYST_SHARD)
         }
+
         offerShaped(NguhBlocks.TINTED_OAK_WOOD, 2) {
             pattern("P")
             pattern("A")
@@ -268,6 +269,7 @@ class NguhcraftRecipeGenerator(
             cinput('P', Blocks.PALE_OAK_WOOD)
             cinput('A', Items.AMETHYST_SHARD)
         }
+
         offerShaped(NguhBlocks.STRIPPED_TINTED_OAK_LOG, 2) {
             pattern("P")
             pattern("A")
@@ -275,6 +277,7 @@ class NguhcraftRecipeGenerator(
             cinput('P', Blocks.STRIPPED_PALE_OAK_LOG)
             cinput('A', Items.AMETHYST_SHARD)
         }
+
         offerShaped(NguhBlocks.STRIPPED_TINTED_OAK_WOOD, 2) {
             pattern("P")
             pattern("A")

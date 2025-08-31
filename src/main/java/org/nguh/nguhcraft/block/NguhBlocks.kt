@@ -495,16 +495,19 @@ object NguhBlocks {
         ::PillarBlock,
         AbstractBlock.Settings.copy(Blocks.PALE_OAK_LOG).mapColor(MapColor.PALE_PURPLE)
     )
+
     val TINTED_OAK_WOOD = Register(
         "tinted_oak_wood",
         ::PillarBlock,
         AbstractBlock.Settings.copy(Blocks.PALE_OAK_WOOD).mapColor(MapColor.PALE_PURPLE)
     )
+
     val STRIPPED_TINTED_OAK_LOG = Register(
         "stripped_tinted_oak_log",
         ::PillarBlock,
         AbstractBlock.Settings.copy(Blocks.PALE_OAK_LOG).mapColor(MapColor.PALE_PURPLE)
     )
+
     val STRIPPED_TINTED_OAK_WOOD = Register(
         "stripped_tinted_oak_wood",
         ::PillarBlock,
