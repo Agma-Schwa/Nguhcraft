@@ -292,6 +292,8 @@ object NguhBlockModels {
     fun InitRenderLayers() {
         BlockRenderLayer.CUTOUT.let {
             BlockRenderLayerMap.putBlock(NguhBlocks.LOCKED_DOOR, it)
+            BlockRenderLayerMap.putBlock(NguhBlocks.IRON_GRATE, it)
+            BlockRenderLayerMap.putBlock(NguhBlocks.WROUGHT_IRON_GRATE, it)
             for (B in NguhBlocks.CHAINS_AND_LANTERNS.flatten()) BlockRenderLayerMap.putBlock(B, it)
         }
 
