@@ -254,10 +254,13 @@ object NguhBlockModels {
         }
 
         // Tinted oak logs.
-        G.registerAxisRotated(NguhBlocks.TINTED_OAK_LOG, TexturedModel.END_FOR_TOP_CUBE_COLUMN, TexturedModel.END_FOR_TOP_CUBE_COLUMN_HORIZONTAL);
-        G.registerAxisRotated(NguhBlocks.TINTED_OAK_WOOD, TexturedModel.END_FOR_TOP_CUBE_COLUMN, TexturedModel.END_FOR_TOP_CUBE_COLUMN_HORIZONTAL);
-        G.registerAxisRotated(NguhBlocks.STRIPPED_TINTED_OAK_LOG, TexturedModel.END_FOR_TOP_CUBE_COLUMN, TexturedModel.END_FOR_TOP_CUBE_COLUMN_HORIZONTAL);
-        G.registerAxisRotated(NguhBlocks.STRIPPED_TINTED_OAK_WOOD, TexturedModel.END_FOR_TOP_CUBE_COLUMN, TexturedModel.END_FOR_TOP_CUBE_COLUMN_HORIZONTAL);
+        G.createLogTexturePool(NguhBlocks.TINTED_OAK_LOG)
+            .log(NguhBlocks.TINTED_OAK_LOG)
+            .wood(NguhBlocks.TINTED_OAK_WOOD)
+
+        G.createLogTexturePool(NguhBlocks.STRIPPED_TINTED_OAK_LOG)
+            .log(NguhBlocks.STRIPPED_TINTED_OAK_LOG)
+            .wood(NguhBlocks.STRIPPED_TINTED_OAK_WOOD)
 
         // Brocade blocks.
         for (B in NguhBlocks.ALL_BROCADE_BLOCKS) G.registerSimpleCubeAll(B)
