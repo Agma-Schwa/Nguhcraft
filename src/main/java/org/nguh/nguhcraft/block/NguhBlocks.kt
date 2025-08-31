@@ -237,6 +237,7 @@ object NguhBlocks {
         ::GrateBlock,
         AbstractBlock.Settings.copy(Blocks.IRON_BLOCK)
             .mapColor(MapColor.GRAY)
+            .nonOpaque()
     )
 
     val WROUGHT_IRON_GRATE = Register(
@@ -244,6 +245,7 @@ object NguhBlocks {
         ::GrateBlock,
         AbstractBlock.Settings.copy(Blocks.IRON_BLOCK)
             .mapColor(MapColor.GRAY)
+            .nonOpaque()
     )
 
     val COMPRESSED_STONE = Register(
