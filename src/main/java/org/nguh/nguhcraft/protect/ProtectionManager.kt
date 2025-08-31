@@ -7,6 +7,7 @@ import net.minecraft.entity.LivingEntity
 import net.minecraft.entity.SpawnReason
 import net.minecraft.entity.damage.DamageSource
 import net.minecraft.entity.mob.Monster
+import net.minecraft.entity.passive.HappyGhastEntity
 import net.minecraft.entity.passive.VillagerEntity
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.entity.vehicle.VehicleEntity
@@ -132,7 +133,7 @@ abstract class ProtectionManager(protected val Regions: RegionLists) : Manager()
         // Check region flags.
         val R = _FindRegionContainingBlock(E.world, E.blockPos) ?: return true
         return when (E) {
-            is VehicleEntity -> R.AllowsVehicleUse()
+            is VehicleEntity, is HappyGhastEntity -> R.AllowsVehicleUse()
             is VillagerEntity -> R.AllowsVillagerTrading()
             else -> R.AllowsEntityInteraction()
         }
@@ -355,7 +356,7 @@ abstract class ProtectionManager(protected val Regions: RegionLists) : Manager()
         // We currently only have restrictions on hostile mobs, so always allow
         // friendly entities to spawn. Note the difference between 'Monster' and
         // 'HostileEntity'; the former is what we want since it also includes e.g.
-        // hoglins and ghasts whereas the former does not.
+        // hoglins and ghasts whereas the latter does not.
         if (E !is Monster) return true
 
         // If E is a living entity, then we will have saved the spawn reason for it;

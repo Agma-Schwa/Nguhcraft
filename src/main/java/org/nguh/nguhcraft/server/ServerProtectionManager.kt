@@ -104,7 +104,7 @@ class ServerRegion(
         } catch (E: Exception) {
             val Path = Text.literal("Error\n    In trigger ")
             T.AppendName(AppendWorldAndName(Path).append(":"))
-            Path.append("\n    Invoked by player '").append(SP.displayName)
+            Path.append("\n    Invoked by player '").append(SP.Name)
                 .append("':\n    ").append(E.message ?: "Unknown error")
             S.sendError(Path)
             S.server?.BroadcastToOperators(Path.formatted(Formatting.RED))

@@ -4,6 +4,7 @@ import com.mojang.serialization.Codec
 import com.mojang.serialization.codecs.RecordCodecBuilder
 import net.minecraft.network.codec.PacketCodec
 import net.minecraft.network.codec.PacketCodecs
+import net.minecraft.util.Colors
 import net.minecraft.util.function.BooleanBiFunction
 import net.minecraft.util.shape.VoxelShape
 import net.minecraft.util.shape.VoxelShapes
@@ -221,8 +222,19 @@ open class Region(
     /** Check if this region allows trading with villagers. */
     fun AllowsVillagerTrading() = Test(Flags.ENTITY_INTERACT) || Test(Flags.TRADE)
 
+    /** Get the colour to use for this region’s barrier, or null if we shouldn’t render the barrier. */
+    fun BarrierColor(): Int? = when {
+        !Test(Flags.RENDER_ENTRY_EXIT_BARRIER) -> null
+        ColourOverride != null -> ColourOverride
+        !AllowsPlayerEntry() && !AllowsPlayerExit() -> 0xFFFFAA00.toInt()
+        !AllowsPlayerExit() -> Colors.LIGHT_RED
+        !AllowsPlayerEntry() -> Colors.CYAN
+        else -> null
+    }
+
     /** Whether we should render the entry/exit barrier. */
-    fun ShouldRenderEntryExitBarrier() = Test(Flags.RENDER_ENTRY_EXIT_BARRIER)
+    fun ShouldRenderEntryExitBarrier() = BarrierColor() != null
+
 
     /** Helper to simplify testing flags. */
     protected fun Test(Flag: Flags) = RegionFlags.IsSet(Flag)

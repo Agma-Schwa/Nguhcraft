@@ -38,10 +38,10 @@ public abstract class EnchantmentMixin {
     @Overwrite
     public static Text getName(RegistryEntry<Enchantment> Key, int Lvl) {
         var E = Key.value();
-        return E.description().copy()
-            .append(ScreenTexts.SPACE)
-            .append(E.getMaxLevel() > 1 || Lvl > 1 ? FormatLevel(Lvl) : ScreenTexts.EMPTY)
-            .formatted(Key.isIn(EnchantmentTags.CURSE) ? Formatting.RED : Formatting.GRAY);
+        var Name = Text.empty().append(E.description());
+        if (E.getMaxLevel() > 1 || Lvl > 1) Name.append(ScreenTexts.SPACE).append(FormatLevel(Lvl));
+        Name.formatted(Key.isIn(EnchantmentTags.CURSE) ? Formatting.RED : Formatting.GRAY);
+        return Name;
     }
 
     /** Save the initial damage so we can check whether it was modified. */

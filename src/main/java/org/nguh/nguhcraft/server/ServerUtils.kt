@@ -109,7 +109,7 @@ object ServerUtils {
         if (LE.health.isNaN()) {
             // Disconnect players.
             if (LE is ServerPlayerEntity) {
-                LOGGER.warn("Player {} had NaN health, disconnecting.", LE.displayName!!.string)
+                LOGGER.warn("Player {} had NaN health, disconnecting.", LE.Name.string)
                 LE.health = 0F
                 LE.networkHandler.disconnect(Text.of("Health was NaN!"))
                 return
@@ -150,7 +150,7 @@ object ServerUtils {
         if (!SW.worldBorder.contains(SP.boundingBox)) {
             SP.Teleport(SW, SW.spawnPos)
             SendTitle(SP, BORDER_TITLE, BORDER_SUBTITLE)
-            LOGGER.warn("Player {} tried to leave the border.", SP.displayName!!.string)
+            LOGGER.warn("Player {} tried to leave the border.", SP.Name.string)
         }
 
         SP.Server.ProtectionManager.TickRegionsForPlayer(SP)

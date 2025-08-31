@@ -120,17 +120,26 @@ class NguhcraftDamageTypeTagProvider(
     RF: CompletableFuture<RegistryWrapper.WrapperLookup>
 ) : FabricTagProvider<DamageType>(O, RegistryKeys.DAMAGE_TYPE, RF) {
     override fun configure(WL: RegistryWrapper.WrapperLookup) {
-        AddAll(DamageTypeTags.BYPASSES_ARMOR)
-        AddAll(DamageTypeTags.BYPASSES_ENCHANTMENTS)
-        AddAll(DamageTypeTags.BYPASSES_RESISTANCE)
-        builder(DamageTypeTags.BYPASSES_INVULNERABILITY)
-            .add(NguhDamageTypes.OBLITERATED)
-        builder(DamageTypeTags.NO_KNOCKBACK)
-            .add(NguhDamageTypes.OBLITERATED)
+        // Damage types that bypass most resistances.
+        AddBypassDamageTypesTo(DamageTypeTags.BYPASSES_ARMOR)
+        AddBypassDamageTypesTo(DamageTypeTags.BYPASSES_ENCHANTMENTS)
+        AddBypassDamageTypesTo(DamageTypeTags.BYPASSES_RESISTANCE)
+
+        // The 'obliterated' damage bypasses additional resistances.
+        builder(DamageTypeTags.BYPASSES_INVULNERABILITY).add(NguhDamageTypes.OBLITERATED)
+        builder(DamageTypeTags.NO_KNOCKBACK).add(NguhDamageTypes.OBLITERATED)
+
+        // The 'arcane' damage type acts like magic damage.
+        builder(DamageTypeTags.IS_PLAYER_ATTACK).add(NguhDamageTypes.ARCANE)
+        builder(DamageTypeTags.BYPASSES_ARMOR).add(NguhDamageTypes.ARCANE)
+        builder(DamageTypeTags.AVOIDS_GUARDIAN_THORNS).add(NguhDamageTypes.ARCANE)
+        builder(DamageTypeTags.ALWAYS_TRIGGERS_SILVERFISH).add(NguhDamageTypes.ARCANE)
+        builder(DamageTypeTags.NO_KNOCKBACK).add(NguhDamageTypes.ARCANE)
+        builder(DamageTypeTags.BYPASSES_WOLF_ARMOR).add(NguhDamageTypes.ARCANE)
     }
 
-    fun AddAll(T: TagKey<DamageType>) {
-        builder(T).let { for (DT in NguhDamageTypes.ALL) it.add(DT) }
+    fun AddBypassDamageTypesTo(T: TagKey<DamageType>) {
+        builder(T).let { for (DT in NguhDamageTypes.BYPASSES_RESISTANCES) it.add(DT) }
     }
 }
 

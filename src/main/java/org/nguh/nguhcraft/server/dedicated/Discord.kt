@@ -56,6 +56,7 @@ import org.nguh.nguhcraft.network.ClientboundChatPacket
 import org.nguh.nguhcraft.network.ClientboundLinkUpdatePacket
 import org.nguh.nguhcraft.server.Broadcast
 import org.nguh.nguhcraft.server.Data
+import org.nguh.nguhcraft.server.Name
 import org.nguh.nguhcraft.server.PlayerByUUID
 import org.nguh.nguhcraft.server.PlayerData
 import org.nguh.nguhcraft.server.ServerUtils
@@ -357,7 +358,7 @@ internal class Discord : ListenerAdapter() {
                 if (E is IllegalArgumentException || E is ErrorResponseException) {
                     // Death message was too long.
                     val S = DeathMessage.asTruncatedString(256)
-                    val Msg = Text.translatable("death.attack.even_more_magic", SP.displayName)
+                    val Msg = Text.translatable("death.attack.even_more_magic", SP.Name)
                     val Abbr = Text.translatable("death.attack.message_too_long", Text.literal(S))
                     SendSimpleEmbed("$Msg\n\n$Abbr", Constants.Black, SP)
                     return

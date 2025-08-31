@@ -17,6 +17,7 @@ import net.minecraft.text.Text
 import net.minecraft.util.Identifier
 import net.minecraft.world.World
 import org.nguh.nguhcraft.client.ClientUtils.Client
+import org.nguh.nguhcraft.event.NguhMobType
 import org.nguh.nguhcraft.protect.ProtectionManager
 import org.nguh.nguhcraft.server.Data
 import org.nguh.nguhcraft.server.DisplayHandle
@@ -121,6 +122,29 @@ class HomeArgumentType : ArgumentType<String> {
         }
 
         fun Home() = HomeArgumentType()
+    }
+}
+
+class MobArgumentType : ArgumentType<String> {
+    override fun parse(R: StringReader) =  R.ReadUntilWhitespace()
+
+    override fun <S> listSuggestions(
+        Ctx: CommandContext<S>,
+        SB: SuggestionsBuilder
+    ): CompletableFuture<Suggestions> {
+        return CommandSource.suggestMatching(LOWERCASE_KEYS, SB)
+    }
+
+    companion object {
+        private val UNKNOWN_KEY = DynamicCommandExceptionType { Text.literal("Unknown mob type: '${it}'") }
+        private val LOWERCASE_MAP = NguhMobType.entries.associateBy { it.name.lowercase() }
+        private val LOWERCASE_KEYS = LOWERCASE_MAP.keys
+
+        fun Mob() = MobArgumentType()
+        fun Resolve(Ctx: CommandContext<ServerCommandSource>, ArgName: String): NguhMobType {
+            val Name = Ctx.getArgument(ArgName, String::class.java)
+            return LOWERCASE_MAP[Name] ?: throw UNKNOWN_KEY.create(Name)
+        }
     }
 }
 

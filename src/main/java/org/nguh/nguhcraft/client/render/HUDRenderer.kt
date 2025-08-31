@@ -2,9 +2,12 @@ package org.nguh.nguhcraft.client.render
 
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
+import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry
 import net.minecraft.client.gui.DrawContext
+import net.minecraft.client.render.RenderTickCounter
 import net.minecraft.util.Colors
 import net.minecraft.util.math.BlockPos
+import org.nguh.nguhcraft.Nguhcraft.Companion.Id
 import org.nguh.nguhcraft.client.ClientUtils.Client
 import org.nguh.nguhcraft.client.NguhcraftClient
 import org.nguh.nguhcraft.client.accessors.DisplayData
@@ -16,14 +19,17 @@ import kotlin.math.min
 object HUDRenderer {
     private const val PADDING = 2
     private const val VANISH_MSG = "You are currently vanished"
+    private val EL_REGION_NAME = Id("region_name")
+    private val EL_DISPLAY = Id("display")
+    private val EL_VANISHED = Id("vanished")
 
-    fun RenderHUD(Ctx: DrawContext) {
-        RenderRegionName(Ctx)
-        RenderActiveDisplay(Ctx)
-        RenderVanishedMessage(Ctx)
+    fun Init() {
+        HudElementRegistry.addFirst(EL_REGION_NAME, ::RenderActiveDisplay)
+        HudElementRegistry.attachElementAfter(EL_REGION_NAME, EL_DISPLAY, ::RenderRegionName)
+        HudElementRegistry.attachElementAfter(EL_DISPLAY, EL_VANISHED, ::RenderVanishedMessage)
     }
 
-    private fun RenderActiveDisplay(Ctx: DrawContext) {
+    private fun RenderActiveDisplay(Ctx: DrawContext, RTC: RenderTickCounter) {
         val C = Client()
         val D = C.DisplayData ?: return
         if (D.Lines.isEmpty()) return
@@ -48,14 +54,13 @@ object HUDRenderer {
         }
     }
 
-    private fun RenderRegionName(Ctx: DrawContext) {
+    private fun RenderRegionName(Ctx: DrawContext, RTC: RenderTickCounter) {
         if (!RenderRegions) return
 
         // Check if we’re in a region.
         val C = Client()
         val PlayerPos = BlockPos.ofFloored(C.player?.pos ?: return)
-        val PlayerRegion = ProtectionManager.FindRegionContainingBlock(C.world!!, PlayerPos)
-        if (PlayerRegion == null) return
+        val PlayerRegion = ProtectionManager.FindRegionContainingBlock(C.world!!, PlayerPos) ?: return
 
         // If so, draw it in the bottom-right corner.
         val TextToRender = "Region: ${PlayerRegion.Name}"
@@ -71,7 +76,7 @@ object HUDRenderer {
         )
     }
 
-    private fun RenderVanishedMessage(Ctx: DrawContext) {
+    private fun RenderVanishedMessage(Ctx: DrawContext, RTC: RenderTickCounter) {
         if (!NguhcraftClient.Vanished) return
         val TR = Client().textRenderer
         Ctx.drawText(

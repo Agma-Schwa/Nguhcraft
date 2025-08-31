@@ -22,6 +22,7 @@ import net.minecraft.registry.entry.RegistryEntry
 import net.minecraft.text.Style
 import net.minecraft.text.Text
 import net.minecraft.util.Formatting
+import org.nguh.nguhcraft.enchantment.NguhcraftEnchantments.ARCANE
 import org.nguh.nguhcraft.enchantment.NguhcraftEnchantments.HYPERSHOT
 import org.nguh.nguhcraft.enchantment.NguhcraftEnchantments.SMELTING
 import java.util.*
@@ -64,6 +65,7 @@ object Treasures {
 
         val THOU_HAST_BEEN_YEETEN = Builder(Ctx, Items.MACE, Name("Thou Hast Been Yeeten"))
             .unbreakable()
+            .enchant(ARCANE)
             .enchant(SHARPNESS, 255)
             .enchant(KNOCKBACK, 10)
             .enchant(CHANNELING, 2)

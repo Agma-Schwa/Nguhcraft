@@ -16,6 +16,7 @@ import net.minecraft.util.Formatting
 import org.nguh.nguhcraft.network.ClientFlags
 import org.nguh.nguhcraft.server.Broadcast
 import org.nguh.nguhcraft.server.Data
+import org.nguh.nguhcraft.server.Name
 import org.nguh.nguhcraft.server.Server
 import org.nguh.nguhcraft.server.SetClientFlag
 
@@ -113,7 +114,7 @@ object Vanish {
         SP.Server.Broadcast(SP, P)
 
         // As well as a fake quit message.
-        SP.Server.Broadcast(Text.translatable("multiplayer.player.left", SP.displayName).formatted(Formatting.YELLOW))
+        SP.Server.Broadcast(Text.translatable("multiplayer.player.left", SP.Name).formatted(Formatting.YELLOW))
         Discord.BroadcastJoinQuitMessageImpl(SP, false)
     }
 
@@ -131,6 +132,6 @@ object Vanish {
         Discord.BroadcastClientStateOnJoin(SP)
 
         // Also send out a fake join message.
-        SP.Server.Broadcast(Text.translatable("multiplayer.player.joined", SP.displayName).formatted(Formatting.YELLOW))
+        SP.Server.Broadcast(Text.translatable("multiplayer.player.joined", SP.Name).formatted(Formatting.YELLOW))
     }
 }
