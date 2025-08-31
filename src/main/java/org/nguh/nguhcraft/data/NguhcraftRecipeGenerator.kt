@@ -322,9 +322,6 @@ class NguhcraftRecipeGenerator(
         offerStonecuttingFamily(NguhBlocks.CALCITE_BRICK_FAMILY, Blocks.CALCITE)
         offerStonecuttingRecipe(RecipeCategory.BUILDING_BLOCKS, NguhBlocks.PYRITE_BRICKS, NguhBlocks.PYRITE)
 
-        offerStonecuttingRecipe(RecipeCategory.BUILDING_BLOCKS, NguhBlocks.IRON_GRATE, Items.IRON_BLOCK)
-        offerStonecuttingRecipe(RecipeCategory.BUILDING_BLOCKS, NguhBlocks.WROUGHT_IRON_GRATE, NguhBlocks.WROUGHT_IRON_BLOCK)
-
         for (V in NguhBlockModels.VERTICAL_SLABS.filter { !it.Wood })
             offerStonecuttingRecipe(RecipeCategory.BUILDING_BLOCKS, V.VerticalSlab, V.Base, 2)
 
