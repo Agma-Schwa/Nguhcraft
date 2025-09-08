@@ -82,6 +82,7 @@ class NguhcraftRecipeGenerator(
         }
 
         offerShapelessRecipe(Items.STRING, 4, ItemTags.WOOL to 1)
+        offerShapelessRecipe(Items.AMETHYST_SHARD, 9, Items.AMETHYST_BLOCK to 1)
 
         // =========================================================================
         //  Miscellaneous Blocks
