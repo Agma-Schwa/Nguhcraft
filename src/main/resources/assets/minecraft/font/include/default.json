@@ -1,6 +1,13 @@
 {
     "providers": [
         {
+			"type": "space",
+			"advances": {
+				"\u2009": 1,
+				"\u00a0": 1
+			}
+		},
+		{
             "type": "bitmap",
             "file": "minecraft:font/nonlatin_european.png",
             "ascent": 7,
@@ -446,7 +453,8 @@
                 "\ue220\ue221\ue222\ue223\ue224\ue225\ue226\ue227",
                 "\ue228\ue229\ue22a\ue22b\ue22c\ue22d\ue22e\ue22f",
                 "\ue230\ue231\ue232\ue233\ue234\ue235\ue236\ue237",
-                "\ue238\ue239\ue23a\ue23b\ue23c\ue23d\ue23e\ue23f"
+                "\ue238\ue239\ue23a\ue23b\ue23c\ue23d\ue23e\ue23f",
+                "\ue240\ue241\ue242\ue243\ue244\ue245\ue246\ue247"
             ]
         },
         {
