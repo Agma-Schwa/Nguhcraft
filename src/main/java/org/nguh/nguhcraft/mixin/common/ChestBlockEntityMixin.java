@@ -5,9 +5,11 @@ import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.block.entity.ChestBlockEntity;
 import net.minecraft.block.entity.LootableContainerBlockEntity;
 import net.minecraft.component.ComponentMap;
+import net.minecraft.component.ComponentsAccess;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
 import net.minecraft.registry.RegistryWrapper;
+import net.minecraft.storage.ReadView;
+import net.minecraft.storage.WriteView;
 import net.minecraft.util.math.BlockPos;
 import org.jetbrains.annotations.Nullable;
 import org.nguh.nguhcraft.accessors.ChestBlockEntityAccessor;
@@ -44,10 +46,11 @@ public abstract class ChestBlockEntityMixin extends LootableContainerBlockEntity
         Variant = CA.get(NguhBlocks.CHEST_VARIANT_COMPONENT);
     }
 
-    @Inject(method = "readNbt", at = @At("TAIL"))
-    public void inject$readNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registries, CallbackInfo ci) {
-        if (nbt.contains(TAG_CHEST_VARIANT, NbtElement.STRING_TYPE))
-            Variant = ChestVariant.valueOf(nbt.getString(TAG_CHEST_VARIANT).toUpperCase(Locale.ROOT));
+    @Inject(method = "readData", at = @At("TAIL"))
+    public void inject$readData(ReadView RV, CallbackInfo CI) {
+        RV.getOptionalString(TAG_CHEST_VARIANT).ifPresent(
+            S -> Variant = ChestVariant.valueOf(S.toUpperCase(Locale.ROOT))
+        );
     }
 
     @Override
@@ -57,8 +60,8 @@ public abstract class ChestBlockEntityMixin extends LootableContainerBlockEntity
         return Tag;
     }
 
-    @Inject(method = "writeNbt", at = @At("TAIL"))
-    public void inject$writeNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registries, CallbackInfo ci) {
-        if (Variant != null) nbt.putString(TAG_CHEST_VARIANT, Variant.asString());
+    @Inject(method = "writeData", at = @At("TAIL"))
+    public void inject$writeData(WriteView WV, CallbackInfo CI) {
+        if (Variant != null) WV.putString(TAG_CHEST_VARIANT, Variant.asString());
     }
 }

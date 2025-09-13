@@ -3,16 +3,20 @@ package org.nguh.nguhcraft.protect
 import net.minecraft.block.Blocks
 import net.minecraft.block.LecternBlock
 import net.minecraft.entity.Entity
+import net.minecraft.entity.Leashable
 import net.minecraft.entity.LivingEntity
 import net.minecraft.entity.SpawnReason
 import net.minecraft.entity.damage.DamageSource
+import net.minecraft.entity.decoration.LeashKnotEntity
 import net.minecraft.entity.mob.Monster
+import net.minecraft.entity.passive.HappyGhastEntity
 import net.minecraft.entity.passive.VillagerEntity
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.entity.vehicle.VehicleEntity
-import net.minecraft.inventory.ContainerLock
 import net.minecraft.item.BoatItem
 import net.minecraft.item.ItemStack
+import net.minecraft.item.Items
+import net.minecraft.item.LeadItem
 import net.minecraft.item.MinecartItem
 import net.minecraft.registry.RegistryKey
 import net.minecraft.registry.tag.BlockTags
@@ -23,9 +27,10 @@ import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.Box
 import net.minecraft.util.shape.VoxelShape
 import net.minecraft.world.World
-import org.nguh.nguhcraft.block.LockableBlockEntity
 import org.nguh.nguhcraft.isa
+import org.nguh.nguhcraft.item.IsLocked
 import org.nguh.nguhcraft.item.KeyItem
+import org.nguh.nguhcraft.item.LockableBlockEntity
 import org.nguh.nguhcraft.server.Manager
 import org.nguh.nguhcraft.server.ServerProtectionManager
 import java.util.function.Consumer
@@ -77,7 +82,7 @@ typealias RegionLists = Map<RegistryKey<World>, Collection<Region>>
  * - [IsProtectedEntity] checks whether an entity is protected from world effects;
  *   this does *not* handle block entities. Use [IsProtectedBlock] for that.
  */
-abstract class ProtectionManager(protected val Regions: RegionLists) : Manager("Regions") {
+abstract class ProtectionManager(protected val Regions: RegionLists) : Manager() {
     /**
      * Check if a player is allowed to break, start breaking, or place a
      * block at this block position.
@@ -132,8 +137,10 @@ abstract class ProtectionManager(protected val Regions: RegionLists) : Manager("
         // Check region flags.
         val R = _FindRegionContainingBlock(E.world, E.blockPos) ?: return true
         return when (E) {
-            is VehicleEntity -> R.AllowsVehicleUse()
+            is VehicleEntity, is HappyGhastEntity -> R.AllowsVehicleUse()
+            is LeashKnotEntity -> R.AllowsLeashing()
             is VillagerEntity -> R.AllowsVillagerTrading()
+            is Leashable if (PE.mainHandStack isa Items.LEAD) -> R.AllowsLeashing()
             else -> R.AllowsEntityInteraction()
         }
     }
@@ -277,6 +284,12 @@ abstract class ProtectionManager(protected val Regions: RegionLists) : Manager("
             return if (R.AllowsVehicleUse()) ActionResult.SUCCESS else ActionResult.FAIL
         }
 
+        // Leashing entities to fences is also a separate flag.
+        if (Stack != null && Stack.item is LeadItem && St isa BlockTags.FENCES) {
+            val R = _FindRegionContainingBlock(W, Pos) ?: return ActionResult.SUCCESS
+            return if (R.AllowsLeashing()) ActionResult.SUCCESS else ActionResult.FAIL
+        }
+
         // Block is within the bounds of a protected region. Deny.
         //
         // Take care not to treat locked containers as protected here
@@ -294,7 +307,7 @@ abstract class ProtectionManager(protected val Regions: RegionLists) : Manager("
     /** Check if a block is a locked chest. */
     private fun _IsLockedBlock(W: World, Pos: BlockPos): Boolean {
         val BE = KeyItem.GetLockableEntity(W, Pos)
-        return BE is LockableBlockEntity && BE.lock != ContainerLock.EMPTY
+        return BE is LockableBlockEntity && BE.IsLocked()
     }
 
     /** Check if a pressure plate is enabled. */
@@ -355,7 +368,7 @@ abstract class ProtectionManager(protected val Regions: RegionLists) : Manager("
         // We currently only have restrictions on hostile mobs, so always allow
         // friendly entities to spawn. Note the difference between 'Monster' and
         // 'HostileEntity'; the former is what we want since it also includes e.g.
-        // hoglins and ghasts whereas the former does not.
+        // hoglins and ghasts whereas the latter does not.
         if (E !is Monster) return true
 
         // If E is a living entity, then we will have saved the spawn reason for it;

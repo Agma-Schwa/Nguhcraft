@@ -16,7 +16,7 @@ object NguhPaintings {
     // Generate definitions for all paintings.
     fun Bootstrap(R: Registerable<PaintingVariant>) {
         // Reset the list.
-        PLACEABLE = mutableListOf<RegistryKey<PaintingVariant>>()
+        PLACEABLE = mutableListOf()
 
         // Register a single variant.
         fun Register(Name: String, Width: Int, Height: Int, Placeable: Boolean = true) {
@@ -45,5 +45,6 @@ object NguhPaintings {
         Register("rail_diagram", 3, 3)
         Register("rails_of_eras", 3, 2)
         Register("rauratoshan_loop", 4, 3)
+        Register("great_wave", 3, 2)
     }
 }

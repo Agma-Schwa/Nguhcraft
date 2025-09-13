@@ -19,8 +19,10 @@ import org.nguh.nguhcraft.network.ClientboundChatPacket
 import org.nguh.nguhcraft.server.ServerUtils.IsIntegratedServer
 import org.nguh.nguhcraft.server.ServerUtils.IsLinkedOrOperator
 import org.nguh.nguhcraft.server.ServerUtils.Multicast
-import org.nguh.nguhcraft.server.accessors.ServerPlayerDiscordAccessor
 import org.nguh.nguhcraft.server.dedicated.Discord
+
+/** Get a player’s name. */
+val ServerPlayerEntity.Name get(): Text = displayName ?: Text.literal(nameForScoreboard).formatted(Formatting.GRAY)
 
 /** This handles everything related to chat and messages */
 object Chat {
@@ -50,7 +52,7 @@ object Chat {
         // On the integrated server, don’t bother with the linking.
         if (IsIntegratedServer()) {
             S.Broadcast(ClientboundChatPacket(
-                Sender?.displayName ?: SERVER_COMPONENT,
+                Sender?.Name ?: SERVER_COMPONENT,
                 Message,
                 ClientboundChatPacket.MK_PUBLIC
             ))
@@ -61,9 +63,9 @@ object Chat {
         val Name = (
             if (Sender == null) SERVER_COMPONENT
             else Text.empty()
-                .append(Sender.displayName!!)
+                .append(Sender.Name)
                 .append(COLON_COMPONENT.copy().withColor(
-                    (Sender as ServerPlayerDiscordAccessor).discordColour)
+                    Sender.Data.DiscordColour)
                 )
         )
 
@@ -95,15 +97,15 @@ object Chat {
     fun LogChat(SP: ServerPlayerEntity, Message: String, IsCommand: Boolean) {
         val Linked = IsLinkedOrOperator(SP)
         if (IsCommand) BroadcastCommand(
-            SP.server,
-            SP.displayName?.copy() ?: Text.literal(SP.nameForScoreboard),
+            SP.Server,
+            SP.Name.copy() ?: Text.literal(SP.nameForScoreboard),
             Message,
             SP
         )
 
         LOGGER.info(
             "[CHAT] {}{}{}: {}{}",
-            SP.displayName?.string,
+            SP.Name.string,
             if (Linked) " [${SP.nameForScoreboard}]" else "",
             if (IsCommand) " issued command" else " says",
             if (IsCommand) "/" else "",
@@ -155,7 +157,7 @@ object Chat {
         }
 
         // Dew it.
-        val S = SP.server
+        val S = SP.Server
         val ParsedCommand = S.commandManager.dispatcher.parse(Command, SP.commandSource)
         S.commandManager.execute(ParsedCommand, Command)
     }
@@ -170,7 +172,7 @@ object Chat {
         }
 
         // Send an incoming message to all players in the list.
-        val SenderName = if (From == null) SRV_LIT_COMPONENT else From.displayName!!
+        val SenderName = From?.Name ?: SRV_LIT_COMPONENT
         Multicast(Players, ClientboundChatPacket(
             SenderName,
             Message,
@@ -186,7 +188,7 @@ object Chat {
         for (P in Players) {
             if (First) First = false
             else AllReceivers.append(COMMA_COMPONENT)
-            AllReceivers.append(P.displayName)
+            AllReceivers.append(P.Name)
         }
 
         ServerPlayNetworking.send(From, ClientboundChatPacket(

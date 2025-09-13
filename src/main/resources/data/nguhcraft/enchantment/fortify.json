@@ -1,0 +1,44 @@
+{
+	"description": {
+		"translate": "enchantment.nguhcraft.fortify"
+	},
+	"supported_items": "#minecraft:enchantable/armor",
+	"weight": 1,
+	"max_level": 4,
+	"min_cost": {
+		"base": 5,
+		"per_level_above_first": 5
+	},
+	"max_cost": {
+		"base": 50,
+		"per_level_above_first": 5
+	},
+	"anvil_cost": 2,
+	"slots": [
+		"armor"
+	],
+	"effects": {
+		"minecraft:attributes": [
+			{
+				"id": "nguhcraft:enchantment.fortify.armor",
+				"attribute": "minecraft:armor",
+				"amount": {
+					"type": "minecraft:linear",
+					"base": 0.625,
+					"per_level_above_first": 0.625
+				},
+				"operation": "add_value"
+			},
+            {
+                "id": "nguhcraft:enchantment.fortify.armor_toughness",
+                "attribute": "minecraft:armor_toughness",
+                "amount": {
+                    "type": "minecraft:linear",
+                    "base": 0.25,
+                    "per_level_above_first": 0.25
+                },
+                "operation": "add_value"
+            }
+		]
+	}
+}

@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:stonecutting",
+  "ingredient": "minecraft:spruce_wood",
+  "result": {
+    "count": 4,
+    "id": "minecraft:spruce_planks"
+  }
+}

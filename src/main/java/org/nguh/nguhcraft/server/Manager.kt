@@ -2,11 +2,11 @@ package org.nguh.nguhcraft.server
 
 import com.mojang.logging.LogUtils
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking
-import net.minecraft.nbt.NbtCompound
-import net.minecraft.nbt.NbtElement
 import net.minecraft.network.packet.CustomPayload
 import net.minecraft.server.MinecraftServer
 import net.minecraft.server.network.ServerPlayerEntity
+import net.minecraft.storage.ReadView
+import net.minecraft.storage.WriteView
 
 interface ServerManagerInterface {
     /** Do not call this directly. */
@@ -37,9 +37,9 @@ interface ServerManagerInterface {
  *
  * Managers are stored in the 'MinecraftServer' class.
  */
-abstract class Manager(val TagName: String) {
+abstract class Manager {
     /** Load this manager to disk. */
-    abstract fun ReadData(Tag: NbtElement)
+    abstract fun ReadData(RV: ReadView)
 
     /** Sync this manager to a player. */
     fun Sync(SP: ServerPlayerEntity) {
@@ -56,7 +56,7 @@ abstract class Manager(val TagName: String) {
     open fun ToPacket(SP: ServerPlayerEntity): CustomPayload? { return null }
 
     /** Save this manager to disk. */
-    abstract fun WriteData(): NbtElement?
+    abstract fun WriteData(WV: WriteView)
 
     companion object {
         private val LOGGER = LogUtils.getLogger()
@@ -71,11 +71,10 @@ abstract class Manager(val TagName: String) {
 
         /** Initialise all managers. */
         @JvmStatic
-        fun InitFromSaveData(S: MinecraftServer, SaveData: NbtCompound) {
+        fun InitFromSaveData(S: MinecraftServer, SaveData: ReadView) {
             for (M in S.AllManagers()) {
-                val Tag = SaveData.get(M.TagName)
                 try {
-                    if (Tag != null) M.ReadData(Tag)
+                    M.ReadData(SaveData)
                 } catch (E: Exception) {
                     LOGGER.error("Failed to load manager data: ${E.message}", E)
                 }
@@ -84,17 +83,14 @@ abstract class Manager(val TagName: String) {
 
         /** Save all managers. */
         @JvmStatic
-        fun SaveAll(S: MinecraftServer, SaveData: NbtCompound) {
-            for (M in S.AllManagers()) {
-                val Tag = M.WriteData()
-                if (Tag != null) SaveData.put(M.TagName, Tag)
-            }
+        fun SaveAll(S: MinecraftServer, SaveData: WriteView) {
+            for (M in S.AllManagers()) M.WriteData(SaveData)
         }
 
         /** Send the state of all managers to a player. */
         @JvmStatic
         fun SendAll(SP: ServerPlayerEntity) {
-            for (M in SP.server.AllManagers()) M.Sync(SP)
+            for (M in SP.Server.AllManagers()) M.Sync(SP)
         }
 
         /** Initialise static data. */

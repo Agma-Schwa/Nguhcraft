@@ -19,7 +19,7 @@ import net.minecraft.registry.RegistryKeys
 import net.minecraft.registry.RegistryWrapper
 import net.minecraft.registry.tag.ItemTags
 import net.minecraft.registry.tag.TagKey
-import org.nguh.nguhcraft.Nguhcraft
+import org.nguh.nguhcraft.Nguhcraft.Companion.Id
 import org.nguh.nguhcraft.block.*
 import org.nguh.nguhcraft.item.KeyDuplicationRecipe
 import org.nguh.nguhcraft.item.KeyLockPairingRecipe
@@ -36,9 +36,10 @@ class NguhcraftRecipeGenerator(
         // =========================================================================
         //  Armour Trims
         // =========================================================================
-        NguhItems.SMITHING_TEMPLATES.forEach { offerSmithingTrimRecipe(
-            it,
-            RegistryKey.of(RegistryKeys.RECIPE, Nguhcraft.Companion.Id("${getItemPath(it)}_smithing"))
+        NguhItems.ALL_NGUHCRAFT_ARMOUR_TRIMS.forEach { offerSmithingTrimRecipe(
+            it.Template,
+            it.Trim,
+            RegistryKey.of(RegistryKeys.RECIPE, Id("${getItemPath(it)}_smithing"))
         ) }
 
         offerSmithingTemplateCopyingRecipe(NguhItems.ATLANTIC_ARMOUR_TRIM, Items.NAUTILUS_SHELL)
@@ -80,7 +81,12 @@ class NguhcraftRecipeGenerator(
             cinput('r', Items.REDSTONE)
         }
 
+        // =========================================================================
+        // Vanilla Block Decompositions
+        // =========================================================================
         offerShapelessRecipe(Items.STRING, 4, ItemTags.WOOL to 1)
+        offerShapelessRecipe(Items.AMETHYST_SHARD, 4, Items.AMETHYST_BLOCK to 1)
+        offerShapelessRecipe(Items.QUARTZ, 4, Items.QUARTZ_BLOCK to 1)
 
         // =========================================================================
         //  Miscellaneous Blocks
@@ -109,6 +115,20 @@ class NguhcraftRecipeGenerator(
         offerShaped(NguhBlocks.WROUGHT_IRON_BARS, 64) {
             pattern("###")
             pattern("###")
+            cinput('#', NguhBlocks.WROUGHT_IRON_BLOCK)
+        }
+
+        offerShaped(NguhBlocks.IRON_GRATE, 16) {
+            pattern(" # ")
+            pattern("# #")
+            pattern(" # ")
+            cinput('#', Items.IRON_BLOCK)
+        }
+
+        offerShaped(NguhBlocks.WROUGHT_IRON_GRATE, 16) {
+            pattern(" # ")
+            pattern("# #")
+            pattern(" # ")
             cinput('#', NguhBlocks.WROUGHT_IRON_BLOCK)
         }
 
@@ -167,12 +187,16 @@ class NguhcraftRecipeGenerator(
             cinput('#', Items.CALCITE)
         }
 
-        offerShaped(NguhBlocks.TINTED_OAK_PLANKS, 4) {
-            pattern(" # ")
-            pattern("#A#")
-            pattern(" # ")
-            cinput('#', Items.PALE_OAK_PLANKS)
-            cinput('A', Items.AMETHYST_SHARD)
+        offerShaped(NguhBlocks.CALCITE_BRICKS, 4) {
+            pattern("##")
+            pattern("##")
+            cinput('#', NguhBlocks.POLISHED_CALCITE)
+        }
+
+        offerShaped(NguhBlocks.GILDED_CALCITE_BRICKS, 4) {
+            pattern("##")
+            pattern("##")
+            cinput('#', NguhBlocks.GILDED_POLISHED_CALCITE)
         }
 
         // Usual crafting recipes for custom stone types.
@@ -237,6 +261,69 @@ class NguhcraftRecipeGenerator(
         offerShapelessRecipe(NguhBlocks.CINNABAR, 2, Items.NETHERRACK to 1, Items.COBBLESTONE to 1)
 
         // =========================================================================
+        //  Tinted Oak
+        // =========================================================================
+        offerShaped(NguhBlocks.TINTED_OAK_PLANKS, 4) {
+            pattern(" # ")
+            pattern("#A#")
+            pattern(" # ")
+            cinput('#', Items.PALE_OAK_PLANKS)
+            cinput('A', Items.AMETHYST_SHARD)
+        }
+
+        offerShaped(NguhBlocks.TINTED_OAK_LOG, 2) {
+            pattern("P")
+            pattern("A")
+            pattern("P")
+            cinput('P', Blocks.PALE_OAK_LOG)
+            cinput('A', Items.AMETHYST_SHARD)
+        }
+
+        offerShaped(NguhBlocks.TINTED_OAK_WOOD, 2) {
+            pattern("P")
+            pattern("A")
+            pattern("P")
+            cinput('P', Blocks.PALE_OAK_WOOD)
+            cinput('A', Items.AMETHYST_SHARD)
+        }
+
+        offerShaped(NguhBlocks.STRIPPED_TINTED_OAK_LOG, 2) {
+            pattern("P")
+            pattern("A")
+            pattern("P")
+            cinput('P', Blocks.STRIPPED_PALE_OAK_LOG)
+            cinput('A', Items.AMETHYST_SHARD)
+        }
+
+        offerShaped(NguhBlocks.STRIPPED_TINTED_OAK_WOOD, 2) {
+            pattern("P")
+            pattern("A")
+            pattern("P")
+            cinput('P', Blocks.STRIPPED_PALE_OAK_WOOD)
+            cinput('A', Items.AMETHYST_SHARD)
+        }
+
+        // =========================================================================
+        //  Brocade Blocks
+        // =========================================================================
+        offerBrocade(NguhBlocks.BROCADE_BLACK, Blocks.BLACK_WOOL)
+        offerBrocade(NguhBlocks.BROCADE_BLUE, Blocks.BLUE_WOOL)
+        offerBrocade(NguhBlocks.BROCADE_BROWN, Blocks.BROWN_WOOL)
+        offerBrocade(NguhBlocks.BROCADE_CYAN, Blocks.CYAN_WOOL)
+        offerBrocade(NguhBlocks.BROCADE_GREEN, Blocks.GREEN_WOOL)
+        offerBrocade(NguhBlocks.BROCADE_GREY, Blocks.GRAY_WOOL)
+        offerBrocade(NguhBlocks.BROCADE_LIGHT_BLUE, Blocks.LIGHT_BLUE_WOOL)
+        offerBrocade(NguhBlocks.BROCADE_LIGHT_GREY, Blocks.LIGHT_GRAY_WOOL)
+        offerBrocade(NguhBlocks.BROCADE_LIME, Blocks.LIME_WOOL)
+        offerBrocade(NguhBlocks.BROCADE_MAGENTA, Blocks.MAGENTA_WOOL)
+        offerBrocade(NguhBlocks.BROCADE_ORANGE, Blocks.ORANGE_WOOL)
+        offerBrocade(NguhBlocks.BROCADE_PINK, Blocks.PINK_WOOL)
+        offerBrocade(NguhBlocks.BROCADE_PURPLE, Blocks.PURPLE_WOOL)
+        offerBrocade(NguhBlocks.BROCADE_RED, Blocks.RED_WOOL)
+        offerBrocade(NguhBlocks.BROCADE_WHITE, Blocks.WHITE_WOOL)
+        offerBrocade(NguhBlocks.BROCADE_YELLOW, Blocks.YELLOW_WOOL)
+
+        // =========================================================================
         //  Vertical Slabs
         // =========================================================================
         for (V in NguhBlockModels.VERTICAL_SLABS) offerShaped(V.VerticalSlab, 6) {
@@ -253,10 +340,27 @@ class NguhcraftRecipeGenerator(
         for (F in NguhBlocks.STONE_FAMILY_GROUPS) offerRelatedStonecuttingFamilies(F)
         offerStonecuttingFamily(NguhBlocks.POLISHED_CALCITE_FAMILY, Blocks.CALCITE)
         offerStonecuttingFamily(NguhBlocks.CALCITE_BRICK_FAMILY, Blocks.CALCITE)
-        offerStonecuttingRecipe(RecipeCategory.BUILDING_BLOCKS, NguhBlocks.PYRITE_BRICKS, NguhBlocks.PYRITE)
+        offerStonecuttingRecipe(Out = NguhBlocks.PYRITE_BRICKS, In = NguhBlocks.PYRITE)
 
-        for (V in NguhBlockModels.VERTICAL_SLABS.filter { !it.Wood })
-            offerStonecuttingRecipe(RecipeCategory.BUILDING_BLOCKS, V.VerticalSlab, V.Base, 2)
+        for (V in NguhBlockModels.VERTICAL_SLABS)
+            offerStonecuttingRecipe(Out = V.VerticalSlab, In = V.Base, 2)
+
+        // =========================================================================
+        //  ‘Wood Cutting’
+        // =========================================================================
+        for (F in NguhBlocks.VANILLA_AND_NGUHCRAFT_EXTENDED_WOOD_FAMILIES) {
+            offerStonecuttingFamily(F.PlanksFamily)
+
+            // Logs -> Planks
+            offerStonecuttingRecipe(Out = F.PlanksFamily.baseBlock, In = F.Wood, 4)
+            offerStonecuttingRecipe(Out = F.PlanksFamily.baseBlock, In = F.Log, 4)
+            offerStonecuttingRecipe(Out = F.PlanksFamily.baseBlock, In = F.StrippedLog, 4)
+            offerStonecuttingRecipe(Out = F.PlanksFamily.baseBlock, In = F.StrippedWood, 4)
+
+            // Logs -> Stripped Logs
+            offerStonecuttingRecipe(Out = F.StrippedLog, In = F.Log)
+            offerStonecuttingRecipe(Out = F.StrippedWood, In = F.Wood)
+        }
 
         // =========================================================================
         //  Smelting
@@ -270,14 +374,33 @@ class NguhcraftRecipeGenerator(
         ComplexRecipeJsonBuilder.create(::KeyDuplicationRecipe).offerTo(E, "key_duplication")
     }
 
+    /** Add a recipe for a brocade block. */
+    fun offerBrocade(B: Block, Wool: Block) {
+        offerShaped(B, 4) {
+            pattern("SWS")
+            pattern("WSW")
+            pattern("SWS")
+            cinput('W', Wool)
+            cinput('S', Items.STRING)
+        }
+    }
+
+    /** Add a stonecutting recipe. */
+    fun offerStonecuttingRecipe(Out: Block, In: Block, Count: Int = 1)
+        = offerStonecuttingRecipe(RecipeCategory.BUILDING_BLOCKS, Out, In, Count)
+
     /** Add stonecutting recipes for a family. */
     fun offerStonecuttingFamily(F: BlockFamily, Base: Block = F.baseBlock) {
-        /// Do NOT include 'Polished' here; that is handled in offerRelatedStonecuttingFamilies().
-        if (F.baseBlock != Base) offerStonecuttingRecipe(RecipeCategory.BUILDING_BLOCKS, F.baseBlock, Base)
-        F.Chiseled?.let { offerStonecuttingRecipe(RecipeCategory.BUILDING_BLOCKS, it, Base) }
-        F.Slab?.let { offerStonecuttingRecipe(RecipeCategory.BUILDING_BLOCKS, it, Base, 2) }
-        F.Stairs?.let { offerStonecuttingRecipe(RecipeCategory.BUILDING_BLOCKS, it, Base) }
-        F.Wall?.let { offerStonecuttingRecipe(RecipeCategory.BUILDING_BLOCKS, it, Base) }
+        // Do NOT include 'Polished' here; that is handled in offerRelatedStonecuttingFamilies().
+        if (F.baseBlock != Base) offerStonecuttingRecipe(Out = F.baseBlock, In = Base)
+        F.Chiseled?.let { offerStonecuttingRecipe(Out = it, In = Base) }
+        F.Door?.let { offerStonecuttingRecipe(Out = it, In = Base) }
+        F.Fence?.let { offerStonecuttingRecipe(Out = it, In = Base) }
+        F.FenceGate?.let { offerStonecuttingRecipe(Out = it, In = Base) }
+        F.Slab?.let { offerStonecuttingRecipe(Out = it, In = Base, 2) }
+        F.Stairs?.let { offerStonecuttingRecipe(Out = it, In = Base) }
+        F.Trapdoor?.let { offerStonecuttingRecipe(Out = it, In = Base) }
+        F.Wall?.let { offerStonecuttingRecipe(Out = it, In = Base) }
     }
 
     /** Add stonecutting recipes for a list of related families. */

@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "minecraft:exposed_cut_copper_slab_vertical"
+        "recipe": "nguhcraft:exposed_cut_copper_slab_vertical"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
@@ -26,7 +26,7 @@
   ],
   "rewards": {
     "recipes": [
-      "minecraft:exposed_cut_copper_slab_vertical"
+      "nguhcraft:exposed_cut_copper_slab_vertical"
     ]
   }
 }

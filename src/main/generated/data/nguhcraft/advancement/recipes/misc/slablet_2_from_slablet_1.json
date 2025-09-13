@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "minecraft:slablet_2_from_slablet_1"
+        "recipe": "nguhcraft:slablet_2_from_slablet_1"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
@@ -26,7 +26,7 @@
   ],
   "rewards": {
     "recipes": [
-      "minecraft:slablet_2_from_slablet_1"
+      "nguhcraft:slablet_2_from_slablet_1"
     ]
   }
 }

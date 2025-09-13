@@ -2,7 +2,7 @@
   "type": "minecraft:stonecutting",
   "ingredient": "minecraft:prismarine_bricks",
   "result": {
-    "count": 1,
+    "count": 2,
     "id": "nguhcraft:prismarine_brick_slab_vertical"
   }
 }

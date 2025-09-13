@@ -15,10 +15,16 @@ import net.minecraft.block.Blocks
 import net.minecraft.block.SlabBlock
 import net.minecraft.client.data.BlockStateModelGenerator
 import net.minecraft.client.data.ItemModelGenerator
+import net.minecraft.client.render.entity.equipment.EquipmentModel
 import net.minecraft.component.DataComponentTypes
+import net.minecraft.data.DataOutput
+import net.minecraft.data.DataProvider
+import net.minecraft.data.DataWriter
 import net.minecraft.data.recipe.RecipeExporter
 import net.minecraft.entity.damage.DamageType
 import net.minecraft.entity.decoration.painting.PaintingVariant
+import net.minecraft.item.Items
+import net.minecraft.item.equipment.EquipmentAsset
 import net.minecraft.loot.LootPool
 import net.minecraft.loot.LootTable
 import net.minecraft.loot.condition.BlockStatePropertyLootCondition
@@ -28,14 +34,17 @@ import net.minecraft.loot.function.SetCountLootFunction
 import net.minecraft.loot.provider.number.ConstantLootNumberProvider
 import net.minecraft.predicate.StatePredicate
 import net.minecraft.registry.RegistryBuilder
+import net.minecraft.registry.RegistryKey
 import net.minecraft.registry.RegistryKeys
 import net.minecraft.registry.RegistryWrapper
 import net.minecraft.registry.tag.BlockTags
 import net.minecraft.registry.tag.DamageTypeTags
+import net.minecraft.registry.tag.ItemTags
 import net.minecraft.registry.tag.PaintingVariantTags
 import net.minecraft.registry.tag.TagKey
 import org.nguh.nguhcraft.NguhDamageTypes
 import org.nguh.nguhcraft.NguhPaintings
+import org.nguh.nguhcraft.Nguhcraft.Companion.Id
 import org.nguh.nguhcraft.block.Fence
 import org.nguh.nguhcraft.block.NguhBlockModels
 import org.nguh.nguhcraft.block.NguhBlocks
@@ -55,26 +64,35 @@ class NguhcraftBlockTagProvider(
     RF: CompletableFuture<RegistryWrapper.WrapperLookup>
 ) : FabricTagProvider.BlockTagProvider(O, RF) {
     override fun configure(WL: RegistryWrapper.WrapperLookup) {
-        getOrCreateTagBuilder(BlockTags.PICKAXE_MINEABLE).let { T ->
+        valueLookupBuilder(BlockTags.PICKAXE_MINEABLE).let { T ->
             for (B in NguhBlocks.PICKAXE_MINEABLE) T.add(B)
             for (B in NguhBlockModels.VERTICAL_SLABS.filter { !it.Wood }) T.add(B.VerticalSlab)
         }
 
+        valueLookupBuilder(BlockTags.WOOL).let {
+            for (B in NguhBlocks.ALL_BROCADE_BLOCKS) it.add(B)
+        }
+
         // Block tags for miscellaneous custom blocks.
-        getOrCreateTagBuilder(BlockTags.PLANKS).add(NguhBlocks.TINTED_OAK_PLANKS)
-        getOrCreateTagBuilder(BlockTags.DOORS).add(NguhBlocks.LOCKED_DOOR)
-        getOrCreateTagBuilder(BlockTags.WOODEN_SLABS)
+        valueLookupBuilder(BlockTags.PLANKS).add(NguhBlocks.TINTED_OAK_PLANKS)
+        valueLookupBuilder(BlockTags.DOORS).add(NguhBlocks.LOCKED_DOOR)
+        valueLookupBuilder(BlockTags.WOODEN_SLABS)
             .add(NguhBlocks.TINTED_OAK_SLAB)
             .let {
                 for (B in NguhBlockModels.VERTICAL_SLABS.filter { it.Wood })
                     it.add(B.VerticalSlab)
             }
 
-        getOrCreateTagBuilder(BlockTags.WOODEN_STAIRS).add(NguhBlocks.TINTED_OAK_STAIRS)
-        getOrCreateTagBuilder(BlockTags.WOODEN_FENCES).add(NguhBlocks.TINTED_OAK_FENCE)
+        valueLookupBuilder(BlockTags.WOODEN_STAIRS).add(NguhBlocks.TINTED_OAK_STAIRS)
+        valueLookupBuilder(BlockTags.WOODEN_FENCES).add(NguhBlocks.TINTED_OAK_FENCE)
+        valueLookupBuilder(BlockTags.LOGS_THAT_BURN)
+            .add(NguhBlocks.TINTED_OAK_LOG)
+            .add(NguhBlocks.TINTED_OAK_WOOD)
+            .add(NguhBlocks.STRIPPED_TINTED_OAK_LOG)
+            .add(NguhBlocks.STRIPPED_TINTED_OAK_WOOD)
 
         // Block tag for bonemealing flowers.
-        getOrCreateTagBuilder(NguhBlocks.CAN_DUPLICATE_WITH_BONEMEAL)
+        valueLookupBuilder(NguhBlocks.CAN_DUPLICATE_WITH_BONEMEAL)
             .add(Blocks.DANDELION)
             .add(Blocks.POPPY)
             .add(Blocks.BLUE_ORCHID)
@@ -89,10 +107,10 @@ class NguhcraftBlockTagProvider(
             .add(Blocks.LILY_OF_THE_VALLEY)
 
         // Add blocks from families.
-        val Fences = getOrCreateTagBuilder(BlockTags.FENCES)
-        val Walls = getOrCreateTagBuilder(BlockTags.WALLS)
-        val Stairs = getOrCreateTagBuilder(BlockTags.STAIRS)
-        val Slabs = getOrCreateTagBuilder(BlockTags.SLABS)
+        val Fences = valueLookupBuilder(BlockTags.FENCES)
+        val Walls = valueLookupBuilder(BlockTags.WALLS)
+        val Stairs = valueLookupBuilder(BlockTags.STAIRS)
+        val Slabs = valueLookupBuilder(BlockTags.SLABS)
         for (B in NguhBlocks.ALL_VARIANT_FAMILIES) {
             B.Fence?.let { Fences.add(it) }
             B.Slab?.let { Slabs.add(it) }
@@ -111,17 +129,78 @@ class NguhcraftDamageTypeTagProvider(
     RF: CompletableFuture<RegistryWrapper.WrapperLookup>
 ) : FabricTagProvider<DamageType>(O, RegistryKeys.DAMAGE_TYPE, RF) {
     override fun configure(WL: RegistryWrapper.WrapperLookup) {
-        AddAll(DamageTypeTags.BYPASSES_ARMOR)
-        AddAll(DamageTypeTags.BYPASSES_ENCHANTMENTS)
-        AddAll(DamageTypeTags.BYPASSES_RESISTANCE)
-        getOrCreateTagBuilder(DamageTypeTags.BYPASSES_INVULNERABILITY)
-            .add(NguhDamageTypes.OBLITERATED)
-        getOrCreateTagBuilder(DamageTypeTags.NO_KNOCKBACK)
-            .add(NguhDamageTypes.OBLITERATED)
+        // Damage types that bypass most resistances.
+        AddBypassDamageTypesTo(DamageTypeTags.BYPASSES_ARMOR)
+        AddBypassDamageTypesTo(DamageTypeTags.BYPASSES_ENCHANTMENTS)
+        AddBypassDamageTypesTo(DamageTypeTags.BYPASSES_RESISTANCE)
+
+        // The 'obliterated' damage bypasses additional resistances.
+        builder(DamageTypeTags.BYPASSES_INVULNERABILITY).add(NguhDamageTypes.OBLITERATED)
+        builder(DamageTypeTags.NO_KNOCKBACK).add(NguhDamageTypes.OBLITERATED)
+
+        // The 'stonecutter' damage type behaves a bit like 'hot_floor'
+        builder(DamageTypeTags.BYPASSES_SHIELD).add(NguhDamageTypes.STONECUTTER)
+        builder(DamageTypeTags.NO_KNOCKBACK).add(NguhDamageTypes.STONECUTTER)
+
+        // The 'arcane' damage type acts like magic damage.
+        builder(DamageTypeTags.IS_PLAYER_ATTACK).add(NguhDamageTypes.ARCANE)
+        builder(DamageTypeTags.BYPASSES_ARMOR).add(NguhDamageTypes.ARCANE)
+        builder(DamageTypeTags.AVOIDS_GUARDIAN_THORNS).add(NguhDamageTypes.ARCANE)
+        builder(DamageTypeTags.ALWAYS_TRIGGERS_SILVERFISH).add(NguhDamageTypes.ARCANE)
+        builder(DamageTypeTags.NO_KNOCKBACK).add(NguhDamageTypes.ARCANE)
+        builder(DamageTypeTags.BYPASSES_WOLF_ARMOR).add(NguhDamageTypes.ARCANE)
     }
 
-    fun AddAll(T: TagKey<DamageType>) {
-        getOrCreateTagBuilder(T).let { for (DT in NguhDamageTypes.ALL) it.add(DT) }
+    fun AddBypassDamageTypesTo(T: TagKey<DamageType>) {
+        builder(T).let { for (DT in NguhDamageTypes.BYPASSES_RESISTANCES) it.add(DT) }
+    }
+}
+
+class NguhcraftEquipmentAssetProvider(
+    O: FabricDataOutput,
+    RF: CompletableFuture<RegistryWrapper.WrapperLookup>
+) : DataProvider {
+    val Resolver = O.getResolver(DataOutput.OutputType.RESOURCE_PACK, "equipment")
+
+    private fun Bootstrap(Add: (RegistryKey<EquipmentAsset>, EquipmentModel) -> Unit) {
+        Add(
+            NguhItems.AMETHYST_EQUIPMENT_ASSET_KEY,
+            EquipmentModel.builder().addHumanoidLayers(Id("amethyst")).build()
+        )
+    }
+
+    override fun run(W: DataWriter): CompletableFuture<*> {
+        val Map = mutableMapOf<RegistryKey<EquipmentAsset>, EquipmentModel>()
+        Bootstrap { K, M -> if (Map.putIfAbsent(K, M) != null) throw IllegalStateException("Duplicate key: $K") }
+        return DataProvider.writeAllToPath(W, EquipmentModel.CODEC, Resolver::resolveJson, Map)
+    }
+
+    override fun getName() = "Nguhcraft Equipment Asset Definitions"
+}
+
+class NguhcraftItemTagProvider(
+    O: FabricDataOutput,
+    RF: CompletableFuture<RegistryWrapper.WrapperLookup>
+) : FabricTagProvider.ItemTagProvider(O, RF) {
+    override fun configure(WL: RegistryWrapper.WrapperLookup) {
+        valueLookupBuilder(ItemTags.HEAD_ARMOR).add(NguhItems.AMETHYST_HELMET)
+        valueLookupBuilder(ItemTags.CHEST_ARMOR).add(NguhItems.AMETHYST_CHESTPLATE)
+        valueLookupBuilder(ItemTags.LEG_ARMOR).add(NguhItems.AMETHYST_LEGGINGS)
+        valueLookupBuilder(ItemTags.FOOT_ARMOR).add(NguhItems.AMETHYST_BOOTS)
+        valueLookupBuilder(ItemTags.TRIMMABLE_ARMOR)
+            .add(NguhItems.AMETHYST_HELMET)
+            .add(NguhItems.AMETHYST_CHESTPLATE)
+            .add(NguhItems.AMETHYST_LEGGINGS)
+            .add(NguhItems.AMETHYST_BOOTS)
+
+        valueLookupBuilder(NguhItems.REPAIRS_AMETHYST_ARMOUR)
+            .add(Items.AMETHYST_CLUSTER)
+
+        valueLookupBuilder(ItemTags.SWORDS).add(NguhItems.AMETHYST_SWORD)
+        valueLookupBuilder(ItemTags.SHOVELS).add(NguhItems.AMETHYST_SHOVEL)
+        valueLookupBuilder(ItemTags.PICKAXES).add(NguhItems.AMETHYST_PICKAXE)
+        valueLookupBuilder(ItemTags.AXES).add(NguhItems.AMETHYST_AXE)
+        valueLookupBuilder(ItemTags.HOES).add(NguhItems.AMETHYST_HOE)
     }
 }
 
@@ -192,7 +271,7 @@ class NguhcraftPaintingVariantTagProvider(
     RF: CompletableFuture<RegistryWrapper.WrapperLookup>
 ) : FabricTagProvider<PaintingVariant>(O, RegistryKeys.PAINTING_VARIANT, RF) {
     override fun configure(WL: RegistryWrapper.WrapperLookup) {
-        getOrCreateTagBuilder(PaintingVariantTags.PLACEABLE).let { for (P in NguhPaintings.PLACEABLE) it.add(P) }
+        builder(PaintingVariantTags.PLACEABLE).let { for (P in NguhPaintings.PLACEABLE) it.add(P) }
     }
 }
 
@@ -239,6 +318,8 @@ class NguhcraftDataGenerator : DataGeneratorEntrypoint {
         P.addProvider(::NguhcraftBlockTagProvider)
         P.addProvider(::NguhcraftDamageTypeTagProvider)
         P.addProvider(::NguhcraftDynamicRegistryProvider)
+        P.addProvider(::NguhcraftEquipmentAssetProvider)
+        P.addProvider(::NguhcraftItemTagProvider)
         P.addProvider(::NguhcraftLootTableProvider)
         P.addProvider(::NguhcraftModelGenerator)
         P.addProvider(::NguhcraftPaintingVariantTagProvider)

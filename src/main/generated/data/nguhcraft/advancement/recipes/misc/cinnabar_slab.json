@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "minecraft:cinnabar_slab"
+        "recipe": "nguhcraft:cinnabar_slab"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
@@ -26,7 +26,7 @@
   ],
   "rewards": {
     "recipes": [
-      "minecraft:cinnabar_slab"
+      "nguhcraft:cinnabar_slab"
     ]
   }
 }

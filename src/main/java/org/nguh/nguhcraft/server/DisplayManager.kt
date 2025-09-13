@@ -2,18 +2,20 @@ package org.nguh.nguhcraft.server
 
 import com.mojang.serialization.Codec
 import com.mojang.serialization.codecs.RecordCodecBuilder
-import net.minecraft.nbt.NbtCompound
-import net.minecraft.nbt.NbtElement
 import net.minecraft.network.packet.CustomPayload
 import net.minecraft.server.MinecraftServer
 import net.minecraft.server.network.ServerPlayerEntity
+import net.minecraft.storage.ReadView
+import net.minecraft.storage.WriteView
 import net.minecraft.text.MutableText
 import net.minecraft.text.Text
 import net.minecraft.text.TextCodecs
 import net.minecraft.util.Formatting
 import net.minecraft.util.Uuids
-import org.nguh.nguhcraft.Decode
-import org.nguh.nguhcraft.Encode
+import org.nguh.nguhcraft.Named
+import org.nguh.nguhcraft.Read
+import org.nguh.nguhcraft.With
+import org.nguh.nguhcraft.Write
 import org.nguh.nguhcraft.network.ClientboundSyncDisplayPacket
 import java.util.*
 
@@ -46,7 +48,7 @@ class SyncedDisplay(Id: String): DisplayHandle(Id) {
 }
 
 /** Object that manages displays. */
-class DisplayManager(private val S: MinecraftServer): Manager("Displays") {
+class DisplayManager(private val S: MinecraftServer): Manager() {
     private val Displays = mutableMapOf<String, SyncedDisplay>()
     private val ActiveDisplays = mutableMapOf<UUID, String>()
 
@@ -64,14 +66,18 @@ class DisplayManager(private val S: MinecraftServer): Manager("Displays") {
         return T
     }
 
-    override fun ReadData(Tag: NbtElement) {
-        if (Tag !is NbtCompound) return
-        val (D, A) = CODEC.Decode(Tag)
-        for (El in D) Displays[El.Id] = El
-        ActiveDisplays.putAll(A)
+    override fun ReadData(RV: ReadView) = RV.With(KEY) {
+        val D = Read(DISPLAYS_CODEC)
+        D.ifPresent {
+            for (El in it) Displays[El.Id] = El
+            Read(ACTIVE_DISPLAYS_CODEC).ifPresent { ActiveDisplays.putAll(it) }
+        }
     }
 
-    override fun WriteData() = CODEC.Encode(Displays.values.toList() to ActiveDisplays)
+    override fun WriteData(WV: WriteView) = WV.With(KEY) {
+        Write(DISPLAYS_CODEC, Displays.values.toList())
+        Write(ACTIVE_DISPLAYS_CODEC, ActiveDisplays)
+    }
 
     override fun ToPacket(SP: ServerPlayerEntity): CustomPayload? {
         return ClientboundSyncDisplayPacket(
@@ -102,12 +108,9 @@ class DisplayManager(private val S: MinecraftServer): Manager("Displays") {
     }
 
     companion object {
-        val CODEC: Codec<Pair<List<SyncedDisplay>, Map<UUID, String>>> = RecordCodecBuilder.create {
-            it.group(
-                SyncedDisplay.CODEC.listOf().fieldOf("Displays").forGetter { it.first },
-                Codec.unboundedMap(Uuids.CODEC, Codec.STRING).fieldOf("ActiveDisplays").forGetter { it.second },
-            ).apply(it) { Displays, Active -> Displays to Active }
-        }
+        private const val KEY = "Displays"
+        private val DISPLAYS_CODEC = SyncedDisplay.CODEC.listOf().Named("Displays")
+        private val ACTIVE_DISPLAYS_CODEC = Codec.unboundedMap(Uuids.CODEC, Codec.STRING).Named("ActiveDisplays")
     }
 }
 

@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:stonecutting",
+  "ingredient": "minecraft:stripped_mangrove_log",
+  "result": {
+    "count": 4,
+    "id": "minecraft:mangrove_planks"
+  }
+}

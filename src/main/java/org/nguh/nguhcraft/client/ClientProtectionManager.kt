@@ -4,7 +4,8 @@ import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
 import net.minecraft.client.network.ClientPlayerEntity
 import net.minecraft.entity.player.PlayerEntity
-import net.minecraft.nbt.NbtElement
+import net.minecraft.storage.ReadView
+import net.minecraft.storage.WriteView
 import net.minecraft.world.World
 import org.nguh.nguhcraft.network.ClientboundSyncProtectionMgrPacket
 import org.nguh.nguhcraft.protect.ProtectionManager
@@ -20,8 +21,8 @@ class ClientProtectionManager(
         else false
 
     override fun IsLinked(PE: PlayerEntity) = true
-    override fun ReadData(Tag: NbtElement) = throw UnsupportedOperationException()
-    override fun WriteData() = throw UnsupportedOperationException()
+    override fun ReadData(RV: ReadView) = throw UnsupportedOperationException()
+    override fun WriteData(WV: WriteView) = throw UnsupportedOperationException()
 
     companion object {
         /** Empty manager used on the client to ensure it’s never null. */

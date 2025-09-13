@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/outer_stairs",
+  "textures": {
+    "bottom": "nguhcraft:block/dripstone_bricks",
+    "side": "nguhcraft:block/dripstone_bricks",
+    "top": "nguhcraft:block/dripstone_bricks"
+  }
+}

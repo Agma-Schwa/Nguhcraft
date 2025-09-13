@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/handheld",
+  "textures": {
+    "layer0": "nguhcraft:item/amethyst_sword"
+  }
+}

@@ -13,16 +13,13 @@ import net.minecraft.entity.LivingEntity
 import net.minecraft.entity.SpawnReason
 import net.minecraft.entity.effect.StatusEffect
 import net.minecraft.entity.effect.StatusEffectInstance
-import net.minecraft.entity.effect.StatusEffects
 import net.minecraft.entity.mob.AbstractPiglinEntity
 import net.minecraft.entity.mob.Monster
 import net.minecraft.entity.passive.IronGolemEntity
 import net.minecraft.entity.passive.VillagerEntity
 import net.minecraft.entity.projectile.ProjectileUtil
 import net.minecraft.entity.projectile.TridentEntity
-import net.minecraft.inventory.ContainerLock
 import net.minecraft.item.ItemStack
-import net.minecraft.nbt.NbtCompound
 import net.minecraft.network.packet.CustomPayload
 import net.minecraft.network.packet.s2c.play.SubtitleS2CPacket
 import net.minecraft.network.packet.s2c.play.TitleS2CPacket
@@ -39,7 +36,6 @@ import net.minecraft.server.world.ServerWorld
 import net.minecraft.text.Text
 import net.minecraft.util.Formatting
 import net.minecraft.util.Hand
-import net.minecraft.util.Identifier
 import net.minecraft.util.hit.HitResult
 import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.Box
@@ -50,22 +46,49 @@ import net.minecraft.world.TeleportTarget
 import net.minecraft.world.World
 import org.nguh.nguhcraft.Constants.MAX_HOMING_DISTANCE
 import org.nguh.nguhcraft.Effects
-import org.nguh.nguhcraft.Nbt
 import org.nguh.nguhcraft.NguhDamageTypes
-import org.nguh.nguhcraft.SyncedGameRule
-import org.nguh.nguhcraft.Utils
 import org.nguh.nguhcraft.Utils.EnchantLvl
 import org.nguh.nguhcraft.accessors.TridentEntityAccessor
-import org.nguh.nguhcraft.block.LockableBlockEntity
 import org.nguh.nguhcraft.enchantment.NguhcraftEnchantments
 import org.nguh.nguhcraft.entity.EntitySpawnManager
+import org.nguh.nguhcraft.item.LockableBlockEntity
 import org.nguh.nguhcraft.network.ClientFlags
 import org.nguh.nguhcraft.protect.ProtectionManager
 import org.nguh.nguhcraft.server.accessors.LivingEntityAccessor
-import org.nguh.nguhcraft.server.accessors.ServerPlayerAccessor
 import org.nguh.nguhcraft.server.dedicated.Discord
-import org.nguh.nguhcraft.set
 import org.slf4j.Logger
+
+/** A TeleportTarget that doesn’t store the world directly and can actually be saved. */
+class SerialisedTeleportTarget(
+    val World: RegistryKey<World>,
+    val X: Double,
+    val Y: Double,
+    val Z: Double,
+    val Yaw: Float,
+    val Pitch: Float,
+) {
+    fun Instantiate(S: MinecraftServer) = TeleportTarget(
+        S.getWorld(World),
+        Vec3d(X, Y, Z),
+        Vec3d.ZERO,
+        Yaw,
+        Pitch,
+        TeleportTarget.NO_OP
+    )
+
+    companion object {
+        val CODEC: Codec<SerialisedTeleportTarget> = RecordCodecBuilder.create {
+            it.group(
+                RegistryKey.createCodec(RegistryKeys.WORLD).fieldOf("World").forGetter(SerialisedTeleportTarget::World),
+                Codec.DOUBLE.fieldOf("X").forGetter(SerialisedTeleportTarget::X),
+                Codec.DOUBLE.fieldOf("Y").forGetter(SerialisedTeleportTarget::Y),
+                Codec.DOUBLE.fieldOf("Z").forGetter(SerialisedTeleportTarget::Z),
+                Codec.FLOAT.fieldOf("Yaw").forGetter(SerialisedTeleportTarget::Yaw),
+                Codec.FLOAT.fieldOf("Pitch").forGetter(SerialisedTeleportTarget::Pitch),
+            ).apply(it, ::SerialisedTeleportTarget)
+        }
+    }
+}
 
 /**
  * Server-side utilities.
@@ -86,7 +109,7 @@ object ServerUtils {
         if (LE.health.isNaN()) {
             // Disconnect players.
             if (LE is ServerPlayerEntity) {
-                LOGGER.warn("Player {} had NaN health, disconnecting.", LE.displayName!!.string)
+                LOGGER.warn("Player {} had NaN health, disconnecting.", LE.Name.string)
                 LE.health = 0F
                 LE.networkHandler.disconnect(Text.of("Health was NaN!"))
                 return
@@ -103,11 +126,10 @@ object ServerUtils {
     fun ActOnPlayerJoin(SP: ServerPlayerEntity) {
         // Sync data with the client.
         val LEA = SP as LivingEntityAccessor
-        val SPA = SP as ServerPlayerAccessor
         Manager.SendAll(SP)
-        SP.SetClientFlag(ClientFlags.BYPASSES_REGION_PROTECTION, SPA.bypassesRegionProtection)
+        SP.SetClientFlag(ClientFlags.BYPASSES_REGION_PROTECTION, SP.Data.BypassesRegionProtection)
         SP.SetClientFlag(ClientFlags.IN_HYPERSHOT_CONTEXT, LEA.hypershotContext != null)
-        SP.SetClientFlag(ClientFlags.VANISHED, SP.IsVanished)
+        SP.SetClientFlag(ClientFlags.VANISHED, SP.Data.Vanished)
     }
 
     /**
@@ -117,7 +139,7 @@ object ServerUtils {
     */
     @JvmStatic
     fun ActOnPlayerTick(SP: ServerPlayerEntity) {
-        val SW = SP.serverWorld
+        val SW = SP.world
 
         // Check if the player is outside the world border.
         // TODO: Can we make a 'global' region for the entire world
@@ -128,16 +150,16 @@ object ServerUtils {
         if (!SW.worldBorder.contains(SP.boundingBox)) {
             SP.Teleport(SW, SW.spawnPos)
             SendTitle(SP, BORDER_TITLE, BORDER_SUBTITLE)
-            LOGGER.warn("Player {} tried to leave the border.", SP.displayName!!.string)
+            LOGGER.warn("Player {} tried to leave the border.", SP.Name.string)
         }
 
-        SP.server.ProtectionManager.TickRegionsForPlayer(SP)
+        SP.Server.ProtectionManager.TickRegionsForPlayer(SP)
     }
 
     /** Broadcast a join message for a player. */
     @JvmStatic
     fun ActOnPlayerQuit(SP: ServerPlayerEntity, Msg: Text) {
-        SP.server.ProtectionManager.TickPlayerQuit(SP)
+        SP.Server.ProtectionManager.TickPlayerQuit(SP)
         SendPlayerJoinQuitMessage(SP, Msg)
     }
 
@@ -183,7 +205,8 @@ object ServerUtils {
 
     /** Check if this server command source has moderator permissions. */
     @JvmStatic
-    fun IsModerator(S: ServerCommandSource) = S.hasPermissionLevel(4) || S.player?.IsModerator == true
+    fun IsModerator(S: ServerCommandSource) =
+        S.hasPermissionLevel(4) || S.player?.Data?.IsModerator == true
 
     /** @return `true` if the entity entered or was already in a hypershot context. */
     @JvmStatic
@@ -296,7 +319,7 @@ object ServerUtils {
      */
     fun Obliterate(SP: ServerPlayerEntity) {
         if (SP.isDead || SP.isSpectator || SP.isCreative) return
-        val SW = SP.serverWorld
+        val SW = SP.world
         StrikeLightning(SW, SP.pos, null, true)
         SP.damage(SW, NguhDamageTypes.Obliterated(SW), Float.MAX_VALUE)
     }
@@ -311,7 +334,7 @@ object ServerUtils {
     /** Broadcast a join message for a player. */
     @JvmStatic
     fun SendPlayerJoinQuitMessage(SP: ServerPlayerEntity, Msg: Text) {
-        if (!SP.IsVanished) SP.server.Broadcast(Msg)
+        if (!SP.Data.Vanished) SP.Server.Broadcast(Msg)
     }
 
     /**
@@ -342,28 +365,6 @@ object ServerUtils {
         }
     }
 
-    /** Load a teleport target from NBT data. */
-    @JvmStatic
-    fun TeleportTargetFromNbt(Server: MinecraftServer, Tag : NbtCompound): TeleportTarget? {
-        val Pos = Vec3d(Tag.getDouble("X"), Tag.getDouble("Y"), Tag.getDouble("Z"))
-        val Yaw = Tag.getFloat("Yaw")
-        val Pitch = Tag.getFloat("Pitch")
-        val Dim = Utils.DeserialiseWorld(Tag.getString("World"))
-        val SW = Server.getWorld(Dim) ?: return null
-        return TeleportTarget(SW, Pos, Vec3d.ZERO, Yaw, Pitch, TeleportTarget.NO_OP)
-    }
-
-    /** Save a teleport target to NBT data. */
-    @JvmStatic
-    fun TeleportTargetToNbt(Target: TeleportTarget) = Nbt {
-        set("X", Target.position.x)
-        set("Y", Target.position.y)
-        set("Z", Target.position.z)
-        set("Yaw", Target.yaw)
-        set("Pitch", Target.pitch)
-        set("World", Utils.SerialiseWorld(Target.world.registryKey))
-    }
-
     /** Called during the world tick on the server. */
     @JvmStatic
     fun TickWorld(SW: ServerWorld) {
@@ -390,10 +391,10 @@ object ServerUtils {
         return SmeltingResult(Smelted.copyWithCount(I.count), RoundExp(Recipe.experience))
     }
 
-    /** Update the lock on a container. */
-    fun UpdateLock(LE: LockableBlockEntity, NewLock: ContainerLock) {
+    /** Update the lock on a container. Pass null to unlock it. */
+    fun UpdateLock(LE: LockableBlockEntity, NewLock: String?) {
         LE as BlockEntity // Every LockableBlockEntity is a BlockEntity.
-        LE.SetLockInternal(NewLock)
+        LE.`Nguhcraft$SetLockInternal`(NewLock)
         (LE.world as ServerWorld).chunkManager.markForUpdate(LE.pos)
         LE.markDirty()
     }

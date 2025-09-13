@@ -1,7 +1,5 @@
 package org.nguh.nguhcraft.item
 
-import net.minecraft.client.realms.Request.Get
-import net.minecraft.component.DataComponentTypes
 import net.minecraft.item.ItemStack
 import net.minecraft.recipe.RecipeSerializer
 import net.minecraft.recipe.SpecialCraftingRecipe

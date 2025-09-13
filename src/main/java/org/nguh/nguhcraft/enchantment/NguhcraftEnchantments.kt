@@ -1,24 +1,26 @@
 package org.nguh.nguhcraft.enchantment
 
-import net.minecraft.component.EnchantmentEffectComponentTypes
-import net.minecraft.component.type.AttributeModifierSlot
 import net.minecraft.enchantment.Enchantment
-import net.minecraft.enchantment.Enchantments
-import net.minecraft.registry.Registerable
 import net.minecraft.registry.RegistryKey
 import net.minecraft.registry.RegistryKeys
-import net.minecraft.registry.tag.ItemTags
 import org.nguh.nguhcraft.Nguhcraft.Companion.Id
 
 object NguhcraftEnchantments {
     private fun Key(S: String): RegistryKey<Enchantment> = RegistryKey.of(RegistryKeys.ENCHANTMENT, Id(S))
 
     /**
-    * The health enchantment increases an entity’s maximum health.
-    *
-    * Per level, this adds 2 health points (= 1 heart) to the entity’s
-    * maximum health. This works for any armour slot.
-    */
+     * The arcane enchantment causes an entity to deal ‘arcane’ damage, which
+     * functions more or less like vanilla’s ‘magic’ damage, i.e. it bypasses
+     * armour etc.
+     */
+    @JvmField val ARCANE = Key("arcane")
+
+    /**
+     * The health enchantment increases an entity’s maximum health.
+     *
+     * Per level, this adds 2 health points (= 1 heart) to the entity’s
+     * maximum health. This works for any armour slot.
+     */
     @JvmField val HEALTH = Key("health")
 
     /**
@@ -62,10 +64,10 @@ object NguhcraftEnchantments {
     @JvmField val HYPERSHOT = Key("hypershot")
 
     /**
-    * The saturation enchantment reduces hunger.
-    *
-    * For the exact formula, see ServerUtils#HandleSaturationEnchantment.
-    */
+     * The saturation enchantment reduces hunger.
+     *
+     * For the exact formula, see ServerUtils#HandleSaturationEnchantment.
+     */
     @JvmField val SATURATION = Key("saturation")
 
     /**

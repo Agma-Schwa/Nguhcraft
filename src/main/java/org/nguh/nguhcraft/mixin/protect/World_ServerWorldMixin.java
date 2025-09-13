@@ -1,5 +1,6 @@
 package org.nguh.nguhcraft.mixin.protect;
 
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.ActionResult;
@@ -14,14 +15,21 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(value = {World.class, ServerWorld.class})
 public abstract class World_ServerWorldMixin {
     /** Blanket fix for a bunch of random stuff (e.g. picking up water w/ a bucket etc.). */
-    @Inject(method = "canPlayerModifyAt", at = @At("HEAD"), cancellable = true)
-    private void inject$canPlayerModifyAt(
-        PlayerEntity PE,
+    @Inject(method = "canEntityModifyAt", at = @At("HEAD"), cancellable = true)
+    private void inject$canEntityModifyAt(
+        Entity E,
         BlockPos Pos,
         CallbackInfoReturnable<Boolean> CIR
     ) {
-        var Res = ProtectionManager.HandleBlockInteract(PE, (World) (Object) this, Pos, PE.getMainHandStack());
-        if (Res != ActionResult.SUCCESS)
+        // Handle players separately.
+        if (E instanceof PlayerEntity PE) {
+            var Res = ProtectionManager.HandleBlockInteract(PE, (World) (Object) this, Pos, PE.getMainHandStack());
+            if (Res != ActionResult.SUCCESS)
+                CIR.setReturnValue(false);
+        }
+
+        // Blanket modification ban for protected blocks.
+        else if (ProtectionManager.IsProtectedBlock((World)(Object)this, Pos))
             CIR.setReturnValue(false);
     }
 }

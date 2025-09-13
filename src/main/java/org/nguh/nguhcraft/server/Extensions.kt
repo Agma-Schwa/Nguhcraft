@@ -1,7 +1,6 @@
 package org.nguh.nguhcraft.server
 
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking
-import net.minecraft.block.entity.BlockEntity
 import net.minecraft.entity.Entity
 import net.minecraft.nbt.NbtCompound
 import net.minecraft.network.packet.CustomPayload
@@ -17,12 +16,10 @@ import net.minecraft.world.TeleportTarget
 import org.nguh.nguhcraft.Nbt
 import org.nguh.nguhcraft.network.ClientFlags
 import org.nguh.nguhcraft.network.ClientboundSyncFlagPacket
-import org.nguh.nguhcraft.server.accessors.ServerPlayerAccessor
 import org.nguh.nguhcraft.set
 import java.util.*
 
-@JvmStatic
-fun BlockEntity.CreateUpdate(Update: NbtCompound.() -> Unit) = Nbt {
+fun CreateUpdateBlockEntityUpdatePacket(Update: NbtCompound.() -> Unit) = Nbt {
     Update()
 
     // An empty tag prevents deserialisation on the client, so
@@ -110,7 +107,7 @@ fun MinecraftServer.BroadcastToOperators(Msg: Text, Except: ServerPlayerEntity? 
         .append(Msg)
 
     for (P in playerManager.playerList)
-        if (P != Except && P.IsSubscribedToConsole && P.hasPermissionLevel(4))
+        if (P != Except && P.Data.IsSubscribedToConsole && P.hasPermissionLevel(4))
             P.sendMessage(Decorated, false)
 }
 
@@ -125,34 +122,25 @@ fun MinecraftServer.PlayerByUUID(ID: String?): ServerPlayerEntity? {
     catch (E: RuntimeException) { null }
 }
 
-/** Check if a player is a moderator. */
-var ServerPlayerEntity.IsModerator
-    get() = (this as ServerPlayerAccessor).isModerator
-    set(value) { (this as ServerPlayerAccessor).setIsModerator(value) }
-
-/** Check if a player is a Vanished. */
-var ServerPlayerEntity.IsVanished
-    get() = (this as ServerPlayerAccessor).vanished
-    set(value) { (this as ServerPlayerAccessor).vanished = value }
-
-/** Check if a player is subscribed to console output. */
-var ServerPlayerEntity.IsSubscribedToConsole
-    get() = (this as ServerPlayerAccessor).isSubscribedToConsole
-    set(value) { (this as ServerPlayerAccessor).setIsSubscribedToConsole(value) }
-
 /** Save the player’s current position as a teleport target. */
-@JvmStatic
 fun ServerPlayerEntity.SavePositionBeforeTeleport() {
-    (this as ServerPlayerAccessor).lastPositionBeforeTeleport = TeleportTarget(
-        this.serverWorld,
-        this.pos,
-        Vec3d.ZERO,
-        this.yaw,
-        this.pitch,
-        TeleportTarget.NO_OP
+    Data.LastPositionBeforeTeleport = SerialisedTeleportTarget(
+        this.world.registryKey,
+        X = this.pos.x,
+        Y = this.pos.y,
+        Z = this.pos.z,
+        Yaw = this.yaw,
+        Pitch = this.pitch,
     )
 }
 
 fun ServerPlayerEntity.SetClientFlag(F: ClientFlags, V: Boolean) {
     ServerPlayNetworking.send(this, ClientboundSyncFlagPacket(F, V))
 }
+
+/**
+ * This is never null for server players, but the 'server' accessor
+ * ends up being that of 'Entity', so we get bogus ‘server can be
+ * null’ warnings everywhere if we use that.
+ */
+val ServerPlayerEntity.Server get(): MinecraftServer = this.server!!

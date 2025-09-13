@@ -3,12 +3,11 @@ package org.nguh.nguhcraft
 import com.mojang.logging.LogUtils
 import com.mojang.serialization.Codec
 import com.mojang.serialization.JavaOps
-import com.mojang.serialization.MapCodec
-import com.mojang.serialization.codecs.RecordCodecBuilder
 import io.netty.buffer.ByteBuf
 import net.minecraft.component.ComponentChanges
 import net.minecraft.enchantment.Enchantment
 import net.minecraft.enchantment.EnchantmentHelper
+import net.minecraft.entity.LivingEntity
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
@@ -20,22 +19,29 @@ import net.minecraft.network.packet.CustomPayload
 import net.minecraft.registry.Registries
 import net.minecraft.registry.RegistryKey
 import net.minecraft.registry.RegistryKeys
+import net.minecraft.storage.ReadView
+import net.minecraft.storage.WriteView
 import net.minecraft.text.MutableText
 import net.minecraft.text.Text
+import net.minecraft.util.ErrorReporter
 import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.Box
 import net.minecraft.util.math.Vec2f
 import net.minecraft.util.math.Vec3d
 import net.minecraft.world.World
 import org.nguh.nguhcraft.enchantment.NguhcraftEnchantments
+import org.nguh.nguhcraft.mixin.common.EntityEquipmentMapAccessor
+import org.nguh.nguhcraft.mixin.common.LivingEntityEquipmentAccessor
 import java.text.Normalizer
 import java.util.*
-import java.util.function.Function
+import kotlin.collections.toList
+import kotlin.collections.toMutableSet
 import kotlin.enums.EnumEntries
-import kotlin.jvm.optionals.getOrNull
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.reflect.KMutableProperty1
+import kotlin.text.uppercase
 
 typealias MojangPair<A, B> = com.mojang.datafixers.util.Pair<A, B>
 operator fun <A, B> MojangPair<A, B>.component1(): A = this.first
@@ -79,13 +85,8 @@ class SmallEnumSet<T : Enum<T>> private constructor(var Encoded: Long = 0L) {
 
         /** Create a codec for an enum set. */
         inline fun <reified T: Enum<T>> CreateCodec(Entries: EnumEntries<T>): Codec<SmallEnumSet<T>> {
-            val EnumeratorCodec = Codec.stringResolver(
-                { it.name.lowercase() },
-                { enumValueOf<T>(it.uppercase()) }
-            )
-
             return Codec.unboundedMap(
-                EnumeratorCodec,
+                MakeEnumCodec<T>(),
                 Codec.BOOL
             ).xmap(
                 ::SmallEnumSet,
@@ -175,10 +176,13 @@ open class XZRect(FromX: Int, FromZ: Int, ToX: Int, ToZ: Int) {
         val Z = (MaxZ - MinZ) / 2
         return Vec2f(X.toFloat(), Z.toFloat())
     }
+}
 
-    companion object {
-
-    }
+/** Get an entity’s equipped items. */
+fun LivingEntity.Equipment(): List<ItemStack> {
+    val E = (this as LivingEntityEquipmentAccessor).equipment
+    val Map = (E as EntityEquipmentMapAccessor).map
+    return Map.values.filter { !it.isEmpty }
 }
 
 object Utils {
@@ -255,7 +259,7 @@ object Utils {
         // where 8 points = 100%. This means the formula to map an enchantment
         // level to how many points it adds is 2^(L-1).
         val W = P.world
-        return P.armorItems.sumOf {
+        return P.Equipment().sumOf {
             val Lvl = EnchantLvl(W, it, NguhcraftEnchantments.SATURATION)
             if (Lvl == 0) 0 else 1 shl (Lvl - 1)
         }

@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "nguhcraft:stripped_tinted_oak_log_from_tinted_oak_log_stonecutting"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    },
+    "has_tinted_oak_log": {
+      "conditions": {
+        "items": [
+          {
+            "items": "nguhcraft:tinted_oak_log"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_tinted_oak_log"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "nguhcraft:stripped_tinted_oak_log_from_tinted_oak_log_stonecutting"
+    ]
+  }
+}

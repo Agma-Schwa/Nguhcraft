@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:stonecutting",
+  "ingredient": "minecraft:birch_wood",
+  "result": {
+    "count": 4,
+    "id": "minecraft:birch_planks"
+  }
+}

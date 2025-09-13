@@ -1,23 +1,23 @@
 package org.nguh.nguhcraft.item
 
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents
+import net.minecraft.block.Block
 import net.minecraft.client.data.ItemModelGenerator
 import net.minecraft.client.data.Model
 import net.minecraft.client.data.Models
-import net.minecraft.component.ComponentChanges
 import net.minecraft.component.DataComponentTypes
-import net.minecraft.item.Item
-import net.minecraft.item.ItemGroups
-import net.minecraft.item.ItemStack
-import net.minecraft.item.Items
-import net.minecraft.item.SmithingTemplateItem
+import net.minecraft.item.*
+import net.minecraft.item.equipment.ArmorMaterial
+import net.minecraft.item.equipment.EquipmentAsset
+import net.minecraft.item.equipment.EquipmentAssetKeys
+import net.minecraft.item.equipment.EquipmentType
 import net.minecraft.item.equipment.trim.ArmorTrimPattern
 import net.minecraft.recipe.SpecialCraftingRecipe.SpecialRecipeSerializer
-import net.minecraft.registry.Registerable
-import net.minecraft.registry.Registries
-import net.minecraft.registry.Registry
-import net.minecraft.registry.RegistryKey
-import net.minecraft.registry.RegistryKeys
+import net.minecraft.registry.*
+import net.minecraft.registry.entry.RegistryEntry
+import net.minecraft.registry.tag.TagKey
+import net.minecraft.sound.SoundEvent
+import net.minecraft.sound.SoundEvents
 import net.minecraft.text.Text
 import net.minecraft.util.Identifier
 import net.minecraft.util.Rarity
@@ -27,6 +27,7 @@ import org.nguh.nguhcraft.Nguhcraft.Companion.RKey
 import org.nguh.nguhcraft.Utils
 import org.nguh.nguhcraft.block.ChestVariant
 import org.nguh.nguhcraft.block.NguhBlocks
+import java.util.*
 
 object NguhItems {
     // =========================================================================
@@ -49,15 +50,20 @@ object NguhItems {
             .jukeboxPlayable(RKey(RegistryKeys.JUKEBOX_SONG, "nguhrovision_2024"))
     )
 
-    val ATLANTIC_ARMOUR_TRIM: Item = CreateSmithingTemplate("atlantic_armour_trim_smithing_template", Item.Settings().rarity(Rarity.RARE))
-    val CENRAIL_ARMOUR_TRIM: Item = CreateSmithingTemplate("cenrail_armour_trim_smithing_template", Item.Settings().rarity(Rarity.RARE))
-    val ICE_COLD_ARMOUR_TRIM: Item = CreateSmithingTemplate("ice_cold_armour_trim_smithing_template", Item.Settings().rarity(Rarity.RARE))
-    val VENEFICIUM_ARMOUR_TRIM: Item = CreateSmithingTemplate("veneficium_armour_trim_smithing_template", Item.Settings().rarity(Rarity.RARE))
+    // =========================================================================
+    //  Armour Trims
+    // =========================================================================
+    class ArmourTrim(Name: String) : ItemConvertible {
+        val Template: Item = CreateSmithingTemplate("${Name}_armour_trim_smithing_template", Item.Settings().rarity(Rarity.RARE))
+        val Trim = RKey(RegistryKeys.TRIM_PATTERN, Name)
+        override fun asItem(): Item = Template
+    }
 
-    // =========================================================================
-    //  Item Data
-    // =========================================================================
-    val SMITHING_TEMPLATES = arrayOf(
+    val ATLANTIC_ARMOUR_TRIM = ArmourTrim("atlantic")
+    val CENRAIL_ARMOUR_TRIM = ArmourTrim("cenrail")
+    val ICE_COLD_ARMOUR_TRIM = ArmourTrim("ice_cold")
+    val VENEFICIUM_ARMOUR_TRIM = ArmourTrim("veneficium")
+    val ALL_NGUHCRAFT_ARMOUR_TRIMS = arrayOf(
         ATLANTIC_ARMOUR_TRIM,
         CENRAIL_ARMOUR_TRIM,
         ICE_COLD_ARMOUR_TRIM,
@@ -65,23 +71,127 @@ object NguhItems {
     )
 
     // =========================================================================
+    //  Amethyst Armour & Tools
+    // =========================================================================
+    // TODO: Darker colour palette for trimming and corresponding overrides.
+
+    /** Items that can be used to repair amethyst armour. */
+    val REPAIRS_AMETHYST_ARMOUR: TagKey<Item> = TagKey.of(RegistryKeys.ITEM, Id("repairs_amethyst_armour"))
+
+    /** Items that cannot be mined by amethyst tools. */
+    val INCORRECT_FOR_AMETHYST_TOOL: TagKey<Block> = TagKey.of(RegistryKeys.BLOCK, Id("incorrect_for_amethyst_tool"))
+
+    /** Sound events for amethyst armour. */
+    val AMETHYST_ARMOUR_SOUNDS: RegistryEntry.Reference<SoundEvent> = Registries.SOUND_EVENT.getOrThrow(
+        RegistryKey.of(RegistryKeys.SOUND_EVENT, SoundEvents.BLOCK_AMETHYST_CLUSTER_PLACE.id)
+    )
+
+    /** Asset key and armour material. */
+    val AMETHYST_EQUIPMENT_ASSET_KEY: RegistryKey<EquipmentAsset> = RegistryKey.of(EquipmentAssetKeys.REGISTRY_KEY, Id("amethyst"))
+    val AMETHYST_ARMOUR_MATERIAL = ArmorMaterial(
+        45,
+        Util.make(EnumMap(EquipmentType::class.java)) {
+            it[EquipmentType.BOOTS] = 4
+            it[EquipmentType.LEGGINGS] = 8
+            it[EquipmentType.CHESTPLATE] = 14
+            it[EquipmentType.HELMET] = 4
+            it[EquipmentType.BODY] = 15
+        },
+        40,
+        AMETHYST_ARMOUR_SOUNDS,
+        4.0F,
+        .3F,
+        REPAIRS_AMETHYST_ARMOUR,
+        AMETHYST_EQUIPMENT_ASSET_KEY
+    )
+
+    /** Tool material. */
+    val AMETHYST_TOOL_MATERIAL = ToolMaterial(
+        INCORRECT_FOR_AMETHYST_TOOL,
+        6071,
+        14.0F,
+        6.0F,
+        40,
+        REPAIRS_AMETHYST_ARMOUR
+    )
+
+    val AMETHYST_HELMET = CreateItem(
+        Id("amethyst_helmet"),
+        Item.Settings()
+            .fireproof()
+            .rarity(Rarity.EPIC)
+            .armor(AMETHYST_ARMOUR_MATERIAL, EquipmentType.HELMET)
+    )
+
+    val AMETHYST_CHESTPLATE = CreateItem(
+        Id("amethyst_chestplate"),
+        Item.Settings()
+            .fireproof()
+            .rarity(Rarity.EPIC)
+            .armor(AMETHYST_ARMOUR_MATERIAL, EquipmentType.CHESTPLATE)
+    )
+
+    val AMETHYST_LEGGINGS = CreateItem(
+        Id("amethyst_leggings"),
+        Item.Settings()
+            .fireproof()
+            .rarity(Rarity.EPIC)
+            .armor(AMETHYST_ARMOUR_MATERIAL, EquipmentType.LEGGINGS)
+    )
+
+    val AMETHYST_BOOTS = CreateItem(
+        Id("amethyst_boots"),
+        Item.Settings()
+            .fireproof()
+            .rarity(Rarity.EPIC)
+            .armor(AMETHYST_ARMOUR_MATERIAL, EquipmentType.BOOTS)
+    )
+
+    val AMETHYST_SWORD = CreateItem(
+        Id("amethyst_sword"),
+        Item.Settings()
+            .fireproof()
+            .rarity(Rarity.EPIC)
+            .sword(AMETHYST_TOOL_MATERIAL, 5.0F, -1.2F)
+    )
+
+    val AMETHYST_PICKAXE = CreateItem(
+        Id("amethyst_pickaxe"),
+        Item.Settings()
+            .fireproof()
+            .rarity(Rarity.EPIC)
+            .pickaxe(AMETHYST_TOOL_MATERIAL, 2.0F, -2.0F)
+    )
+
+    val AMETHYST_SHOVEL = CreateItem(
+        Id("amethyst_shovel"),
+        { ShovelItem(AMETHYST_TOOL_MATERIAL, 3.0F, -2.4F, it) },
+        Item.Settings().fireproof().rarity(Rarity.EPIC)
+    )
+
+    val AMETHYST_AXE = CreateItem(
+        Id("amethyst_axe"),
+        { AxeItem(AMETHYST_TOOL_MATERIAL, 8.0F, -2.4F, it) },
+        Item.Settings().fireproof().rarity(Rarity.EPIC)
+    )
+
+    val AMETHYST_HOE = CreateItem(
+        Id("amethyst_hoe"),
+        { HoeItem(AMETHYST_TOOL_MATERIAL, 0.0F, 0.0F, it) },
+        Item.Settings().fireproof().rarity(Rarity.EPIC)
+    )
+
+    // =========================================================================
     //  Initialisation
     // =========================================================================
     fun BootstrapArmourTrims(R: Registerable<ArmorTrimPattern>) {
-        fun Register(Key: String, I: Item) {
-            val K = RKey(RegistryKeys.TRIM_PATTERN, Key)
-            R.register(K, ArmorTrimPattern(
-                K.value,
-                Registries.ITEM.getEntry(I),
-                Text.translatable(Util.createTranslationKey("trim_pattern", K.value)),
+        for (T in ALL_NGUHCRAFT_ARMOUR_TRIMS) {
+            R.register(T.Trim, ArmorTrimPattern(
+                T.Trim.value,
+                Text.translatable(Util.createTranslationKey("trim_pattern", T.Trim.value)),
                 false
             ))
         }
-
-        Register("atlantic", ATLANTIC_ARMOUR_TRIM)
-        Register("cenrail", CENRAIL_ARMOUR_TRIM)
-        Register("ice_cold", ICE_COLD_ARMOUR_TRIM)
-        Register("veneficium", VENEFICIUM_ARMOUR_TRIM)
     }
 
     fun BootstrapModels(G: ItemModelGenerator) {
@@ -99,12 +209,21 @@ object NguhItems {
         Register(SLABLET_8)
         Register(SLABLET_16)
         Register(NGUHROVISION_2024_DISC, Models.TEMPLATE_MUSIC_DISC)
-        SMITHING_TEMPLATES.forEach { Register(it) }
+        ALL_NGUHCRAFT_ARMOUR_TRIMS.forEach { Register(it.Template) }
+
+        Register(AMETHYST_SWORD, Models.HANDHELD)
+        Register(AMETHYST_SHOVEL, Models.HANDHELD)
+        Register(AMETHYST_PICKAXE, Models.HANDHELD)
+        Register(AMETHYST_AXE, Models.HANDHELD)
+        Register(AMETHYST_HOE, Models.HANDHELD)
+
+        G.registerArmor(AMETHYST_HELMET, AMETHYST_EQUIPMENT_ASSET_KEY, ItemModelGenerator.HELMET_TRIM_ID_PREFIX, false)
+        G.registerArmor(AMETHYST_CHESTPLATE, AMETHYST_EQUIPMENT_ASSET_KEY, ItemModelGenerator.CHESTPLATE_TRIM_ID_PREFIX, false)
+        G.registerArmor(AMETHYST_LEGGINGS, AMETHYST_EQUIPMENT_ASSET_KEY, ItemModelGenerator.LEGGINGS_TRIM_ID_PREFIX, false)
+        G.registerArmor(AMETHYST_BOOTS, AMETHYST_EQUIPMENT_ASSET_KEY, ItemModelGenerator.BOOTS_TRIM_ID_PREFIX, false)
     }
 
     fun Init() {
-        LockPredicate.RunStaticInitialisation()
-
         ItemGroupEvents.modifyEntriesEvent(ItemGroups.FUNCTIONAL).register {
             it.add(LOCK)
             it.add(KEY)
@@ -129,7 +248,7 @@ object NguhItems {
         }
 
         ItemGroupEvents.modifyEntriesEvent(ItemGroups.INGREDIENTS).register {
-            for (T in SMITHING_TEMPLATES) it.add(T)
+            for (T in ALL_NGUHCRAFT_ARMOUR_TRIMS) it.add(T)
         }
 
         KeyLockPairingRecipe.SERIALISER = Registry.register(
@@ -145,20 +264,23 @@ object NguhItems {
         )
     }
 
-    private fun CreateItem(S: Identifier, I: Item): Item =
-        Registry.register(Registries.ITEM, S, I)
+    private fun CreateItem(Id: Identifier, I: Item): Item =
+        Registry.register(Registries.ITEM, Id, I)
 
-    private fun CreateItem(S: Identifier, I: Item.Settings): Item =
-        Registry.register(Registries.ITEM, S, Item(I.registryKey(RegistryKey.of(RegistryKeys.ITEM, S))))
+    private fun CreateItem(Id: Identifier, I: (Item.Settings) -> Item, S: Item.Settings): Item =
+        Registry.register(Registries.ITEM, Id, I(S.registryKey(Key(Id))))
+
+    private fun CreateItem(Id: Identifier, S: Item.Settings): Item =
+        Registry.register(Registries.ITEM, Id, Item(S.registryKey(Key(Id))))
 
     private fun CreateSmithingTemplate(S: String, I: Item.Settings): Item {
         val Id = Id(S)
         return Registry.register(
             Registries.ITEM,
             Id,
-            SmithingTemplateItem.of(
-                I.registryKey(RegistryKey.of(RegistryKeys.ITEM, Id))
-            )
+            SmithingTemplateItem.of(I.registryKey(Key(Id)))
         )
     }
+
+    private fun Key(Id: Identifier) = RegistryKey.of(RegistryKeys.ITEM, Id)
 }

@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:stonecutting",
+  "ingredient": "nguhcraft:tinted_oak_planks",
+  "result": {
+    "count": 2,
+    "id": "nguhcraft:tinted_oak_slab_vertical"
+  }
+}

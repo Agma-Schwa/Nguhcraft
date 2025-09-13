@@ -3,7 +3,6 @@ package org.nguh.nguhcraft.client
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.mojang.logging.LogUtils
-import kotlinx.serialization.json.Json
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
 import net.minecraft.client.MinecraftClient

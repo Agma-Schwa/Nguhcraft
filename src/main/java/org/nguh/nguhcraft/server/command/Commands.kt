@@ -14,10 +14,15 @@ import net.minecraft.command.argument.*
 import net.minecraft.command.argument.RegistryEntryReferenceArgumentType
 import net.minecraft.command.argument.serialize.ConstantArgumentSerializer
 import net.minecraft.component.DataComponentTypes
+import net.minecraft.component.type.TooltipDisplayComponent
 import net.minecraft.enchantment.Enchantment
 import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityType
 import net.minecraft.entity.LightningEntity
+import net.minecraft.entity.LivingEntity
+import net.minecraft.entity.attribute.EntityAttributes
+import net.minecraft.entity.effect.StatusEffectCategory
+import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NbtCompound
 import net.minecraft.registry.RegistryKey
@@ -44,6 +49,9 @@ import org.nguh.nguhcraft.server.MCBASIC
 import org.nguh.nguhcraft.Nguhcraft.Companion.Id
 import org.nguh.nguhcraft.SyncedGameRule
 import org.nguh.nguhcraft.entity.EntitySpawnManager
+import org.nguh.nguhcraft.event.EventDifficulty
+import org.nguh.nguhcraft.event.EventManager
+import org.nguh.nguhcraft.event.NguhMobType
 import org.nguh.nguhcraft.item.KeyItem
 import org.nguh.nguhcraft.network.ClientFlags
 import org.nguh.nguhcraft.protect.ProtectionManager
@@ -52,8 +60,6 @@ import org.nguh.nguhcraft.protect.TeleportResult
 import org.nguh.nguhcraft.server.*
 import org.nguh.nguhcraft.server.ServerUtils.IsIntegratedServer
 import org.nguh.nguhcraft.server.ServerUtils.StrikeLightning
-import org.nguh.nguhcraft.server.accessors.ServerPlayerAccessor
-import org.nguh.nguhcraft.server.accessors.ServerPlayerDiscordAccessor
 import org.nguh.nguhcraft.server.dedicated.Vanish
 
 fun ServerCommandSource.Error(Msg: String?) = sendError(Text.of(Msg))
@@ -69,7 +75,7 @@ fun ServerCommandSource.Success(Msg: Text) = Success(Text.empty().append(Msg))
 fun ServerCommandSource.Success(Msg: MutableText) = sendMessage(Msg.formatted(Formatting.GREEN))
 
 val ServerCommandSource.HasModeratorPermissions: Boolean get() =
-    hasPermissionLevel(4) || (isExecutedByPlayer && playerOrThrow.IsModerator)
+    hasPermissionLevel(4) || (isExecutedByPlayer && playerOrThrow.Data.IsModerator)
 
 fun ReplyMsg(Msg: String): Text = Text.literal(Msg).formatted(Formatting.YELLOW)
 
@@ -100,7 +106,9 @@ object Commands {
             D.register(DisplayCommand())               // /display
             D.register(EnchantCommand(A))              // /enchant
             D.register(EntityCountCommand())           // /entity_count
+            D.register(EventCommand())                 // /event
             D.register(FixCommand())                   // /fix
+            D.register(HealCommand())                  // /heal
             D.register(HereCommand())                  // /here
             D.register(HomeCommand())                  // /home
             D.register(HomesCommand())                 // /homes
@@ -123,7 +131,6 @@ object Commands {
             D.register(literal("w").redirect(Msg))     // /w
             D.register(WarpCommand())                  // /warp
             D.register(WarpsCommand())                 // /warps
-            D.register(WildCommand())                  // /wild
         }
 
         ArgType("display", DisplayArgumentType::Display)
@@ -131,6 +138,7 @@ object Commands {
         ArgType("procedure", ProcedureArgumentType::Procedure)
         ArgType("region", RegionArgumentType::Region)
         ArgType("warp", WarpArgumentType::Warp)
+        ArgType("mob", MobArgumentType::Mob)
     }
 
     fun Exn(message: String): SimpleCommandExceptionType {
@@ -144,9 +152,8 @@ object Commands {
         private val ERR_NO_TARGET = Exn("No saved target to teleport back to!")
 
         fun Teleport(SP: ServerPlayerEntity): Int {
-            val Pos = (SP as ServerPlayerAccessor).lastPositionBeforeTeleport
-            if (Pos == null) throw ERR_NO_TARGET.create()
-            SP.Teleport(Pos, true)
+            val Pos = SP.Data.LastPositionBeforeTeleport ?: throw ERR_NO_TARGET.create()
+            SP.Teleport(Pos.Instantiate(SP.Server), true)
             return 1
         }
     }
@@ -156,9 +163,8 @@ object Commands {
         private val NOT_BYPASSING = ReplyMsg("No longer bypassing region protection.")
 
         fun Toggle(S: ServerCommandSource, SP: ServerPlayerEntity): Int {
-            val A = SP as ServerPlayerAccessor
-            val NewState = !A.bypassesRegionProtection
-            A.bypassesRegionProtection = NewState
+            val NewState = !SP.Data.BypassesRegionProtection
+            SP.Data.BypassesRegionProtection = NewState
             SP.SetClientFlag(ClientFlags.BYPASSES_REGION_PROTECTION, NewState)
             S.sendMessage(if (NewState) BYPASSING else NOT_BYPASSING)
             return 1
@@ -223,10 +229,75 @@ object Commands {
                 Text.translatable(
                     "commands.enchant.success.single", *arrayOf<Any>(
                         Enchantment.getName(E, Lvl),
-                        SP.displayName!!,
+                        SP.Name,
                     )
                 )
             )
+            return 1
+        }
+    }
+
+    object EventCommand {
+        private val SPAWN_FAILED = Exn("Failed to spawn mob")
+
+        fun AddPlayer(S: ServerCommandSource, SP: ServerPlayerEntity): Int {
+            if (S.server.EventManager.Add(SP)) S.Success("Added player '${SP.nameForScoreboard}' to the event")
+            else S.Reply("Player '${SP.nameForScoreboard}' is already participating")
+            return 1
+            1
+        }
+
+        fun ListPlayers(S: ServerCommandSource): Int {
+            val Players = S.server.EventManager.Players
+            if (Players.isEmpty()) {
+                S.Reply("No players are participating in the event")
+                return 0
+            }
+
+            // Only print online players here; we *could* go to the trouble of
+            // getting offline player’s names (via NguhPlayerList) and print
+            // them too, but most players during an event are probably online,
+            // so we don’t really care.
+            val Msg = Text.literal("Players:")
+            for (Id in Players) {
+                val SP = S.server.playerManager.getPlayer(Id)
+                Msg.append(Text.literal("\n  - ").append(SP?.Name ?: Text.literal(Id.toString()).formatted(Formatting.GRAY)))
+            }
+            S.Reply(Msg)
+            return Players.size
+        }
+
+        fun RemovePlayer(S: ServerCommandSource, SP: ServerPlayerEntity): Int {
+            if (S.server.EventManager.Remove(SP)) S.Success("Removed player '${SP.nameForScoreboard}' from the event")
+            else S.Error("Player '${SP.nameForScoreboard}' is not participating")
+            return 1
+        }
+
+        fun SetDifficulty(S: ServerCommandSource, D: EventDifficulty): Int {
+            if (S.server.EventManager.Difficulty == D) S.Reply("Event difficulty is already set to $D")
+            else {
+                S.server.EventManager.Difficulty = D
+                S.Success("Set event difficulty to $D")
+            }
+            return 1
+        }
+
+        fun SpawnEventMob(S: ServerCommandSource, Type: NguhMobType, Where: Vec3d): Int {
+            Type.Spawn(S.world, Where) ?: throw SPAWN_FAILED.create()
+            return 1
+        }
+
+        fun SpawnEventMobTesting(S: ServerCommandSource, Type: NguhMobType): Int {
+            val SP = S.playerOrThrow
+            val Rot = SP.getRotationVec(1.0F)
+            val Dir = Direction.getFacing(Rot.x, 0.0, Rot.z)
+            val Orth = if (Dir.axis == Direction.Axis.X) Direction.NORTH else Direction.WEST
+            val Pos = SP.blockPos.mutableCopy().move(Dir, 2).move(Orth, -7)
+            for (D in EventDifficulty.entries) {
+                val E = Type.Spawn(SP.world, Pos.move(Orth, 2).toBottomCenterPos(), D)
+                if (E is LivingEntity) E.getAttributeInstance(EntityAttributes.MOVEMENT_SPEED)?.baseValue = 0.0
+                E?.isSilent = true
+            }
             return 1
         }
     }
@@ -242,9 +313,7 @@ object Commands {
         }
 
         fun FixAll(S: ServerCommandSource, SP: ServerPlayerEntity): Int {
-            for (St in SP.inventory.main) FixStack(St)
-            for (St in SP.inventory.armor) FixStack(St)
-            FixStack(SP.inventory.offHand[0])
+            for (St in SP.inventory.mainStacks) FixStack(St)
             S.sendMessage(FIXED_ALL)
             return 1
         }
@@ -252,7 +321,38 @@ object Commands {
         private fun FixStack(St: ItemStack) {
             if (St.isEmpty) return
             St.remove(DataComponentTypes.LORE)
-            St.remove(DataComponentTypes.HIDE_TOOLTIP)
+            St.set(DataComponentTypes.TOOLTIP_DISPLAY, TooltipDisplayComponent.DEFAULT)
+        }
+    }
+
+    object HealCommand {
+        fun Heal(S: ServerCommandSource, Entities: Collection<Entity>): Int {
+            for (E in Entities) {
+                if (E is LivingEntity) {
+                    // Heal to maximum health.
+                    E.heal(Float.MAX_VALUE)
+
+                    // Remove status effects. Take care to copy the list first so we
+                    // don’t try to modify it while iterating over it.
+                    for (S in E.activeStatusEffects.values.filter {
+                        it.effectType.value().category == StatusEffectCategory.HARMFUL
+                    }) E.removeStatusEffect(S.effectType)
+
+                    // Replenish saturation.
+                    if (E is PlayerEntity) E.hungerManager.add(10000, 10000.0F)
+                }
+
+                // Extinguish fire.
+                E.extinguish()
+
+                // Reset oxygen level.
+                E.air = E.maxAir
+            }
+
+            val Size = Entities.size
+            if (Size == 1) S.Success(Text.literal("Healed ").append(Entities.first().displayName))
+            else S.Success("Healed $Size entities")
+            return Size
         }
     }
 
@@ -266,13 +366,13 @@ object Commands {
 
         fun Delete(S: ServerCommandSource, SP: ServerPlayerEntity, H: Home): Int {
             if (H.Name == Home.BED_HOME) throw CANT_TOUCH_THIS.create()
-            (SP as ServerPlayerAccessor).Homes().remove(H)
+            SP.Data.Homes.remove(H)
             S.Reply(Text.literal("Deleted home ").append(Text.literal(H.Name).formatted(Formatting.AQUA)))
             return 1
         }
 
         fun DeleteDefault(S: ServerCommandSource, SP: ServerPlayerEntity): Int {
-            val H = (SP as ServerPlayerAccessor).Homes().find { it.Name == Home.DEFAULT_HOME }?: return 0
+            val H = SP.Data.Homes.find { it.Name == Home.DEFAULT_HOME }?: return 0
             return Delete(S, SP, H)
         }
 
@@ -290,7 +390,7 @@ object Commands {
                 .append("]")
 
         fun List(S: ServerCommandSource, SP: ServerPlayerEntity): Int {
-            val Homes = (SP as ServerPlayerAccessor).Homes()
+            val Homes = SP.Data.Homes
             if (Homes.isEmpty()) {
                 S.sendMessage(NO_HOMES)
                 return 0
@@ -306,7 +406,7 @@ object Commands {
         fun Set(S: ServerCommandSource, SP: ServerPlayerEntity, RawName: String): Int {
             val (TargetPlayer, Name) = HomeArgumentType.MapOrThrow(SP, RawName)
             if (Name == Home.BED_HOME) throw CANT_TOUCH_THIS.create()
-            val Homes = (TargetPlayer as ServerPlayerAccessor).Homes()
+            val Homes = SP.Data.Homes
 
             // If this region doesn’t allow entry by teleport, then setting a home here makes
             // no sense as we can’t use it, which might not be obvious to people.
@@ -332,7 +432,7 @@ object Commands {
         }
 
         fun Teleport(SP: ServerPlayerEntity, H: Home): Int {
-            val World = SP.server.getWorld(H.World)!!
+            val World = SP.Server.getWorld(H.World)!!
             when (ProtectionManager.GetTeleportResult(SP, World, H.Pos)) {
                 TeleportResult.ENTRY_DISALLOWED -> throw CANT_ENTER.create(H.Name)
                 TeleportResult.EXIT_DISALLOWED -> throw CANT_LEAVE.create(H.Name)
@@ -344,7 +444,7 @@ object Commands {
         }
 
         fun TeleportToDefault(SP: ServerPlayerEntity): Int {
-            val H = (SP as ServerPlayerAccessor).Homes().firstOrNull() ?: Home.Bed(SP)
+            val H = SP.Data.Homes.firstOrNull() ?: Home.Bed(SP)
             return Teleport(SP, H)
         }
     }
@@ -751,92 +851,10 @@ object Commands {
         }
 
         fun Set(S: ServerCommandSource, SP: ServerPlayerEntity, Name: String): Int {
-            val W = WarpManager.Warp(Name, SP.serverWorld.registryKey, SP.pos.x, SP.pos.y, SP.pos.z, SP.yaw, SP.pitch)
+            val W = WarpManager.Warp(Name, SP.world.registryKey, SP.pos.x, SP.pos.y, SP.pos.z, SP.yaw, SP.pitch)
             S.server.WarpManager.Warps[Name] = W
             S.Reply(Text.literal("Set warp ").append(FormatWarp(W)))
             return 1
-        }
-    }
-
-    object WildCommand {
-        const val MAX_ATTEMPTS = 50
-        val TELEPORT_FAILED = Text.of("Sorry, couldn’t find a suitable teleport location. Please try again.")
-
-        /**
-         * Teleport a player to a random position in the world
-         *
-         * The destination must not be within a region, and it must be within
-         * the border.
-         *
-         * We also don't want to send players into a lava lake or ocean. For
-         * this, we need to make sure the block they land on is a solid block.
-         *
-         * This is achieved by iterating downwards from the top of the world
-         * once random x and z coordinates have been computed and choosing
-         * different x and z coordinates should no suitable block be found
-         * at that location.
-         */
-        fun RandomTeleport(S: ServerCommandSource, SP: ServerPlayerEntity): Int {
-            val SW = SP.world as ServerWorld
-            val WB = SW.worldBorder
-            val MinY = SW.bottomY
-            val Sz = (WB.size * .6).toInt()
-            val Dim = SW.dimension
-            val Nether = Dim.hasCeiling()
-            val Y = SW.logicalHeight
-
-            // We may get really bad rolls, so don’t try for ever.
-            for (tries in 0..<MAX_ATTEMPTS) {
-                // Pick any position inside the world border and not too close
-                // to the edge.
-                val X = SP.random.nextInt(Sz) - Sz / 2
-                val Z = SP.random.nextInt(Sz) - Sz / 2
-                var Pos = BlockPos.Mutable(X, Y, Z)
-
-                // Check that it is not in a region.
-                if (!ProtectionManager.AllowTeleport(SP, SW, Pos)) continue
-
-                // Check if we can place the player somewhere in this XZ columns.
-                //
-                // In anything that is not the nether, getTopY() is the fastest way
-                // of accomplishing this; however, that won’t create the chunk if it
-                // doesn’t already exist, and we also need to do some post-processing
-                // in the nether, so grab the chunk first.
-                //
-                // But first, check if the chunk already exists; if not, we need to
-                // generate it; since this is expensive, only allow doing this once.
-                val Chunk = SW.getChunk(X, Z, ChunkStatus.SURFACE, false) ?: continue
-
-                // Helpers we’ll need below.
-                fun IsAir() = Chunk.getBlockState(Pos).isAir
-                fun MoveDownWhile(Cond: () -> Boolean) {
-                    while (Pos.y > MinY && Cond()) Pos = Pos.move(Direction.DOWN)
-                }
-
-                // Get the top-most solid block. In the nether, continue through
-                // the roof, and then keep going again until we no longer hit air;
-                // do the last part even if we’re not in the nether since TopY may
-                // be in the air.
-                Pos.y = SW.getTopY(Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, X, Z)
-                if (Nether) MoveDownWhile { !IsAir() } // Scan through ceiling.
-                MoveDownWhile(::IsAir) // Scan to ground.
-
-                // Try teleporting if we’re still in bounds and not in a liquid.
-                val Up1 = Pos.up()
-                val Up2 = Up1.up()
-                if (Pos.y > MinY &&
-                    Chunk.getBlockState(Pos).isSideSolidFullSquare(SW, Pos, Direction.UP) &&
-                    Chunk.getBlockState(Up1).isAir &&
-                    Chunk.getBlockState(Up2).isAir
-                ) {
-                    SP.Teleport(SW, Pos, true)
-                    return 1
-                }
-            }
-
-            // Couldn’t find a suitable location.
-            S.sendError(TELEPORT_FAILED)
-            return 0
         }
     }
 
@@ -924,7 +942,7 @@ object Commands {
             )
         )
         .then(literal("link")
-            .requires { it.entity is ServerPlayerEntity && !(it.entity as ServerPlayerDiscordAccessor).isLinked }
+            .requires { it.isExecutedByPlayer && !(it.entity as ServerPlayerEntity).Data.IsLinked }
             .then(argument("id", LongArgumentType.longArg())
                 .executes {
                     org.nguh.nguhcraft.server.dedicated.DiscordCommand.TryLink(
@@ -960,7 +978,7 @@ object Commands {
                 }
             )
             .requires {
-                (it.entity is ServerPlayerEntity && (it.entity as ServerPlayerDiscordAccessor).isLinked) ||
+                (it.isExecutedByPlayer && (it.entity as ServerPlayerEntity).Data.IsLinked) ||
                 it.hasPermissionLevel(4)
             }
             .executes {
@@ -1005,6 +1023,48 @@ object Commands {
             }
         )
 
+    fun EventCommand(): LiteralArgumentBuilder<ServerCommandSource> = literal("event")
+        .requires { it.hasPermissionLevel(2) }
+        .then(literal("add-player")
+            .then(argument("player", EntityArgumentType.player())
+                .executes { EventCommand.AddPlayer(it.source, EntityArgumentType.getPlayer(it, "player")) }
+            )
+        )
+        .then(literal("difficulty")
+            .executes { it.source.Reply("The current difficulty is: ${it.source.server.EventManager.Difficulty.name}"); 1 }
+            .also {
+                for (E in EventDifficulty.entries) it.then(literal(E.name)
+                    .executes { EventCommand.SetDifficulty(it.source, E) }
+                )
+            }
+        )
+        .then(literal("list-players")
+            .executes { EventCommand.ListPlayers(it.source) }
+        )
+        .then(literal("remove-player")
+            .then(argument("player", EntityArgumentType.player())
+                .executes { EventCommand.RemovePlayer(it.source, EntityArgumentType.getPlayer(it, "player")) }
+            )
+        )
+        .then(literal("spawn")
+            .requires { it.isExecutedByPlayer }
+            .then(argument("mob", MobArgumentType.Mob())
+                .then(argument("where", Vec3ArgumentType.vec3())
+                    .executes { EventCommand.SpawnEventMob(
+                        it.source,
+                        MobArgumentType.Resolve(it, "mob"),
+                        Vec3ArgumentType.getVec3(it, "where")
+                    ) }
+                )
+            )
+        )
+        .then(literal("spawn-test")
+            .requires { it.isExecutedByPlayer }
+            .then(argument("mob", MobArgumentType.Mob())
+                .executes { EventCommand.SpawnEventMobTesting(it.source, MobArgumentType.Resolve(it, "mob")) }
+            )
+        )
+
     private fun FixCommand(): LiteralArgumentBuilder<ServerCommandSource> = literal("fix")
         .requires { it.isExecutedByPlayer && it.hasPermissionLevel(4) }
         .then(literal("all").executes { FixCommand.FixAll(it.source, it.source.playerOrThrow) })
@@ -1017,6 +1077,13 @@ object Commands {
             Chat.DispatchMessage(it.source.server, it.source.playerOrThrow, "${P.x} ${P.y} ${P.z}")
             1
         }
+
+    private fun HealCommand(): LiteralArgumentBuilder<ServerCommandSource> = literal("heal")
+        .requires { it.hasPermissionLevel(2) }
+        .then(argument("entities", EntityArgumentType.entities())
+            .executes { HealCommand.Heal(it.source, EntityArgumentType.getEntities(it, "entities")) }
+        )
+        .executes { HealCommand.Heal(it.source, listOf(it.source.entityOrThrow)) }
 
     private fun HomeCommand(): LiteralArgumentBuilder<ServerCommandSource> = literal("home")
         .requires { it.isExecutedByPlayer }
@@ -1073,10 +1140,10 @@ object Commands {
             .executes {
                 val S = it.source
                 val SP = EntityArgumentType.getPlayer(it, "player")
-                SP.IsModerator = !SP.IsModerator
+                SP.Data.IsModerator = !SP.Data.IsModerator
                 S.server.commandManager.sendCommandTree(SP)
                 S.sendMessage(
-                    Text.literal("Player '${SP.displayName?.string}' is ${if (SP.IsModerator) "now" else "no longer"} a moderator")
+                    Text.literal("Player '${SP.displayName?.string}' is ${if (SP.Data.IsModerator) "now" else "no longer"} a moderator")
                     .formatted(Formatting.YELLOW)
                 )
                 1
@@ -1411,9 +1478,9 @@ object Commands {
         .requires { it.isExecutedByPlayer && it.hasPermissionLevel(4) }
         .executes {
             val SP = it.source.playerOrThrow
-            SP.IsSubscribedToConsole = !SP.IsSubscribedToConsole
+            SP.Data.IsSubscribedToConsole = !SP.Data.IsSubscribedToConsole
             it.source.sendMessage(Text.literal(
-                "You are ${if (SP.IsSubscribedToConsole) "now" else "no longer"} receiving console messages"
+                "You are ${if (SP.Data.IsSubscribedToConsole) "now" else "no longer"} receiving console messages"
             ).formatted(Formatting.YELLOW))
             1
         }
@@ -1422,7 +1489,7 @@ object Commands {
         .requires { it.hasPermissionLevel(4) && it.isExecutedByPlayer }
         .executes {
             val SP = it.source.playerOrThrow
-            val SW = SP.serverWorld
+            val SW = SP.world
             val TopY = SW.getTopY(Heightmap.Type.WORLD_SURFACE, SP.x.toInt(), SP.z.toInt()) - 1
 
             // Make sure this doesn’t put us in the void.
@@ -1462,7 +1529,7 @@ object Commands {
             val SP = it.source.playerOrThrow
             Vanish.Toggle(SP)
             it.source.sendMessage(Text.literal(
-                "You are ${if (SP.IsVanished) "now" else "no longer"} vanished"
+                "You are ${if (SP.Data.Vanished) "now" else "no longer"} vanished"
             ).formatted(Formatting.YELLOW))
             1
         }
@@ -1474,7 +1541,7 @@ object Commands {
             .executes {
                 val W = WarpArgumentType.Resolve(it, "warp")
                 val SP = it.source.playerOrThrow
-                SP.Teleport(SP.server.getWorld(W.World)!!, W.Pos, W.Yaw, W.Pitch, true)
+                SP.Teleport(SP.Server.getWorld(W.World)!!, W.Pos, W.Yaw, W.Pitch, true)
                 1
             }
         )
@@ -1506,7 +1573,4 @@ object Commands {
             )
         )
         .executes { WarpsCommand.List(it.source) }
-
-    private fun WildCommand(): LiteralArgumentBuilder<ServerCommandSource> = literal("wild")
-        .executes { WildCommand.RandomTeleport(it.source, it.source.playerOrThrow) }
 }

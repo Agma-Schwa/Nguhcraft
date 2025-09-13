@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_pyrite_bricks": {
+      "conditions": {
+        "items": [
+          {
+            "items": "nguhcraft:pyrite_bricks"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "nguhcraft:pyrite_bricks_slab"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_pyrite_bricks"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "nguhcraft:pyrite_bricks_slab"
+    ]
+  }
+}

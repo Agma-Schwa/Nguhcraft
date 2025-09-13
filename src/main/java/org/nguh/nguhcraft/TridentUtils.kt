@@ -76,7 +76,7 @@ object TridentUtils {
             // Mark that this trident is a copy; this disables item pickup, makes it
             // despawn after 5 seconds, and tells that client that it doesn’t have
             // loyalty so the copies don’t try to return to the owner.
-            (TE as TridentEntityAccessor).SetCopy()
+            (TE as TridentEntityAccessor).`Nguhcraft$SetCopy`()
             if (HS) (TE as ProjectileEntityAccessor).MakeHypershotProjectile()
             W.spawnEntity(TE)
         }

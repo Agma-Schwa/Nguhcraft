@@ -2,7 +2,7 @@
   "type": "minecraft:stonecutting",
   "ingredient": "minecraft:red_nether_bricks",
   "result": {
-    "count": 1,
+    "count": 2,
     "id": "nguhcraft:red_nether_brick_slab_vertical"
   }
 }

@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:stonecutting",
+  "ingredient": "minecraft:dark_oak_planks",
+  "result": {
+    "count": 2,
+    "id": "nguhcraft:dark_oak_slab_vertical"
+  }
+}

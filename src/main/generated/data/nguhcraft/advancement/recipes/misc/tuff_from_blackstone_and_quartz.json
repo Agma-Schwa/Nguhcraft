@@ -23,7 +23,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "minecraft:tuff_from_blackstone_and_quartz"
+        "recipe": "nguhcraft:tuff_from_blackstone_and_quartz"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
@@ -37,7 +37,7 @@
   ],
   "rewards": {
     "recipes": [
-      "minecraft:tuff_from_blackstone_and_quartz"
+      "nguhcraft:tuff_from_blackstone_and_quartz"
     ]
   }
 }

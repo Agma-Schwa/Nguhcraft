@@ -18,9 +18,8 @@ public abstract class TridentItemMixin {
         method = "onStoppedUsing",
         at = @At(
             value = "INVOKE",
-            target = "net/minecraft/world/World.playSoundFromEntity (Lnet/minecraft/entity/player/PlayerEntity;Lnet/minecraft/entity/Entity;Lnet/minecraft/sound/SoundEvent;Lnet/minecraft/sound/SoundCategory;FF)V",
-            ordinal = 0,
-            shift = At.Shift.AFTER
+            target = "Lnet/minecraft/entity/projectile/ProjectileEntity;spawnWithVelocity(Lnet/minecraft/entity/projectile/ProjectileEntity$ProjectileCreator;Lnet/minecraft/server/world/ServerWorld;Lnet/minecraft/item/ItemStack;Lnet/minecraft/entity/LivingEntity;FFF)Lnet/minecraft/entity/projectile/ProjectileEntity;",
+            shift =  At.Shift.AFTER
         )
     )
     private void inject$onStoppedUsing$0(
