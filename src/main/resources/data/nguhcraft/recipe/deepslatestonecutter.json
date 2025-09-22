@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:stonecutting",
+  "ingredient": "minecraft:deepslate",
+  "result": {
+    "id": "minecraft:cobbled_deepslate",
+    "count": 1
+  }
+}
