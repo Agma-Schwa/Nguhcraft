@@ -304,6 +304,13 @@ object NguhBlocks {
     val DRIPSTONE_BRICK_STAIRS = RegisterStairs(DRIPSTONE_BRICKS)
     val DRIPSTONE_BRICK_WALL = RegisterVariant(DRIPSTONE_BRICKS, "wall", ::WallBlock)
 
+    val CHARCOAL_BLOCK = Register(
+        "charcoal_block",
+        ::Block,
+        AbstractBlock.Settings.copy(Blocks.COAL_BLOCK)
+            .mapColor(MapColor.TERRACOTTA_GRAY)
+    )
+
     // =========================================================================
     //  Lanterns and Chains
     // =========================================================================
@@ -829,6 +836,7 @@ object NguhBlocks {
         PYRITE,
         IRON_GRATE,
         WROUGHT_IRON_GRATE,
+        CHARCOAL_BLOCK
     ).also {
         it.addAll(CHAINS_AND_LANTERNS.flatten())
         it.addAll(STONE_VARIANT_FAMILY_BLOCKS)
@@ -847,6 +855,7 @@ object NguhBlocks {
         STRIPPED_TINTED_OAK_WOOD,
         IRON_GRATE,
         WROUGHT_IRON_GRATE,
+        CHARCOAL_BLOCK
     ).also {
         it.addAll(CHAINS_AND_LANTERNS.flatten())
         it.addAll(ALL_BROCADE_BLOCKS)
@@ -879,6 +888,7 @@ object NguhBlocks {
             it.add(TINTED_OAK_WOOD)
             it.add(STRIPPED_TINTED_OAK_LOG)
             it.add(STRIPPED_TINTED_OAK_WOOD)
+            it.add(CHARCOAL_BLOCK)
             for (B in ALL_VARIANT_FAMILY_BLOCKS) it.add(B)
             for (B in VERTICAL_SLABS) it.add(B)
             for (B in ALL_BROCADE_BLOCKS) it.add(B)

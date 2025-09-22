@@ -169,12 +169,20 @@ class NguhcraftRecipeGenerator(
             cinput('#', Items.DRIPSTONE_BLOCK)
         }
 
+        offerShaped(NguhBlocks.CHARCOAL_BLOCK, 1) {
+            pattern("ccc")
+            pattern("ccc")
+            pattern("ccc")
+            cinput('c', Items.CHARCOAL)
+        }
+
         offerChainAndLantern(NguhBlocks.OCHRE_CHAIN, NguhBlocks.OCHRE_LANTERN, Items.RESIN_CLUMP, Items.OCHRE_FROGLIGHT)
         offerChainAndLantern(NguhBlocks.PEARLESCENT_CHAIN, NguhBlocks.PEARLESCENT_LANTERN, Items.AMETHYST_SHARD, Items.PEARLESCENT_FROGLIGHT)
         offerChainAndLantern(NguhBlocks.VERDANT_CHAIN, NguhBlocks.VERDANT_LANTERN, Items.EMERALD, Items.VERDANT_FROGLIGHT)
 
         offerShapelessRecipe(Items.HOPPER, 1, NguhBlocks.DECORATIVE_HOPPER to 1, Items.CHEST to 1)
         offerShapelessRecipe(NguhBlocks.DECORATIVE_HOPPER, 1, Items.HOPPER to 1)
+        offerShapelessRecipe(Items.CHARCOAL, 9, NguhBlocks.CHARCOAL_BLOCK to 1)
 
         // =========================================================================
         //  Block Families
