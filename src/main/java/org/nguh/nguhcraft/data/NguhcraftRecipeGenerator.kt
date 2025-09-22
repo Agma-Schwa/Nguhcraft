@@ -163,6 +163,12 @@ class NguhcraftRecipeGenerator(
             cinput('#', NguhBlocks.PYRITE)
         }
 
+        offerShaped(NguhBlocks.DRIPSTONE_BRICKS, 4) {
+            pattern("##")
+            pattern("##")
+            cinput('#', Items.DRIPSTONE_BLOCK)
+        }
+
         offerChainAndLantern(NguhBlocks.OCHRE_CHAIN, NguhBlocks.OCHRE_LANTERN, Items.RESIN_CLUMP, Items.OCHRE_FROGLIGHT)
         offerChainAndLantern(NguhBlocks.PEARLESCENT_CHAIN, NguhBlocks.PEARLESCENT_LANTERN, Items.AMETHYST_SHARD, Items.PEARLESCENT_FROGLIGHT)
         offerChainAndLantern(NguhBlocks.VERDANT_CHAIN, NguhBlocks.VERDANT_LANTERN, Items.EMERALD, Items.VERDANT_FROGLIGHT)
@@ -346,6 +352,7 @@ class NguhcraftRecipeGenerator(
         offerStonecuttingFamily(NguhBlocks.POLISHED_CALCITE_FAMILY, Blocks.CALCITE)
         offerStonecuttingFamily(NguhBlocks.CALCITE_BRICK_FAMILY, Blocks.CALCITE)
         offerStonecuttingRecipe(Out = NguhBlocks.PYRITE_BRICKS, In = NguhBlocks.PYRITE)
+        offerStonecuttingRecipe(Out = NguhBlocks.DRIPSTONE_BRICKS, In = Blocks.DRIPSTONE_BLOCK)
 
         for (V in NguhBlockModels.VERTICAL_SLABS)
             offerStonecuttingRecipe(Out = V.VerticalSlab, In = V.Base, 2)
