@@ -92,6 +92,9 @@ class NguhcraftRecipeGenerator(
         offerShapelessRecipe(Items.STRING, 4, ItemTags.WOOL to 1)
         offerShapelessRecipe(Items.AMETHYST_SHARD, 4, Items.AMETHYST_BLOCK to 1)
         offerShapelessRecipe(Items.QUARTZ, 4, Items.QUARTZ_BLOCK to 1)
+        offerShapelessRecipe(Items.NETHER_WART, 9, Items.NETHER_WART_BLOCK to 1)
+        offerShapelessRecipe(Items.BAMBOO, 18, Items.BAMBOO_BLOCK to 2)
+        offerShapelessRecipe(Items.SOUL_SOIL, 2, Items.SOUL_SAND to 1, Items.DIRT to 1)
 
         // =========================================================================
         //  Miscellaneous Blocks
