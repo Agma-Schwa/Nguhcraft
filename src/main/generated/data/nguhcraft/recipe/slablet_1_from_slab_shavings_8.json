@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "nguhcraft:slab_shavings_8",
+    "nguhcraft:slab_shavings_8",
+    "nguhcraft:slab_shavings_8",
+    "nguhcraft:slab_shavings_8",
+    "nguhcraft:slab_shavings_8",
+    "nguhcraft:slab_shavings_8",
+    "nguhcraft:slab_shavings_8",
+    "nguhcraft:slab_shavings_8"
+  ],
+  "result": {
+    "count": 1,
+    "id": "nguhcraft:slablet_1"
+  }
+}

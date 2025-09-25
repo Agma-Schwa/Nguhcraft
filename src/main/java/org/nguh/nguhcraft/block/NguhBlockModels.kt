@@ -244,6 +244,7 @@ object NguhBlockModels {
         G.registerSimpleCubeAll(NguhBlocks.WROUGHT_IRON_GRATE)
         G.registerSimpleCubeAll(NguhBlocks.COMPRESSED_STONE)
         G.registerSimpleCubeAll(NguhBlocks.PYRITE)
+        G.registerSimpleCubeAll(NguhBlocks.CHARCOAL_BLOCK)
 
         // Chains and lanterns.
         for ((Chain, Lantern) in NguhBlocks.CHAINS_AND_LANTERNS) {

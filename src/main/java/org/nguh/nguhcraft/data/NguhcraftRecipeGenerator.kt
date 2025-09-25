@@ -55,6 +55,11 @@ class NguhcraftRecipeGenerator(
             offerShapelessRecipe(Greater, 1, Lesser to 2)
         }
 
+        offerShapelessRecipe(NguhItems.SLAB_SHAVINGS_1, 8, NguhItems.SLAB_SHAVINGS_8 to 1)
+        offerShapelessRecipe(NguhItems.SLAB_SHAVINGS_8, 1, NguhItems.SLAB_SHAVINGS_1 to 8)
+        offerShapelessRecipe(NguhItems.SLABLET_1, 1, NguhItems.SLAB_SHAVINGS_8 to 8)
+        offerShapelessRecipe(NguhItems.SLAB_SHAVINGS_8, 8, NguhItems.SLABLET_1 to 1)
+
         // =========================================================================
         //  Items
         // =========================================================================
@@ -87,6 +92,9 @@ class NguhcraftRecipeGenerator(
         offerShapelessRecipe(Items.STRING, 4, ItemTags.WOOL to 1)
         offerShapelessRecipe(Items.AMETHYST_SHARD, 4, Items.AMETHYST_BLOCK to 1)
         offerShapelessRecipe(Items.QUARTZ, 4, Items.QUARTZ_BLOCK to 1)
+        offerShapelessRecipe(Items.NETHER_WART, 9, Items.NETHER_WART_BLOCK to 1)
+        offerShapelessRecipe(Items.BAMBOO, 18, Items.BAMBOO_BLOCK to 2)
+        offerShapelessRecipe(Items.SOUL_SOIL, 2, Items.SOUL_SAND to 1, Items.DIRT to 1)
 
         // =========================================================================
         //  Miscellaneous Blocks
@@ -158,12 +166,26 @@ class NguhcraftRecipeGenerator(
             cinput('#', NguhBlocks.PYRITE)
         }
 
+        offerShaped(NguhBlocks.DRIPSTONE_BRICKS, 4) {
+            pattern("##")
+            pattern("##")
+            cinput('#', Items.DRIPSTONE_BLOCK)
+        }
+
+        offerShaped(NguhBlocks.CHARCOAL_BLOCK, 1) {
+            pattern("ccc")
+            pattern("ccc")
+            pattern("ccc")
+            cinput('c', Items.CHARCOAL)
+        }
+
         offerChainAndLantern(NguhBlocks.OCHRE_CHAIN, NguhBlocks.OCHRE_LANTERN, Items.RESIN_CLUMP, Items.OCHRE_FROGLIGHT)
         offerChainAndLantern(NguhBlocks.PEARLESCENT_CHAIN, NguhBlocks.PEARLESCENT_LANTERN, Items.AMETHYST_SHARD, Items.PEARLESCENT_FROGLIGHT)
         offerChainAndLantern(NguhBlocks.VERDANT_CHAIN, NguhBlocks.VERDANT_LANTERN, Items.EMERALD, Items.VERDANT_FROGLIGHT)
 
         offerShapelessRecipe(Items.HOPPER, 1, NguhBlocks.DECORATIVE_HOPPER to 1, Items.CHEST to 1)
         offerShapelessRecipe(NguhBlocks.DECORATIVE_HOPPER, 1, Items.HOPPER to 1)
+        offerShapelessRecipe(Items.CHARCOAL, 9, NguhBlocks.CHARCOAL_BLOCK to 1)
 
         // =========================================================================
         //  Block Families
@@ -341,6 +363,7 @@ class NguhcraftRecipeGenerator(
         offerStonecuttingFamily(NguhBlocks.POLISHED_CALCITE_FAMILY, Blocks.CALCITE)
         offerStonecuttingFamily(NguhBlocks.CALCITE_BRICK_FAMILY, Blocks.CALCITE)
         offerStonecuttingRecipe(Out = NguhBlocks.PYRITE_BRICKS, In = NguhBlocks.PYRITE)
+        offerStonecuttingRecipe(Out = NguhBlocks.DRIPSTONE_BRICKS, In = Blocks.DRIPSTONE_BLOCK)
 
         for (V in NguhBlockModels.VERTICAL_SLABS)
             offerStonecuttingRecipe(Out = V.VerticalSlab, In = V.Base, 2)

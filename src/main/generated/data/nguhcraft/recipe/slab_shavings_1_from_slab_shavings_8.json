@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "nguhcraft:slab_shavings_8"
+  ],
+  "result": {
+    "count": 8,
+    "id": "nguhcraft:slab_shavings_1"
+  }
+}

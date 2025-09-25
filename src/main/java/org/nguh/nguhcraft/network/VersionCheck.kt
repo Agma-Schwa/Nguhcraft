@@ -13,7 +13,7 @@ object VersionCheck {
      * whenever there are breaking changes to client/server communication,
      * static registries, etc.
      */
-    const val NGUHCRAFT_VERSION: Int = 36
+    const val NGUHCRAFT_VERSION: Int = 37
 
     /** Packet sent by the client to reply to the version handshake. */
     val Packet: PacketByteBuf = PacketByteBufs.create().writeInt(NGUHCRAFT_VERSION)

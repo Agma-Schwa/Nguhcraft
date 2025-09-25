@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_slab_shavings_1": {
+      "conditions": {
+        "items": [
+          {
+            "items": "nguhcraft:slab_shavings_1"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "nguhcraft:slab_shavings_8_from_slab_shavings_1"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_slab_shavings_1"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "nguhcraft:slab_shavings_8_from_slab_shavings_1"
+    ]
+  }
+}

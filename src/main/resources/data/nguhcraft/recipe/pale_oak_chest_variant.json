@@ -1,20 +1,23 @@
 {
-	"type": "minecraft:crafting_shaped",
-	"category": "misc",
-	"key": {
-		"#": "#minecraft:pale_oak_logs"
-	},
-	"pattern": [
-		"###",
-		"# #",
-		"###"
-	],
-	"result": {
-		"count": 1,
-		"id": "minecraft:chest",
-		"components": {
-			"nguhcraft:chest_variant": "pale_oak",
-			"minecraft:custom_name": "{\"translate\": \"chest_variant.nguhcraft.pale_oak\", \"italic\": false }"
-		}
-	}
+    "type": "minecraft:crafting_shaped",
+    "category": "misc",
+    "key": {
+        "#": "#minecraft:pale_oak_logs"
+    },
+    "pattern": [
+        "###",
+        "# #",
+        "###"
+    ],
+    "result": {
+        "count": 1,
+        "id": "minecraft:chest",
+        "components": {
+            "nguhcraft:chest_variant": "pale_oak",
+            "minecraft:custom_name": {
+                "translate": "chest_variant.nguhcraft.pale_oak",
+                "italic": false
+            }
+        }
+    }
 }

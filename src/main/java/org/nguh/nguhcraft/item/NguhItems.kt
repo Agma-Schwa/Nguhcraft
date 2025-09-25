@@ -42,6 +42,8 @@ object NguhItems {
     val SLABLET_4: Item = CreateItem(Id("slablet_4"), Item.Settings().maxCount(64).rarity(Rarity.UNCOMMON).fireproof())
     val SLABLET_8: Item = CreateItem(Id("slablet_8"), Item.Settings().maxCount(64).rarity(Rarity.UNCOMMON).fireproof())
     val SLABLET_16: Item = CreateItem(Id("slablet_16"), Item.Settings().maxCount(64).rarity(Rarity.UNCOMMON).fireproof())
+    val SLAB_SHAVINGS_1: Item = CreateItem(Id("slab_shavings_1"), Item.Settings().maxCount(64).rarity(Rarity.UNCOMMON).fireproof())
+    val SLAB_SHAVINGS_8: Item = CreateItem(Id("slab_shavings_8"), Item.Settings().maxCount(64).rarity(Rarity.UNCOMMON).fireproof())
     val NGUHROVISION_2024_DISC: Item = CreateItem(
         Id("music_disc_nguhrovision_2024"),
         Item.Settings()
@@ -208,6 +210,8 @@ object NguhItems {
         Register(SLABLET_4)
         Register(SLABLET_8)
         Register(SLABLET_16)
+        Register(SLAB_SHAVINGS_1)
+        Register(SLAB_SHAVINGS_8)
         Register(NGUHROVISION_2024_DISC, Models.TEMPLATE_MUSIC_DISC)
         ALL_NGUHCRAFT_ARMOUR_TRIMS.forEach { Register(it.Template) }
 
@@ -234,6 +238,8 @@ object NguhItems {
             it.add(SLABLET_4)
             it.add(SLABLET_8)
             it.add(SLABLET_16)
+            it.add(SLAB_SHAVINGS_1)
+            it.add(SLAB_SHAVINGS_8)
 
             ChestVariant.entries.forEach { CV ->
                 it.add(Utils.BuildItemStack(Items.CHEST) {
