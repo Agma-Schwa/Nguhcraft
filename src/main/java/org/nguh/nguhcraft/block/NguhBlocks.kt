@@ -501,8 +501,8 @@ object NguhBlocks {
     // =========================================================================
     //  Tinted Oak
     // =========================================================================
-    val TINTED_OAK_BLOCKSETTYPE = BlockSetTypeBuilder.copyOf(BlockSetType.PALE_OAK).register(Id("orange"))
-    val TINTED_OAK_WOODTYPE = WoodTypeBuilder.copyOf(WoodType.PALE_OAK).register(Id("orange"), TINTED_OAK_BLOCKSETTYPE)
+    val TINTED_OAK_BLOCK_SET_TYPE = BlockSetTypeBuilder.copyOf(BlockSetType.PALE_OAK).register(Id("tinted_oak"))
+    val TINTED_OAK_WOOD_TYPE = WoodTypeBuilder.copyOf(WoodType.PALE_OAK).register(Id("tinted_oak"), TINTED_OAK_BLOCK_SET_TYPE)
 
     val TINTED_OAK_PLANKS = Register(
         "tinted_oak_planks",
