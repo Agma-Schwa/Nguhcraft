@@ -362,7 +362,7 @@ class NguhcraftRecipeGenerator(
         }
 
         // other wood stuff
-        offerPlanksRecipe(NguhBlocks.TINTED_OAK_PLANKS, NguhcraftItemTagProvider.TINTED_LOGS, 4)
+        offerPlanksRecipe(NguhBlocks.TINTED_OAK_PLANKS, NguhItems.TINTED_LOGS, 4)
         offerBarkBlockRecipe(NguhBlocks.TINTED_OAK_WOOD, NguhBlocks.TINTED_OAK_LOG)
         offerBarkBlockRecipe(NguhBlocks.STRIPPED_TINTED_OAK_WOOD, NguhBlocks.STRIPPED_TINTED_OAK_LOG)
 
