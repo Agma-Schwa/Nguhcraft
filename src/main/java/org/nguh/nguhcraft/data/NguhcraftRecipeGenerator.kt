@@ -33,6 +33,7 @@ class NguhcraftRecipeGenerator(
     val E: RecipeExporter
 ) : RecipeGenerator(WL, E) {
     val Lookup = WL.getOrThrow(RegistryKeys.ITEM)
+    val BlockFamily.IsWood get() = this in NguhBlocks.WOOD_VARIANT_FAMILIES
 
     override fun generate() {
         // =========================================================================
