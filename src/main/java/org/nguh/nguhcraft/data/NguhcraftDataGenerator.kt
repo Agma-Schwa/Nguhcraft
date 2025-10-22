@@ -188,10 +188,6 @@ class NguhcraftItemTagProvider(
     O: FabricDataOutput,
     RF: CompletableFuture<RegistryWrapper.WrapperLookup>
 ) : FabricTagProvider.ItemTagProvider(O, RF) {
-    companion object {
-        val TINTED_OAK_LOGS: TagKey<Item> = TagKey.of(RegistryKeys.ITEM, Id("tinted_oak_logs"))
-    }
-
     override fun configure(WL: RegistryWrapper.WrapperLookup) {
         valueLookupBuilder(ItemTags.HEAD_ARMOR).add(NguhItems.AMETHYST_HELMET)
         valueLookupBuilder(ItemTags.CHEST_ARMOR).add(NguhItems.AMETHYST_CHESTPLATE)
@@ -221,7 +217,7 @@ class NguhcraftItemTagProvider(
         valueLookupBuilder(ItemTags.PLANKS)
             .add(NguhBlocks.TINTED_OAK_PLANKS.asItem())
 
-        valueLookupBuilder(TINTED_LOGS)
+        valueLookupBuilder(NguhItems.TINTED_LOGS)
             .add(NguhBlocks.TINTED_OAK_LOG.asItem())
             .add(NguhBlocks.TINTED_OAK_WOOD.asItem())
             .add(NguhBlocks.STRIPPED_TINTED_OAK_LOG.asItem())
