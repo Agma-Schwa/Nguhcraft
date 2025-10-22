@@ -231,7 +231,7 @@ class NguhcraftRecipeGenerator(
                     pattern("#s#")
                     cinput('#', F.baseBlock)
                     cinput('s', Items.STICK)
-                    if (F in NguhBlocks.WOOD_VARIANT_FAMILIES) { group("wooden_fence") }
+                    if (F.IsWood) { group("wooden_fence") }
                 }
             }
 
