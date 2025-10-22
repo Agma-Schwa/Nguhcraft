@@ -4,6 +4,7 @@ import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
 import net.minecraft.block.Block
 import net.minecraft.block.Blocks
+import net.minecraft.data.family.BlockFamilies
 import net.minecraft.data.family.BlockFamily
 import net.minecraft.data.recipe.ComplexRecipeJsonBuilder
 import net.minecraft.data.recipe.RecipeExporter
@@ -24,6 +25,7 @@ import org.nguh.nguhcraft.block.*
 import org.nguh.nguhcraft.item.KeyDuplicationRecipe
 import org.nguh.nguhcraft.item.KeyLockPairingRecipe
 import org.nguh.nguhcraft.item.NguhItems
+import kotlin.collections.iterator
 
 @Environment(EnvType.CLIENT)
 class NguhcraftRecipeGenerator(
@@ -224,15 +226,46 @@ class NguhcraftRecipeGenerator(
         // Usual crafting recipes for custom stone types.
         for (F in NguhBlocks.ALL_VARIANT_FAMILIES) {
             F.Fence?.let {
-                offerShaped(it, 6) {
+                offerShaped(it, 3) {
+                    pattern("#s#")
+                    pattern("#s#")
+                    cinput('#', F.baseBlock)
+                    cinput('s', Items.STICK)
+                    if (F in NguhBlocks.WOOD_VARIANT_FAMILIES) { group("wooden_fence") }
+                }
+            }
+
+            F.FenceGate?.let {
+                offerShaped(RecipeCategory.REDSTONE, it, 1) {
+                    pattern("s#s")
+                    pattern("s#s")
+                    cinput('#', F.baseBlock)
+                    cinput('s', Items.STICK)
+                    if (F in NguhBlocks.WOOD_VARIANT_FAMILIES) { group("wooden_fence_gate") }
+                }
+            }
+
+            F.Door?.let {
+                offerShaped(RecipeCategory.REDSTONE, it, 3) {
+                    pattern("##")
+                    pattern("##")
+                    pattern("##")
+                    cinput('#', F.baseBlock)
+                    if (F in NguhBlocks.WOOD_VARIANT_FAMILIES) { group("wooden_door") }
+                }
+            }
+
+            F.Trapdoor?.let {
+                offerShaped(RecipeCategory.REDSTONE, it, 2) {
                     pattern("###")
                     pattern("###")
                     cinput('#', F.baseBlock)
+                    if (F in NguhBlocks.WOOD_VARIANT_FAMILIES) { group("wooden_trapdoor") }
                 }
             }
 
             F.Slab?.let {
-                offerShaped(it, 3) {
+                offerShaped(RecipeCategory.BUILDING_BLOCKS, it, 6) {
                     pattern("###")
                     cinput('#', F.baseBlock)
 
@@ -243,15 +276,17 @@ class NguhcraftRecipeGenerator(
                             cinput('#', F.Slab!!)
                         }
                     }
+                    if (F in NguhBlocks.WOOD_VARIANT_FAMILIES) { group("wooden_slab") }
                 }
             }
 
             F.Stairs?.let {
-                offerShaped(it, 4) {
+                offerShaped(RecipeCategory.BUILDING_BLOCKS, it, 4) {
                     pattern("#  ")
                     pattern("## ")
                     pattern("###")
                     cinput('#', F.baseBlock)
+                    if (F in NguhBlocks.WOOD_VARIANT_FAMILIES) { group("wooden_stairs") }
                 }
             }
 
@@ -285,7 +320,7 @@ class NguhcraftRecipeGenerator(
         // =========================================================================
         //  Tinted Oak
         // =========================================================================
-        offerShaped(NguhBlocks.TINTED_OAK_PLANKS, 4) {
+        offerShaped(NguhBlocks.TINTED_OAK_PLANKS, 4, "tinting") {
             pattern(" # ")
             pattern("#A#")
             pattern(" # ")
@@ -293,7 +328,7 @@ class NguhcraftRecipeGenerator(
             cinput('A', Items.AMETHYST_SHARD)
         }
 
-        offerShaped(NguhBlocks.TINTED_OAK_LOG, 2) {
+        offerShaped(NguhBlocks.TINTED_OAK_LOG, 2, "tinting") {
             pattern("P")
             pattern("A")
             pattern("P")
@@ -301,7 +336,7 @@ class NguhcraftRecipeGenerator(
             cinput('A', Items.AMETHYST_SHARD)
         }
 
-        offerShaped(NguhBlocks.TINTED_OAK_WOOD, 2) {
+        offerShaped(NguhBlocks.TINTED_OAK_WOOD, 2, "tinting") {
             pattern("P")
             pattern("A")
             pattern("P")
@@ -309,7 +344,7 @@ class NguhcraftRecipeGenerator(
             cinput('A', Items.AMETHYST_SHARD)
         }
 
-        offerShaped(NguhBlocks.STRIPPED_TINTED_OAK_LOG, 2) {
+        offerShaped(NguhBlocks.STRIPPED_TINTED_OAK_LOG, 2, "tinting") {
             pattern("P")
             pattern("A")
             pattern("P")
@@ -317,13 +352,18 @@ class NguhcraftRecipeGenerator(
             cinput('A', Items.AMETHYST_SHARD)
         }
 
-        offerShaped(NguhBlocks.STRIPPED_TINTED_OAK_WOOD, 2) {
+        offerShaped(NguhBlocks.STRIPPED_TINTED_OAK_WOOD, 2, "tinting") {
             pattern("P")
             pattern("A")
             pattern("P")
             cinput('P', Blocks.STRIPPED_PALE_OAK_WOOD)
             cinput('A', Items.AMETHYST_SHARD)
         }
+
+        // other wood stuff
+        offerPlanksRecipe(NguhBlocks.TINTED_OAK_PLANKS, NguhcraftItemTagProvider.TINTED_LOGS, 4)
+        offerBarkBlockRecipe(NguhBlocks.TINTED_OAK_WOOD, NguhBlocks.TINTED_OAK_LOG)
+        offerBarkBlockRecipe(NguhBlocks.STRIPPED_TINTED_OAK_WOOD, NguhBlocks.STRIPPED_TINTED_OAK_LOG)
 
         // =========================================================================
         //  Brocade Blocks
@@ -353,6 +393,21 @@ class NguhcraftRecipeGenerator(
             pattern("#")
             pattern("#")
             cinput('#', V.Base)
+            if (V.Wood) { group("wooden_vertical_slab") }
+        }
+
+        // =========================================================================
+        //  functional wood stuff
+        // =========================================================================
+        offerShaped(RecipeCategory.REDSTONE, NguhBlocks.TINTED_OAK_PRESSURE_PLATE, 1) {
+            pattern("PP")
+            cinput('P', NguhBlocks.TINTED_OAK_PLANKS)
+            group("wooden_pressure_plate")
+        }
+        offerShaped(RecipeCategory.REDSTONE, NguhBlocks.TINTED_OAK_BUTTON, 1) {
+            pattern("P")
+            cinput('P', NguhBlocks.TINTED_OAK_PLANKS)
+            group("wooden_button")
         }
 
         // =========================================================================
@@ -384,6 +439,18 @@ class NguhcraftRecipeGenerator(
             offerStonecuttingRecipe(Out = F.StrippedLog, In = F.Log)
             offerStonecuttingRecipe(Out = F.StrippedWood, In = F.Wood)
         }
+
+        // bamboo (this is separate, bc bamboo doesn't have wood and therefore cant fit in the usual wood families
+        offerStonecuttingFamily(BlockFamilies.BAMBOO)
+        offerStonecuttingFamily(BlockFamilies.BAMBOO_MOSAIC)
+
+        for (B in BlockFamilies.BAMBOO_MOSAIC.variants) { offerStonecuttingRecipe(Out = B.value, In = Blocks.BAMBOO_PLANKS) }
+        offerStonecuttingRecipe(Out = Blocks.BAMBOO_MOSAIC, In = Blocks.BAMBOO_PLANKS)
+
+        offerStonecuttingRecipe(Out = Blocks.BAMBOO_PLANKS, In = Blocks.BAMBOO_BLOCK)
+        offerStonecuttingRecipe(Out = Blocks.BAMBOO_PLANKS, In = Blocks.STRIPPED_BAMBOO_BLOCK)
+
+        offerStonecuttingRecipe(Out = Blocks.STRIPPED_BAMBOO_BLOCK, In = Blocks.BAMBOO_BLOCK)
 
         // =========================================================================
         //  Smelting
@@ -470,6 +537,20 @@ class NguhcraftRecipeGenerator(
         var Name: String = getItemPath(Output)
         if (!Suffix.isEmpty()) Name += "_$Suffix"
         val B = createShaped(RecipeCategory.MISC, Output, Count)
+        B.Consumer()
+        B.offerTo(E, Name)
+    }
+
+    inline fun offerShaped(
+        category: RecipeCategory,
+        Output: ItemConvertible,
+        Count: Int = 1,
+        Suffix: String = "",
+        Consumer: ShapedRecipeJsonBuilder.() -> Unit,
+    ) {
+        var Name: String = getItemPath(Output)
+        if (!Suffix.isEmpty()) Name += "_$Suffix"
+        val B = createShaped(category, Output, Count)
         B.Consumer()
         B.offerTo(E, Name)
     }

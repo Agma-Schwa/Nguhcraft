@@ -23,6 +23,7 @@ import net.minecraft.data.DataWriter
 import net.minecraft.data.recipe.RecipeExporter
 import net.minecraft.entity.damage.DamageType
 import net.minecraft.entity.decoration.painting.PaintingVariant
+import net.minecraft.item.Item
 import net.minecraft.item.Items
 import net.minecraft.item.equipment.EquipmentAsset
 import net.minecraft.loot.LootPool
@@ -90,6 +91,11 @@ class NguhcraftBlockTagProvider(
             .add(NguhBlocks.TINTED_OAK_WOOD)
             .add(NguhBlocks.STRIPPED_TINTED_OAK_LOG)
             .add(NguhBlocks.STRIPPED_TINTED_OAK_WOOD)
+        valueLookupBuilder(BlockTags.FENCE_GATES).add(NguhBlocks.TINTED_OAK_FENCE_GATE)
+        valueLookupBuilder(BlockTags.WOODEN_DOORS).add(NguhBlocks.TINTED_OAK_DOOR)
+        valueLookupBuilder(BlockTags.WOODEN_TRAPDOORS).add(NguhBlocks.TINTED_OAK_TRAPDOOR)
+        valueLookupBuilder(BlockTags.WOODEN_PRESSURE_PLATES).add(NguhBlocks.TINTED_OAK_PRESSURE_PLATE)
+        valueLookupBuilder(BlockTags.WOODEN_BUTTONS).add(NguhBlocks.TINTED_OAK_BUTTON)
 
         // Block tag for bonemealing flowers.
         valueLookupBuilder(NguhBlocks.CAN_DUPLICATE_WITH_BONEMEAL)
@@ -182,6 +188,10 @@ class NguhcraftItemTagProvider(
     O: FabricDataOutput,
     RF: CompletableFuture<RegistryWrapper.WrapperLookup>
 ) : FabricTagProvider.ItemTagProvider(O, RF) {
+    companion object {
+        val TINTED_LOGS: TagKey<Item?>? = TagKey.of(RegistryKeys.ITEM, Id("tinted_logs"))
+    }
+
     override fun configure(WL: RegistryWrapper.WrapperLookup) {
         valueLookupBuilder(ItemTags.HEAD_ARMOR).add(NguhItems.AMETHYST_HELMET)
         valueLookupBuilder(ItemTags.CHEST_ARMOR).add(NguhItems.AMETHYST_CHESTPLATE)
@@ -201,6 +211,21 @@ class NguhcraftItemTagProvider(
         valueLookupBuilder(ItemTags.PICKAXES).add(NguhItems.AMETHYST_PICKAXE)
         valueLookupBuilder(ItemTags.AXES).add(NguhItems.AMETHYST_AXE)
         valueLookupBuilder(ItemTags.HOES).add(NguhItems.AMETHYST_HOE)
+
+        valueLookupBuilder(ItemTags.LOGS_THAT_BURN)
+            .add(NguhBlocks.TINTED_OAK_LOG.asItem())
+            .add(NguhBlocks.TINTED_OAK_WOOD.asItem())
+            .add(NguhBlocks.STRIPPED_TINTED_OAK_LOG.asItem())
+            .add(NguhBlocks.STRIPPED_TINTED_OAK_WOOD.asItem())
+
+        valueLookupBuilder(ItemTags.PLANKS)
+            .add(NguhBlocks.TINTED_OAK_PLANKS.asItem())
+
+        valueLookupBuilder(TINTED_LOGS)
+            .add(NguhBlocks.TINTED_OAK_LOG.asItem())
+            .add(NguhBlocks.TINTED_OAK_WOOD.asItem())
+            .add(NguhBlocks.STRIPPED_TINTED_OAK_LOG.asItem())
+            .add(NguhBlocks.STRIPPED_TINTED_OAK_WOOD.asItem())
     }
 }
 
@@ -212,6 +237,7 @@ class NguhcraftLootTableProvider(
     override fun generate() {
         NguhBlocks.DROPS_SELF.forEach { addDrop(it) }
         addDrop(NguhBlocks.LOCKED_DOOR) { B: Block -> doorDrops(B) }
+        addDrop(NguhBlocks.TINTED_OAK_DOOR) { B: Block -> doorDrops(B) }
         for (S in NguhBlocks.ALL_VARIANT_FAMILY_BLOCKS.filter { it is SlabBlock })
             addDrop(S, ::slabDrops)
         for (V in NguhBlockModels.VERTICAL_SLABS)

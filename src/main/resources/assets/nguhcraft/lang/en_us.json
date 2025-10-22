@@ -136,12 +136,17 @@
     "block.nguhcraft.stone_slab_vertical": "Vertical Stone Slab",
     "block.nguhcraft.stripped_tinted_oak_log": "Stripped Tinted Oak Log",
     "block.nguhcraft.stripped_tinted_oak_wood": "Stripped Tinted Oak Wood",
+    "block.nguhcraft.tinted_oak_button": "Tinted Oak Button",
+    "block.nguhcraft.tinted_oak_door": "Tinted Oak Door",
+    "block.nguhcraft.tinted_oak_fence_gate": "Tinted Oak Fence Gate",
     "block.nguhcraft.tinted_oak_log": "Tinted Oak Log",
     "block.nguhcraft.tinted_oak_planks": "Tinted Oak Planks",
     "block.nguhcraft.tinted_oak_planks_fence": "Tinted Oak Fence",
     "block.nguhcraft.tinted_oak_planks_slab": "Tinted Oak Slab",
     "block.nguhcraft.tinted_oak_planks_stairs": "Tinted Oak Stairs",
+    "block.nguhcraft.tinted_oak_pressure_plate": "Tinted Oak Pressure Plate",
     "block.nguhcraft.tinted_oak_slab_vertical": "Vertical Tinted Oak Slab",
+    "block.nguhcraft.tinted_oak_trapdoor": "Tinted Oak Trapdoor",
     "block.nguhcraft.tinted_oak_wood": "Tinted Oak Wood",
     "block.nguhcraft.tuff_brick_slab_vertical": "Vertical Tuff Brick Slab",
     "block.nguhcraft.tuff_slab_vertical": "Vertical Tuff Slab",
@@ -213,6 +218,8 @@
     "item.nguhcraft.cenrail_armour_trim_smithing_template": "Cenrail Armor Trim",
     "item.nguhcraft.ice_cold_armour_trim_smithing_template": "Ice-Cold Armor Trim",
     "item.nguhcraft.veneficium_armour_trim_smithing_template": "Venēficium Armor Trim",
+
+    "itemGroup.nguhcraft.treasures": "Treasures",
 
     "jukebox_song.nguhcraft.nguhrovision_2024": "Marcy Sheikah – Reflection",
 

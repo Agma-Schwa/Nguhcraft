@@ -4,6 +4,10 @@ import com.mojang.serialization.Codec
 import io.netty.buffer.ByteBuf
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents
 import net.fabricmc.fabric.api.`object`.builder.v1.block.entity.FabricBlockEntityTypeBuilder
+import net.fabricmc.fabric.api.`object`.builder.v1.block.type.BlockSetTypeBuilder
+import net.fabricmc.fabric.api.`object`.builder.v1.block.type.WoodTypeBuilder
+import net.fabricmc.fabric.api.registry.FlammableBlockRegistry
+import net.fabricmc.fabric.api.registry.StrippableBlockRegistry
 import net.minecraft.block.*
 import net.minecraft.block.entity.BlockEntity
 import net.minecraft.block.entity.BlockEntityType
@@ -84,6 +88,7 @@ object NguhBlocks {
 
     // All vertical slabs; this has to be declared before our custom block families.
     val VERTICAL_SLABS: List<VerticalSlabBlock> = mutableListOf()
+    val SLABS_VSLABS_MAP: MutableMap<String, Block> = mutableMapOf()
 
     // =========================================================================
     //  Brocade Blocks
@@ -185,22 +190,22 @@ object NguhBlocks {
     )
 
     val ALL_BROCADE_BLOCKS = arrayOf(
-        BROCADE_BLACK,
-        BROCADE_BLUE,
-        BROCADE_BROWN,
-        BROCADE_CYAN,
-        BROCADE_GREEN,
-        BROCADE_GREY,
-        BROCADE_LIGHT_BLUE,
-        BROCADE_LIGHT_GREY,
-        BROCADE_LIME,
-        BROCADE_MAGENTA,
-        BROCADE_ORANGE,
-        BROCADE_PINK,
-        BROCADE_PURPLE,
-        BROCADE_RED,
         BROCADE_WHITE,
+        BROCADE_LIGHT_GREY,
+        BROCADE_GREY,
+        BROCADE_BLACK,
+        BROCADE_BROWN,
+        BROCADE_RED,
+        BROCADE_ORANGE,
         BROCADE_YELLOW,
+        BROCADE_LIME,
+        BROCADE_GREEN,
+        BROCADE_CYAN,
+        BROCADE_LIGHT_BLUE,
+        BROCADE_BLUE,
+        BROCADE_PURPLE,
+        BROCADE_MAGENTA,
+        BROCADE_PINK
     )
 
     // =========================================================================
@@ -496,6 +501,9 @@ object NguhBlocks {
     // =========================================================================
     //  Tinted Oak
     // =========================================================================
+    val TINTED_OAK_BLOCKSETTYPE = BlockSetTypeBuilder.copyOf(BlockSetType.PALE_OAK).register(Id("orange"))
+    val TINTED_OAK_WOODTYPE = WoodTypeBuilder.copyOf(WoodType.PALE_OAK).register(Id("orange"), TINTED_OAK_BLOCKSETTYPE)
+
     val TINTED_OAK_PLANKS = Register(
         "tinted_oak_planks",
         ::Block,
@@ -507,6 +515,36 @@ object NguhBlocks {
     val TINTED_OAK_SLAB_VERTICAL = RegisterVSlab("tinted_oak", TINTED_OAK_SLAB)
     val TINTED_OAK_STAIRS = RegisterStairs(TINTED_OAK_PLANKS)
     val TINTED_OAK_FENCE = RegisterVariant(TINTED_OAK_PLANKS, "fence", ::FenceBlock)
+
+    val TINTED_OAK_FENCE_GATE = Register(
+        "tinted_oak_fence_gate",
+        { s -> FenceGateBlock(TINTED_OAK_WOODTYPE, s) },
+        AbstractBlock.Settings.copy(Blocks.PALE_OAK_FENCE_GATE).mapColor(MapColor.PALE_PURPLE)
+    )
+
+    val TINTED_OAK_DOOR = Register(
+        "tinted_oak_door",
+        { s -> DoorBlock(TINTED_OAK_BLOCKSETTYPE, s) },
+        AbstractBlock.Settings.copy(Blocks.PALE_OAK_DOOR).mapColor(MapColor.PALE_PURPLE)
+    )
+
+    val TINTED_OAK_TRAPDOOR = Register(
+        "tinted_oak_trapdoor",
+        { s -> TrapdoorBlock(TINTED_OAK_BLOCKSETTYPE, s) },
+        AbstractBlock.Settings.copy(Blocks.PALE_OAK_TRAPDOOR).mapColor(MapColor.PALE_PURPLE)
+    )
+
+    val TINTED_OAK_PRESSURE_PLATE = Register(
+        "tinted_oak_pressure_plate",
+        { s -> PressurePlateBlock(TINTED_OAK_BLOCKSETTYPE, s) },
+        AbstractBlock.Settings.copy(Blocks.PALE_OAK_PRESSURE_PLATE).mapColor(MapColor.PALE_PURPLE)
+    )
+
+    val TINTED_OAK_BUTTON = Register(
+        "tinted_oak_button",
+        { s -> ButtonBlock(TINTED_OAK_BLOCKSETTYPE, 30, s) },
+        AbstractBlock.Settings.copy(Blocks.PALE_OAK_BUTTON).mapColor(MapColor.PALE_PURPLE)
+    )
 
     val TINTED_OAK_LOG = Register(
         "tinted_oak_log",
@@ -614,6 +652,11 @@ object NguhBlocks {
         .slab(TINTED_OAK_SLAB)
         .stairs(TINTED_OAK_STAIRS)
         .fence(TINTED_OAK_FENCE)
+        .fenceGate(TINTED_OAK_FENCE_GATE)
+        .door(TINTED_OAK_DOOR)
+        .trapdoor(TINTED_OAK_TRAPDOOR)
+        .pressurePlate(TINTED_OAK_PRESSURE_PLATE)
+        .button(TINTED_OAK_BUTTON)
         .build()
 
     val CINNABAR_FAMILIES = listOf(CINNABAR_FAMILY, POLISHED_CINNABAR_FAMILY, CINNABAR_BRICK_FAMILY)
@@ -860,8 +903,8 @@ object NguhBlocks {
         it.addAll(CHAINS_AND_LANTERNS.flatten())
         it.addAll(ALL_BROCADE_BLOCKS)
 
-        // Slabs may drop 2 or 1 and are thus handled separately.
-        it.addAll(ALL_VARIANT_FAMILY_BLOCKS.filter { it !is SlabBlock })
+        // Slabs may drop 2 or 1 and are thus handled separately. Same for doors
+        it.addAll(ALL_VARIANT_FAMILY_BLOCKS.filter { !(it is SlabBlock || it is DoorBlock) })
     }.toTypedArray()
 
     @JvmField
@@ -872,31 +915,51 @@ object NguhBlocks {
     // =========================================================================
     fun Init() {
         ItemGroupEvents.modifyEntriesEvent(ItemGroups.REDSTONE).register {
-            it.add(DECORATIVE_HOPPER)
+            it.addAfter(Blocks.HOPPER, DECORATIVE_HOPPER)
         }
 
         ItemGroupEvents.modifyEntriesEvent(ItemGroups.BUILDING_BLOCKS).register {
-            it.add(LOCKED_DOOR)
-            it.add(COMPRESSED_STONE)
-            it.add(WROUGHT_IRON_BLOCK)
-            it.add(WROUGHT_IRON_BARS)
-            it.add(IRON_GRATE)
-            it.add(WROUGHT_IRON_GRATE)
-            it.add(GOLD_BARS)
-            it.add(PYRITE)
-            it.add(TINTED_OAK_LOG)
-            it.add(TINTED_OAK_WOOD)
-            it.add(STRIPPED_TINTED_OAK_LOG)
-            it.add(STRIPPED_TINTED_OAK_WOOD)
-            it.add(CHARCOAL_BLOCK)
-            for (B in ALL_VARIANT_FAMILY_BLOCKS) it.add(B)
-            for (B in VERTICAL_SLABS) it.add(B)
+            it.addAfter(Blocks.GOLD_BLOCK, LOCKED_DOOR)
+            it.addAfter(Blocks.SMOOTH_STONE_SLAB, COMPRESSED_STONE)
+            it.addAfter(Blocks.HEAVY_WEIGHTED_PRESSURE_PLATE, WROUGHT_IRON_BLOCK, WROUGHT_IRON_GRATE, WROUGHT_IRON_BARS)
+            it.addAfter(Blocks.IRON_BLOCK, IRON_GRATE)
+            it.addAfter(Blocks.GOLD_BLOCK, GOLD_BARS)
+            it.addAfter(Blocks.POLISHED_BLACKSTONE_BRICK_WALL, PYRITE)
+            it.addAfter(Blocks.WARPED_BUTTON, TINTED_OAK_LOG, TINTED_OAK_WOOD, STRIPPED_TINTED_OAK_LOG, STRIPPED_TINTED_OAK_WOOD)
+            it.addAfter(Blocks.COAL_BLOCK, CHARCOAL_BLOCK)
+
+            // Family Base Blocks
+            it.addAfter(STRIPPED_TINTED_OAK_WOOD, TINTED_OAK_PLANKS)
+            it.addAfter(Blocks.RED_NETHER_BRICK_WALL, CINNABAR, CINNABAR_BRICKS)
+            it.addAfter(Blocks.POLISHED_ANDESITE_SLAB, Blocks.CALCITE, POLISHED_CALCITE, CALCITE_BRICKS, GILDED_CALCITE, GILDED_CALCITE_BRICKS,Blocks.DRIPSTONE_BLOCK, DRIPSTONE_BRICKS)
+            it.addAfter(PYRITE, PYRITE_BRICKS)
+
+            for (F in ALL_VARIANT_FAMILIES.iterator()) for (B in F.variants.toSortedMap( compareBy<BlockFamily.Variant> { c -> getVarientPlacement(c) }).values.reversed()) it.addAfter(F.baseBlock, B)
+            for (B in ALL_BROCADE_BLOCKS) it.add(B)
+            for (B in CHAINS_AND_LANTERNS) it.addAfter(Blocks.CHAIN, B.first)
+            for (B in VERTICAL_SLABS) it.addBefore(SLABS_VSLABS_MAP.get(B.translationKey.substringAfterLast('.')), B)
+        }
+
+        ItemGroupEvents.modifyEntriesEvent(ItemGroups.COLORED_BLOCKS).register {
             for (B in ALL_BROCADE_BLOCKS) it.add(B)
         }
 
         ItemGroupEvents.modifyEntriesEvent(ItemGroups.FUNCTIONAL).register {
-            for (B in CHAINS_AND_LANTERNS.flatten()) it.add(B)
+            for (B in CHAINS_AND_LANTERNS) {
+                it.addAfter(Blocks.CHAIN, B.first)
+                it.addAfter(Blocks.SOUL_LANTERN, B.second)
+            }
         }
+
+        registerStrippable(TINTED_OAK_LOG, STRIPPED_TINTED_OAK_LOG)
+        registerStrippable(TINTED_OAK_WOOD, STRIPPED_TINTED_OAK_WOOD)
+
+        for (B in WOOD_VARIANT_FAMILY_BLOCKS) { registerFlammable(B, 5, 5) }
+        registerFlammable(TINTED_OAK_LOG, 5, 5)
+        registerFlammable(TINTED_OAK_WOOD, 5, 5)
+        registerFlammable(STRIPPED_TINTED_OAK_LOG, 5, 5)
+        registerFlammable(STRIPPED_TINTED_OAK_WOOD, 5, 5)
+        for (V in NguhBlockModels.VERTICAL_SLABS) { if (V.Wood) { registerFlammable(V.VerticalSlab, 5, 5) } }
     }
 
     @Suppress("DEPRECATION")
@@ -956,5 +1019,15 @@ object NguhBlocks {
         "${Name}_slab_vertical",
         ::VerticalSlabBlock,
         AbstractBlock.Settings.copy(SlabBlock)
-    ).also { (VERTICAL_SLABS as MutableList).add(it) }
+    ).also { (VERTICAL_SLABS as MutableList).add(it) }.also { SLABS_VSLABS_MAP.put("${Name}_slab_vertical", SlabBlock) }
+
+    private fun getVarientPlacement(varient: BlockFamily.Variant): Int {
+        var list = listOf("CRACKED", "STAIRS", "SLAB", "WALL", "FENCE", "FENCE_GATE", "DOOR", "TRAPDOOR", "PRESSURE_PLATE", "BUTTON", "SIGN", "WALL_SIGN", "MOSAIC", "CHISELED", "POLISHED", "CUT")
+        var index = list.indexOf(varient.name)
+        return index
+    }
+
+    fun registerStrippable(l: Block, s: Block) = StrippableBlockRegistry.register(l, s)
+
+    fun registerFlammable(b: Block, burn: Int, spread: Int) = FlammableBlockRegistry.getDefaultInstance().add(b, burn, spread)
 }

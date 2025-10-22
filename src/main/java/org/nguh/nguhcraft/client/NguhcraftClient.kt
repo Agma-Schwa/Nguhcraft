@@ -51,7 +51,7 @@ class NguhcraftClient : ClientModInitializer {
     companion object {
         val TREASURES_ITEM_GROUP: ItemGroup = net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup.builder()
             .icon { ItemStack(Items.NETHERITE_INGOT) }
-            .displayName(Text.literal("Treasures"))
+            .displayName(Text.translatable("itemGroup.nguhcraft.treasures"))
             .entries {  Ctx, Entries -> Treasures.AddAll(Ctx, Entries) }
             .build()
 
