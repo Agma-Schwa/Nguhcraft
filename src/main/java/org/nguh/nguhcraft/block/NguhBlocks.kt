@@ -904,7 +904,7 @@ object NguhBlocks {
         it.addAll(ALL_BROCADE_BLOCKS)
 
         // Slabs may drop 2 or 1 and are thus handled separately. Same for doors
-        it.addAll(ALL_VARIANT_FAMILY_BLOCKS.filter { !(it is SlabBlock || it is DoorBlock) })
+        it.addAll(ALL_VARIANT_FAMILY_BLOCKS.filter { it !is SlabBlock && it !is DoorBlock })
     }.toTypedArray()
 
     @JvmField
