@@ -365,6 +365,17 @@ class NguhcraftRecipeGenerator(
         offerPlanksRecipe(NguhBlocks.TINTED_OAK_PLANKS, NguhItems.TINTED_LOGS, 4)
         offerBarkBlockRecipe(NguhBlocks.TINTED_OAK_WOOD, NguhBlocks.TINTED_OAK_LOG)
         offerBarkBlockRecipe(NguhBlocks.STRIPPED_TINTED_OAK_WOOD, NguhBlocks.STRIPPED_TINTED_OAK_LOG)
+        
+        offerShaped(RecipeCategory.REDSTONE, NguhBlocks.TINTED_OAK_PRESSURE_PLATE, 1) {
+            pattern("PP")
+            cinput('P', NguhBlocks.TINTED_OAK_PLANKS)
+            group("wooden_pressure_plate")
+        }
+        offerShaped(RecipeCategory.REDSTONE, NguhBlocks.TINTED_OAK_BUTTON, 1) {
+            pattern("P")
+            cinput('P', NguhBlocks.TINTED_OAK_PLANKS)
+            group("wooden_button")
+        }
 
         // =========================================================================
         //  Brocade Blocks
@@ -395,20 +406,6 @@ class NguhcraftRecipeGenerator(
             pattern("#")
             cinput('#', V.Base)
             if (V.Wood) { group("wooden_vertical_slab") }
-        }
-
-        // =========================================================================
-        //  functional wood stuff
-        // =========================================================================
-        offerShaped(RecipeCategory.REDSTONE, NguhBlocks.TINTED_OAK_PRESSURE_PLATE, 1) {
-            pattern("PP")
-            cinput('P', NguhBlocks.TINTED_OAK_PLANKS)
-            group("wooden_pressure_plate")
-        }
-        offerShaped(RecipeCategory.REDSTONE, NguhBlocks.TINTED_OAK_BUTTON, 1) {
-            pattern("P")
-            cinput('P', NguhBlocks.TINTED_OAK_PLANKS)
-            group("wooden_button")
         }
 
         // =========================================================================
