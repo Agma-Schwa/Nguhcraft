@@ -189,7 +189,7 @@ class NguhcraftItemTagProvider(
     RF: CompletableFuture<RegistryWrapper.WrapperLookup>
 ) : FabricTagProvider.ItemTagProvider(O, RF) {
     companion object {
-        val TINTED_LOGS: TagKey<Item?>? = TagKey.of(RegistryKeys.ITEM, Id("tinted_logs"))
+        val TINTED_OAK_LOGS: TagKey<Item> = TagKey.of(RegistryKeys.ITEM, Id("tinted_oak_logs"))
     }
 
     override fun configure(WL: RegistryWrapper.WrapperLookup) {
