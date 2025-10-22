@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "c": "minecraft:charcoal"
+  },
+  "pattern": [
+    "ccc",
+    "ccc",
+    "ccc"
+  ],
+  "result": {
+    "count": 1,
+    "id": "nguhcraft:charcoal_block"
+  }
+}

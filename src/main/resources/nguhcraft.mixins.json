@@ -144,6 +144,7 @@
         "discord.server.ServerPlayNetworkHandlerMixin",
         "server.dedicated.DedicatedServerMixin",
         "server.dedicated.PlayerAdvancementTrackerMixin",
+        "server.dedicated.RConClientMixin",
         "vanish.PlayerManagerMixin",
         "vanish.ServerCommonNetworkHandlerMixin",
         "vanish.ServerPlayerEntityMixin"
