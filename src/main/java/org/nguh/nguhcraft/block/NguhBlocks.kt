@@ -1027,7 +1027,7 @@ object NguhBlocks {
         return index
     }
 
-    fun registerStrippable(l: Block, s: Block) = StrippableBlockRegistry.register(l, s)
+    fun RegisterStrippable(L: Block, S: Block) = StrippableBlockRegistry.register(L, S)
 
     fun registerFlammable(b: Block, burn: Int, spread: Int) = FlammableBlockRegistry.getDefaultInstance().add(b, burn, spread)
 }
