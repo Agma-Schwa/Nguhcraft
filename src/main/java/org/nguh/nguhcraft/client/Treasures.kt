@@ -31,7 +31,7 @@ import java.util.*
 @Environment(EnvType.CLIENT)
 object Treasures {
     fun AddAll(Ctx: ItemGroup.DisplayContext, Entries: ItemGroup.Entries) {
-        val ESSENCE_FLASK = Potion(Ctx, Text.translatable("item.nguhcraft.ancient_drop_of_cherry"), 0xFFBFD6,
+        val ESSENCE_FLASK = Potion(Ctx, "item.nguhcraft.ancient_drop_of_cherry", 0xFFBFD6,
             StatusEffectInstance(StatusEffects.HEALTH_BOOST, 60 * 20, 24),
             StatusEffectInstance(StatusEffects.REGENERATION, 60 * 20, 5)
         ).lore("ancient_drop_of_cherry").set(DataComponentTypes.RARITY, value = Rarity.EPIC).build()
@@ -96,10 +96,10 @@ object Treasures {
 
     private fun Potion(
         Ctx: DisplayContext,
-        Name: Text,
+        Key: String,
         Colour: Int,
         vararg Effects: StatusEffectInstance
-    ) = Builder(Ctx, Items.POTION, Name)
+    ) = Builder(Ctx, Items.POTION, Text.translatable(Key))
         .set(DataComponentTypes.POTION_CONTENTS, PotionContentsComponent(
             Optional.empty(),
             Optional.of(Colour),
