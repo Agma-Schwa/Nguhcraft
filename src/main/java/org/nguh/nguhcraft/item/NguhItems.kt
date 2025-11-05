@@ -247,7 +247,7 @@ object NguhItems {
             it.add(SLAB_SHAVINGS_8)
 
             ChestVariant.entries.forEach { CV ->
-                it.addAfter(Items.CHEST, Utils.BuildItemStack(Items.CHEST) {
+                it.add(Utils.BuildItemStack(Items.CHEST) {
                     add(DataComponentTypes.CUSTOM_NAME, CV.DefaultName)
                     add(NguhBlocks.CHEST_VARIANT_COMPONENT, CV)
                 })
@@ -259,7 +259,7 @@ object NguhItems {
         }
 
         ItemGroupEvents.modifyEntriesEvent(ItemGroups.INGREDIENTS).register {
-            for (T in ALL_NGUHCRAFT_ARMOUR_TRIMS) it.addAfter(Items.BOLT_ARMOR_TRIM_SMITHING_TEMPLATE, T)
+            for (T in ALL_NGUHCRAFT_ARMOUR_TRIMS) it.add(T)
         }
 
         KeyLockPairingRecipe.SERIALISER = Registry.register(
