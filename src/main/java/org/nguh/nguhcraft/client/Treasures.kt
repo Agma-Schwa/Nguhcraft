@@ -22,6 +22,7 @@ import net.minecraft.registry.entry.RegistryEntry
 import net.minecraft.text.Style
 import net.minecraft.text.Text
 import net.minecraft.util.Formatting
+import net.minecraft.util.Rarity
 import org.nguh.nguhcraft.enchantment.NguhcraftEnchantments.ARCANE
 import org.nguh.nguhcraft.enchantment.NguhcraftEnchantments.HYPERSHOT
 import org.nguh.nguhcraft.enchantment.NguhcraftEnchantments.SMELTING
@@ -30,19 +31,19 @@ import java.util.*
 @Environment(EnvType.CLIENT)
 object Treasures {
     fun AddAll(Ctx: ItemGroup.DisplayContext, Entries: ItemGroup.Entries) {
-        val ESSENCE_FLASK = Potion(Ctx, "Ancient Drop of Cherry", 0xFFBFD6,
+        val ESSENCE_FLASK = Potion(Ctx, Text.translatable("item.nguhcraft.ancient_drop_of_cherry"), 0xFFBFD6,
             StatusEffectInstance(StatusEffects.HEALTH_BOOST, 60 * 20, 24),
             StatusEffectInstance(StatusEffects.REGENERATION, 60 * 20, 5)
-        ).lore("ancient_drop_of_cherry").build()
+        ).lore("ancient_drop_of_cherry").set(DataComponentTypes.RARITY, value = Rarity.EPIC).build()
 
-        val MOLTEN_PICKAXE = Builder(Ctx, Items.NETHERITE_PICKAXE, Name("Molten Pickaxe"))
+        val MOLTEN_PICKAXE = Builder(Ctx, Items.NETHERITE_PICKAXE, Text.translatable("item.nguhcraft.molten_pickaxe"))
             .unbreakable()
             .enchant(EFFICIENCY, 10)
             .enchant(FORTUNE, 5)
             .enchant(SMELTING)
             .build()
 
-        val SCYTHE_OF_DOOM = Builder(Ctx, Items.NETHERITE_HOE, Name("Scythe of Doom"))
+        val SCYTHE_OF_DOOM = Builder(Ctx, Items.NETHERITE_HOE, Text.translatable("item.nguhcraft.scythe_of_doom"))
             .unbreakable()
             .enchant(EFFICIENCY, 10)
             .enchant(FORTUNE, 5)
@@ -52,7 +53,7 @@ object Treasures {
             .enchant(SHARPNESS, 40)
             .build()
 
-        val THOU_HAST_BEEN_YEETEN = Builder(Ctx, Items.MACE, Name("Thou Hast Been Yeeten"))
+        val THOU_HAST_BEEN_YEETEN = Builder(Ctx, Items.MACE, Text.translatable("item.nguhcraft.thou_hast_been_yeeten"))
             .unbreakable()
             .enchant(ARCANE)
             .enchant(SHARPNESS, 255)
@@ -60,18 +61,18 @@ object Treasures {
             .enchant(CHANNELING, 2)
             .build()
 
-        val THOU_HAS_BEEN_YEETEN_CROSSBOW = Builder(Ctx, Items.CROSSBOW, Name("Thou Hast Been Yeeten (Crossbow Version)"))
+        val THOU_HAS_BEEN_YEETEN_CROSSBOW = Builder(Ctx, Items.CROSSBOW, Text.translatable("item.nguhcraft.thou_hast_been_yeeten_crossbow_version"))
             .unbreakable()
             .enchant(HYPERSHOT, 100)
             .build()
 
-        val TRIDENT_OF_THE_SEVEN_WINDS = Builder(Ctx, Items.TRIDENT, Name("Trident of the Seven Winds"))
+        val TRIDENT_OF_THE_SEVEN_WINDS = Builder(Ctx, Items.TRIDENT, Text.translatable("item.nguhcraft.trident_of_the_seven_winds"))
             .unbreakable()
             .enchant(RIPTIDE, 10)
             .enchant(IMPALING, 10)
             .build()
 
-        val WRATH_OF_ZEUS = Builder(Ctx, Items.TRIDENT, Name("Wrath of Zeus"))
+        val WRATH_OF_ZEUS = Builder(Ctx, Items.TRIDENT, Text.translatable("item.nguhcraft.wrath_of_zeus"))
             .unbreakable()
             .enchant(SHARPNESS, 50)
             .enchant(MULTISHOT, 100)
@@ -95,10 +96,10 @@ object Treasures {
 
     private fun Potion(
         Ctx: DisplayContext,
-        Name: String,
+        Name: Text,
         Colour: Int,
         vararg Effects: StatusEffectInstance
-    ) = Builder(Ctx, Items.POTION, Name(Name))
+    ) = Builder(Ctx, Items.POTION, Name)
         .set(DataComponentTypes.POTION_CONTENTS, PotionContentsComponent(
             Optional.empty(),
             Optional.of(Colour),
