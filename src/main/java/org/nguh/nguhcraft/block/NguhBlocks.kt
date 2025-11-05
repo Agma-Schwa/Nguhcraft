@@ -24,6 +24,7 @@ import net.minecraft.registry.Registries
 import net.minecraft.registry.Registry
 import net.minecraft.registry.RegistryKey
 import net.minecraft.registry.RegistryKeys
+import net.minecraft.registry.tag.BlockTags
 import net.minecraft.registry.tag.TagKey
 import net.minecraft.text.Style
 import net.minecraft.text.Text
@@ -88,7 +89,6 @@ object NguhBlocks {
 
     // All vertical slabs; this has to be declared before our custom block families.
     val VERTICAL_SLABS: List<VerticalSlabBlock> = mutableListOf()
-    val SLABS_VSLABS_MAP: MutableMap<String, Block> = mutableMapOf()
 
     // =========================================================================
     //  Brocade Blocks
@@ -944,12 +944,16 @@ object NguhBlocks {
         RegisterStrippable(TINTED_OAK_LOG, STRIPPED_TINTED_OAK_LOG)
         RegisterStrippable(TINTED_OAK_WOOD, STRIPPED_TINTED_OAK_WOOD)
 
-        for (B in WOOD_VARIANT_FAMILY_BLOCKS) { registerFlammable(B, 5, 5) }
-        registerFlammable(TINTED_OAK_LOG, 5, 5)
-        registerFlammable(TINTED_OAK_WOOD, 5, 5)
-        registerFlammable(STRIPPED_TINTED_OAK_LOG, 5, 5)
-        registerFlammable(STRIPPED_TINTED_OAK_WOOD, 5, 5)
-        for (V in NguhBlockModels.VERTICAL_SLABS) { if (V.Wood) { registerFlammable(V.VerticalSlab, 5, 5) } }
+        for (B in WOOD_VARIANT_FAMILY_BLOCKS) {
+            if (B !is DoorBlock && B !is TrapdoorBlock && B !is PressurePlateBlock && B !is ButtonBlock) {
+                RegisterFlammable(B, 5, 5)
+            }
+        }
+        RegisterFlammable(TINTED_OAK_LOG, 5, 5)
+        RegisterFlammable(TINTED_OAK_WOOD, 5, 5)
+        RegisterFlammable(STRIPPED_TINTED_OAK_LOG, 5, 5)
+        RegisterFlammable(STRIPPED_TINTED_OAK_WOOD, 5, 5)
+        for (V in NguhBlockModels.VERTICAL_SLABS) { if (V.Wood) { RegisterFlammable(V.VerticalSlab, 5, 5) } }
     }
 
     @Suppress("DEPRECATION")
@@ -1009,15 +1013,9 @@ object NguhBlocks {
         "${Name}_slab_vertical",
         ::VerticalSlabBlock,
         AbstractBlock.Settings.copy(SlabBlock)
-    ).also { (VERTICAL_SLABS as MutableList).add(it) }.also { SLABS_VSLABS_MAP.put("${Name}_slab_vertical", SlabBlock) }
-
-    private fun getVarientPlacement(varient: BlockFamily.Variant): Int {
-        var list = listOf("CRACKED", "STAIRS", "SLAB", "WALL", "FENCE", "FENCE_GATE", "DOOR", "TRAPDOOR", "PRESSURE_PLATE", "BUTTON", "SIGN", "WALL_SIGN", "MOSAIC", "CHISELED", "POLISHED", "CUT")
-        var index = list.indexOf(varient.name)
-        return index
-    }
+    ).also { (VERTICAL_SLABS as MutableList).add(it) }
 
     fun RegisterStrippable(L: Block, S: Block) = StrippableBlockRegistry.register(L, S)
 
-    fun registerFlammable(b: Block, burn: Int, spread: Int) = FlammableBlockRegistry.getDefaultInstance().add(b, burn, spread)
+    fun RegisterFlammable(b: Block, burn: Int, spread: Int) = FlammableBlockRegistry.getDefaultInstance().add(b, burn, spread)
 }
