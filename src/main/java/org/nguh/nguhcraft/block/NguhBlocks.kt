@@ -533,6 +533,45 @@ object NguhBlocks {
     )
 
     // =========================================================================
+    // Permafrost
+    // =========================================================================
+    val PERMAFROST = Register(
+        "permafrost",
+        ::Block,
+        AbstractBlock.Settings.copy(Blocks.COBBLESTONE).mapColor(MapColor.ICE)
+    )
+
+    val PERMAFROST_SLAB = RegisterVariant(PERMAFROST, "slab", ::SlabBlock)
+    val PERMAFROST_SLAB_VERTICAL = RegisterVSlab("permafrost", PERMAFROST_SLAB)
+    val PERMAFROST_STAIRS = RegisterStairs(PERMAFROST)
+
+    val PERMAFROST_BRICKS = Register(
+        "permafrost_bricks",
+        ::Block,
+        AbstractBlock.Settings.copy(Blocks.COBBLESTONE).mapColor(MapColor.ICE)
+    )
+    
+    val PERMAFROST_BRICK_SLAB = RegisterVariant(PERMAFROST_BRICKS, "slab", ::SlabBlock)
+    val PERMAFROST_BRICK_SLAB_VERTICAL = RegisterVSlab("permafrost_bricks", PERMAFROST_BRICK_SLAB)
+    val PERMAFROST_BRICK_STAIRS = RegisterStairs(PERMAFROST_BRICKS)
+    val PERMAFROST_BRICK_WALL = RegisterVariant(PERMAFROST_BRICKS, "wall", ::WallBlock)
+
+    // =========================================================================
+    // Magma
+    // =========================================================================
+
+     val MAGMA_BRICKS = Register(
+        "magma_bricks",
+        ::Block,
+        AbstractBlock.Settings.copy(Blocks.MAGMA_BLOCK)
+    )
+    
+    val MAGMA_BRICK_SLAB = RegisterVariant(MAGMA_BRICKS, "slab", ::SlabBlock)
+    val MAGMA_BRICK_SLAB_VERTICAL = RegisterVSlab("magma_bricks", MAGMA_BRICK_SLAB)
+    val MAGMA_BRICK_STAIRS = RegisterStairs(MAGMA_BRICKS)
+    val MAGMA_BRICK_WALL = RegisterVariant(MAGMA_BRICKS, "wall", ::WallBlock)
+
+    // =========================================================================
     //  Block entities
     // =========================================================================
     val LOCKED_DOOR_BLOCK_ENTITY = RegisterEntity(
@@ -616,10 +655,28 @@ object NguhBlocks {
         .fence(TINTED_OAK_FENCE)
         .build()
 
+    val PERMAFROST_FAMILY: BlockFamily = BlockFamilies.register(PERMAFROST)
+        .slab(PERMAFROST_SLAB)
+        .stairs(PERMAFROST_STAIRS)
+        .build()
+
+    val PERMAFROST_BRICK_FAMILY: BlockFamily = BlockFamilies.register(PERMAFROST_BRICKS)
+        .slab(PERMAFROST_BRICK_SLAB)
+        .stairs(PERMAFROST_BRICK_STAIRS)
+        .wall(PERMAFROST_BRICK_WALL)
+        .build()
+
+    val MAGMA_BRICK_FAMILY: BlockFamily = BlockFamilies.register(MAGMA_BRICKS)
+        .slab(MAGMA_BRICK_SLAB)
+        .stairs(MAGMA_BRICK_STAIRS)
+        .wall(MAGMA_BRICK_WALL)
+        .build()
+
     val CINNABAR_FAMILIES = listOf(CINNABAR_FAMILY, POLISHED_CINNABAR_FAMILY, CINNABAR_BRICK_FAMILY)
     val CALCITE_FAMILIES = listOf(POLISHED_CALCITE_FAMILY, CALCITE_BRICK_FAMILY)
     val GILDED_CALCITE_FAMILIES = listOf(GILDED_CALCITE_FAMILY, GILDED_POLISHED_CALCITE_FAMILY, GILDED_CALCITE_BRICK_FAMILY)
-    val STONE_FAMILY_GROUPS = listOf(CINNABAR_FAMILIES, CALCITE_FAMILIES, GILDED_CALCITE_FAMILIES)
+    val PERMAFROST_FAMILIES = listOf(PERMAFROST_FAMILY, PERMAFROST_BRICK_FAMILY)
+    val STONE_FAMILY_GROUPS = listOf(CINNABAR_FAMILIES, CALCITE_FAMILIES, GILDED_CALCITE_FAMILIES, PERMAFROST_FAMILIES)
 
     val STONE_VARIANT_FAMILIES = arrayOf(
         CINNABAR_FAMILY,
@@ -631,7 +688,10 @@ object NguhBlocks {
         GILDED_POLISHED_CALCITE_FAMILY,
         GILDED_CALCITE_BRICK_FAMILY,
         PYRITE_BRICK_FAMILY,
-        DRIPSTONE_BRICK_FAMILY
+        DRIPSTONE_BRICK_FAMILY,
+        PERMAFROST_FAMILY,
+        PERMAFROST_BRICK_FAMILY,
+        MAGMA_BRICK_FAMILY
     )
 
     val WOOD_VARIANT_FAMILIES = arrayOf(
@@ -836,7 +896,10 @@ object NguhBlocks {
         PYRITE,
         IRON_GRATE,
         WROUGHT_IRON_GRATE,
-        CHARCOAL_BLOCK
+        CHARCOAL_BLOCK,
+        PERMAFROST,
+        PERMAFROST_BRICKS,
+        MAGMA_BRICKS
     ).also {
         it.addAll(CHAINS_AND_LANTERNS.flatten())
         it.addAll(STONE_VARIANT_FAMILY_BLOCKS)
@@ -855,7 +918,10 @@ object NguhBlocks {
         STRIPPED_TINTED_OAK_WOOD,
         IRON_GRATE,
         WROUGHT_IRON_GRATE,
-        CHARCOAL_BLOCK
+        CHARCOAL_BLOCK,
+        PERMAFROST,
+        PERMAFROST_BRICKS,
+        MAGMA_BRICKS
     ).also {
         it.addAll(CHAINS_AND_LANTERNS.flatten())
         it.addAll(ALL_BROCADE_BLOCKS)
@@ -889,6 +955,9 @@ object NguhBlocks {
             it.add(STRIPPED_TINTED_OAK_LOG)
             it.add(STRIPPED_TINTED_OAK_WOOD)
             it.add(CHARCOAL_BLOCK)
+            it.add(PERMAFROST)
+            it.add(PERMAFROST_BRICKS)
+            it.add(MAGMA_BRICKS)
             for (B in ALL_VARIANT_FAMILY_BLOCKS) it.add(B)
             for (B in VERTICAL_SLABS) it.add(B)
             for (B in ALL_BROCADE_BLOCKS) it.add(B)
