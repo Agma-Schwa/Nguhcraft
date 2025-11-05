@@ -125,6 +125,7 @@
         "client.render.EntityRenderDispatcherMixin",
         "client.render.GameMenuScreenMixin",
         "client.render.InGameHudMixin",
+        "client.render.LoreComponentMixin",
         "client.render.RenderLayerMultiPhaseMixin",
         "client.render.TexturedRenderLayersMixin",
         "client.render.TextVisitFactoryMixin",
@@ -145,6 +146,7 @@
         "server.dedicated.DedicatedServerMixin",
         "server.dedicated.PlayerAdvancementTrackerMixin",
         "server.dedicated.RConClientMixin",
+        "server.dedicated.RConCommandOutputMixin",
         "vanish.PlayerManagerMixin",
         "vanish.ServerCommonNetworkHandlerMixin",
         "vanish.ServerPlayerEntityMixin"

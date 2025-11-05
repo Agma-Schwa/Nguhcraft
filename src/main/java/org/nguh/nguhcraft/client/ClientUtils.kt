@@ -7,7 +7,11 @@ import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
 import net.minecraft.client.MinecraftClient
 import net.minecraft.client.util.math.MatrixStack
+import net.minecraft.text.Style
+import net.minecraft.text.Text
+import net.minecraft.util.Formatting
 import java.text.Normalizer
+import java.util.function.Consumer
 
 inline fun MatrixStack.Push(Transformation: MatrixStack.() -> Unit) {
     push()
@@ -62,9 +66,27 @@ object ClientUtils {
         LoadEmojiReplacements("/assets/nguhcraft/emoji/replacements.json")
     )
 
+    private val LORE_STYLE = Style.EMPTY.withItalic(false).withFormatting(Formatting.GRAY)
+
     /** Get the client instance. */
     @JvmStatic
     fun Client(): MinecraftClient = MinecraftClient.getInstance()
+
+    /** Format lore text in a tooltip. */
+    @JvmStatic
+    fun FormatLoreForTooltip(Consumer: Consumer<Text>, Lines: List<Text>): Boolean {
+        // This is terrible; if only Mojang would just implement this properly...
+        if (Lines.size == 1) {
+            val S = Lines.first().string
+            if (S.startsWith('\u0001')) {
+                for (Line in S.slice(1..<S.length).split('\n'))
+                    Consumer.accept(Text.literal(Line).setStyle(LORE_STYLE))
+                return true
+            }
+        }
+
+        return false
+    }
 
     /** Load emoji replacement data from a resource. */
     private fun LoadEmojiReplacements(Path: String): Map<String, String> = Gson().fromJson(

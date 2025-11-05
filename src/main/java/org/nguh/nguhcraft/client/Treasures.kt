@@ -29,22 +29,11 @@ import java.util.*
 
 @Environment(EnvType.CLIENT)
 object Treasures {
-    private val LORE_STYLE = Style.EMPTY.withItalic(false).withFormatting(Formatting.GRAY)
-
     fun AddAll(Ctx: ItemGroup.DisplayContext, Entries: ItemGroup.Entries) {
         val ESSENCE_FLASK = Potion(Ctx, "Ancient Drop of Cherry", 0xFFBFD6,
             StatusEffectInstance(StatusEffects.HEALTH_BOOST, 60 * 20, 24),
             StatusEffectInstance(StatusEffects.REGENERATION, 60 * 20, 5)
-        ).lore("""
-            Draught containing shavings from the walls
-            of the Slab Exchange.
-    
-            When Rabo banished the Ancients underground,
-            He wept, and from His tears sprang the cherry
-            tree. While the cherry wood of today no longer
-            bears His power, a sliver of it yet remains in
-            the amaranthine walls of the Exchange.
-        """).build()
+        ).lore("ancient_drop_of_cherry").build()
 
         val MOLTEN_PICKAXE = Builder(Ctx, Items.NETHERITE_PICKAXE, Name("Molten Pickaxe"))
             .unbreakable()
@@ -134,11 +123,9 @@ object Treasures {
         }
 
         /** Add lore to the stack. */
-        fun lore(LoreText: String): Builder {
+        fun lore(Key: String): Builder {
             return set(DataComponentTypes.LORE, LoreComponent(
-                LoreText.trimIndent().split("\n").map {
-                    Text.literal(it).setStyle(LORE_STYLE)
-                }
+                listOf(Text.translatable("lore.nguhcraft.${Key}"))
             ))
         }
 

@@ -25,9 +25,6 @@
 		"server": [
 			"org.nguh.nguhcraft.server.dedicated.NguhcraftDedicatedServer"
 		],
-		"preLaunch": [
-			"org.nguh.nguhcraft.server.dedicated.NguhcraftDedicatedServerPreLaunch"
-		],
 		"fabric-datagen": [
 			"org.nguh.nguhcraft.data.NguhcraftDataGenerator"
 		]

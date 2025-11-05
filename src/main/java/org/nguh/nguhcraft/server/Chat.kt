@@ -4,6 +4,7 @@ import com.mojang.logging.LogUtils
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.Context
 import net.minecraft.network.packet.s2c.play.GameMessageS2CPacket
+import net.minecraft.screen.ScreenTexts
 import net.minecraft.server.MinecraftServer
 import net.minecraft.server.network.ServerPlayNetworkHandler
 import net.minecraft.server.network.ServerPlayerEntity
@@ -32,9 +33,14 @@ object Chat {
 
     /** Components used in sender names. */
     val SERVER_COMPONENT: Text = Utils.BracketedLiteralComponent("Server")
+    val RCON_COMPONENT: Text = Utils.BracketedLiteralComponent("RCon")
     private val SRV_LIT_COMPONENT: Text = Text.literal("Server").withColor(Constants.Lavender)
     private val COLON_COMPONENT: Text = Text.literal(":")
     private val COMMA_COMPONENT = Text.literal(", ").withColor(Constants.DeepKoamaru)
+    private val DISCORD_COMPONENT: Text = Utils.BracketedLiteralComponent("Discord").append(ScreenTexts.SPACE)
+    private val REPLY_COMPONENT: Text = ScreenTexts.space().append(Utils.BracketedLiteralComponent("Reply"))
+    private val IMAGE_COMPONENT: Text = ScreenTexts.space().append(Utils.BracketedLiteralComponent("Image"))
+
 
     /** Broadcast a command to subscribed operators. */
     private fun BroadcastCommand(
@@ -133,6 +139,16 @@ object Chat {
         )
     }
 
+    /** Log RCon command execution. */
+    @JvmStatic
+    fun LogRConCommand(S: MinecraftServer, Command: String) {
+        BroadcastCommand(S, Text.literal("Remote console"), Command)
+        LOGGER.info(
+            "[RCon] Remote console issued command /{}",
+            if (Command.startsWith('/')) Command.substring(1) else Command
+        )
+    }
+
     /** Handle an incoming chat message. */
     fun ProcessChatMessage(Message: String, Context: Context) {
         val SP = Context.player()
@@ -160,6 +176,28 @@ object Chat {
         val S = SP.Server
         val ParsedCommand = S.commandManager.dispatcher.parse(Command, SP.commandSource)
         S.commandManager.execute(ParsedCommand, Command)
+    }
+
+    /** Process a message sent from Discord. */
+    fun ProcessDiscordMessage(
+        S: MinecraftServer,
+        Content: String,
+        MemberName: String,
+        Colour: Int,
+        HasReference: Boolean,
+        HasAttachments: Boolean
+    ) {
+        val Comp = DISCORD_COMPONENT.copy().append(Text.literal(MemberName).append(":").withColor(Colour))
+        if (HasReference) Comp.append(REPLY_COMPONENT)
+        if (HasAttachments) Comp.append(IMAGE_COMPONENT)
+        S.Broadcast(ClientboundChatPacket(Comp, Content, ClientboundChatPacket.MK_PUBLIC))
+        LOGGER.info(
+            "[Discord] {} says: {}{}{}",
+            MemberName,
+            if (HasReference) "[Reply] " else "",
+            if (HasAttachments) "[Image] " else "",
+            Content,
+        )
     }
 
     /** Send a private message to players. */

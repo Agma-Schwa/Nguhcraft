@@ -55,6 +55,7 @@ import org.nguh.nguhcraft.mixin.server.MinecraftServerAccessor
 import org.nguh.nguhcraft.network.ClientboundChatPacket
 import org.nguh.nguhcraft.network.ClientboundLinkUpdatePacket
 import org.nguh.nguhcraft.server.Broadcast
+import org.nguh.nguhcraft.server.Chat
 import org.nguh.nguhcraft.server.Data
 import org.nguh.nguhcraft.server.Name
 import org.nguh.nguhcraft.server.PlayerByUUID
@@ -174,10 +175,14 @@ internal class Discord : ListenerAdapter() {
         val HasAttachments = Mess.attachments.isNotEmpty()
         val HasReference = Mess.messageReference != null
         Server.execute {
-            val Comp = DISCORD_COMPONENT.copy().append(Text.literal(Name).append(":").withColor(Colour))
-            if (HasReference) Comp.append(REPLY_COMPONENT)
-            if (HasAttachments) Comp.append(IMAGE_COMPONENT)
-            Server.Broadcast(ClientboundChatPacket(Comp, Content, ClientboundChatPacket.MK_PUBLIC))
+            Chat.ProcessDiscordMessage(
+                Server,
+                Content = Content,
+                MemberName = Name,
+                Colour = Colour,
+                HasAttachments = HasAttachments,
+                HasReference = HasReference,
+            )
         }
     }
 
@@ -213,13 +218,6 @@ internal class Discord : ListenerAdapter() {
 
     companion object {
         const val INVALID_ID: Long = 0
-
-        /**
-         * The '[Discord]' [Text] used in chat messages
-         */
-        private val DISCORD_COMPONENT: Text = Utils.BracketedLiteralComponent("Discord").append(ScreenTexts.SPACE)
-        private val REPLY_COMPONENT: Text = ScreenTexts.space().append(Utils.BracketedLiteralComponent("Reply"))
-        private val IMAGE_COMPONENT: Text = ScreenTexts.space().append(Utils.BracketedLiteralComponent("Image"))
 
         private val INTERNAL_ERROR_PLEASE_RELINK: Text = Text
             .literal("Sorry, we couldn’t fetch your account info from Discord. Please relink your account")
