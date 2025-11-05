@@ -31,19 +31,19 @@ import java.util.*
 @Environment(EnvType.CLIENT)
 object Treasures {
     fun AddAll(Ctx: ItemGroup.DisplayContext, Entries: ItemGroup.Entries) {
-        val ESSENCE_FLASK = Potion(Ctx, "item.nguhcraft.ancient_drop_of_cherry", 0xFFBFD6,
+        val ESSENCE_FLASK = Potion(Ctx, "ancient_drop_of_cherry", 0xFFBFD6,
             StatusEffectInstance(StatusEffects.HEALTH_BOOST, 60 * 20, 24),
             StatusEffectInstance(StatusEffects.REGENERATION, 60 * 20, 5)
         ).lore("ancient_drop_of_cherry").set(DataComponentTypes.RARITY, value = Rarity.EPIC).build()
 
-        val MOLTEN_PICKAXE = Builder(Ctx, Items.NETHERITE_PICKAXE, Text.translatable("item.nguhcraft.molten_pickaxe"))
+        val MOLTEN_PICKAXE = Builder(Ctx, Items.NETHERITE_PICKAXE, "molten_pickaxe")
             .unbreakable()
             .enchant(EFFICIENCY, 10)
             .enchant(FORTUNE, 5)
             .enchant(SMELTING)
             .build()
 
-        val SCYTHE_OF_DOOM = Builder(Ctx, Items.NETHERITE_HOE, Text.translatable("item.nguhcraft.scythe_of_doom"))
+        val SCYTHE_OF_DOOM = Builder(Ctx, Items.NETHERITE_HOE, "scythe_of_doom")
             .unbreakable()
             .enchant(EFFICIENCY, 10)
             .enchant(FORTUNE, 5)
@@ -53,7 +53,7 @@ object Treasures {
             .enchant(SHARPNESS, 40)
             .build()
 
-        val THOU_HAST_BEEN_YEETEN = Builder(Ctx, Items.MACE, Text.translatable("item.nguhcraft.thou_hast_been_yeeten"))
+        val THOU_HAST_BEEN_YEETEN = Builder(Ctx, Items.MACE, "thou_hast_been_yeeten")
             .unbreakable()
             .enchant(ARCANE)
             .enchant(SHARPNESS, 255)
@@ -61,18 +61,18 @@ object Treasures {
             .enchant(CHANNELING, 2)
             .build()
 
-        val THOU_HAS_BEEN_YEETEN_CROSSBOW = Builder(Ctx, Items.CROSSBOW, Text.translatable("item.nguhcraft.thou_hast_been_yeeten_crossbow_version"))
+        val THOU_HAS_BEEN_YEETEN_CROSSBOW = Builder(Ctx, Items.CROSSBOW, "thou_hast_been_yeeten_crossbow_version")
             .unbreakable()
             .enchant(HYPERSHOT, 100)
             .build()
 
-        val TRIDENT_OF_THE_SEVEN_WINDS = Builder(Ctx, Items.TRIDENT, Text.translatable("item.nguhcraft.trident_of_the_seven_winds"))
+        val TRIDENT_OF_THE_SEVEN_WINDS = Builder(Ctx, Items.TRIDENT, "trident_of_the_seven_winds")
             .unbreakable()
             .enchant(RIPTIDE, 10)
             .enchant(IMPALING, 10)
             .build()
 
-        val WRATH_OF_ZEUS = Builder(Ctx, Items.TRIDENT, Text.translatable("item.nguhcraft.wrath_of_zeus"))
+        val WRATH_OF_ZEUS = Builder(Ctx, Items.TRIDENT, "wrath_of_zeus")
             .unbreakable()
             .enchant(SHARPNESS, 50)
             .enchant(MULTISHOT, 100)
@@ -99,7 +99,7 @@ object Treasures {
         Key: String,
         Colour: Int,
         vararg Effects: StatusEffectInstance
-    ) = Builder(Ctx, Items.POTION, Text.translatable(Key))
+    ) = Builder(Ctx, Items.POTION, Key)
         .set(DataComponentTypes.POTION_CONTENTS, PotionContentsComponent(
             Optional.empty(),
             Optional.of(Colour),
@@ -108,10 +108,10 @@ object Treasures {
         ))
 
 
-    private class Builder(private val Ctx: DisplayContext, I: Item, Name: Text) {
+    private class Builder(private val Ctx: DisplayContext, I: Item, Key: String) {
         private val S = ItemStack(I)
         private fun apply(F: (S: ItemStack) -> Unit) = also { F(S) }
-        init { set(DataComponentTypes.CUSTOM_NAME, Name) }
+        init { set(DataComponentTypes.CUSTOM_NAME, Text.translatable("item.nguhcraft.$Key")) }
 
         /** Build the item stack. */
         fun build() = S
