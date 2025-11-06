@@ -4,6 +4,10 @@ import com.mojang.serialization.Codec
 import io.netty.buffer.ByteBuf
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents
 import net.fabricmc.fabric.api.`object`.builder.v1.block.entity.FabricBlockEntityTypeBuilder
+import net.fabricmc.fabric.api.`object`.builder.v1.block.type.BlockSetTypeBuilder
+import net.fabricmc.fabric.api.`object`.builder.v1.block.type.WoodTypeBuilder
+import net.fabricmc.fabric.api.registry.FlammableBlockRegistry
+import net.fabricmc.fabric.api.registry.StrippableBlockRegistry
 import net.minecraft.block.*
 import net.minecraft.block.entity.BlockEntity
 import net.minecraft.block.entity.BlockEntityType
@@ -20,6 +24,7 @@ import net.minecraft.registry.Registries
 import net.minecraft.registry.Registry
 import net.minecraft.registry.RegistryKey
 import net.minecraft.registry.RegistryKeys
+import net.minecraft.registry.tag.BlockTags
 import net.minecraft.registry.tag.TagKey
 import net.minecraft.text.Style
 import net.minecraft.text.Text
@@ -496,6 +501,9 @@ object NguhBlocks {
     // =========================================================================
     //  Tinted Oak
     // =========================================================================
+    val TINTED_OAK_BLOCK_SET_TYPE = BlockSetTypeBuilder.copyOf(BlockSetType.PALE_OAK).register(Id("tinted_oak"))
+    val TINTED_OAK_WOOD_TYPE = WoodTypeBuilder.copyOf(WoodType.PALE_OAK).register(Id("tinted_oak"), TINTED_OAK_BLOCK_SET_TYPE)
+
     val TINTED_OAK_PLANKS = Register(
         "tinted_oak_planks",
         ::Block,
@@ -507,6 +515,36 @@ object NguhBlocks {
     val TINTED_OAK_SLAB_VERTICAL = RegisterVSlab("tinted_oak", TINTED_OAK_SLAB)
     val TINTED_OAK_STAIRS = RegisterStairs(TINTED_OAK_PLANKS)
     val TINTED_OAK_FENCE = RegisterVariant(TINTED_OAK_PLANKS, "fence", ::FenceBlock)
+
+    val TINTED_OAK_FENCE_GATE = Register(
+        "tinted_oak_fence_gate",
+        { s -> FenceGateBlock(TINTED_OAK_WOOD_TYPE, s) },
+        AbstractBlock.Settings.copy(Blocks.PALE_OAK_FENCE_GATE).mapColor(MapColor.PALE_PURPLE)
+    )
+
+    val TINTED_OAK_DOOR = Register(
+        "tinted_oak_door",
+        { s -> DoorBlock(TINTED_OAK_BLOCK_SET_TYPE, s) },
+        AbstractBlock.Settings.copy(Blocks.PALE_OAK_DOOR).mapColor(MapColor.PALE_PURPLE)
+    )
+
+    val TINTED_OAK_TRAPDOOR = Register(
+        "tinted_oak_trapdoor",
+        { s -> TrapdoorBlock(TINTED_OAK_BLOCK_SET_TYPE, s) },
+        AbstractBlock.Settings.copy(Blocks.PALE_OAK_TRAPDOOR).mapColor(MapColor.PALE_PURPLE)
+    )
+
+    val TINTED_OAK_PRESSURE_PLATE = Register(
+        "tinted_oak_pressure_plate",
+        { s -> PressurePlateBlock(TINTED_OAK_BLOCK_SET_TYPE, s) },
+        AbstractBlock.Settings.copy(Blocks.PALE_OAK_PRESSURE_PLATE).mapColor(MapColor.PALE_PURPLE)
+    )
+
+    val TINTED_OAK_BUTTON = Register(
+        "tinted_oak_button",
+        { s -> ButtonBlock(TINTED_OAK_BLOCK_SET_TYPE, 30, s) },
+        AbstractBlock.Settings.copy(Blocks.PALE_OAK_BUTTON).mapColor(MapColor.PALE_PURPLE)
+    )
 
     val TINTED_OAK_LOG = Register(
         "tinted_oak_log",
@@ -614,6 +652,11 @@ object NguhBlocks {
         .slab(TINTED_OAK_SLAB)
         .stairs(TINTED_OAK_STAIRS)
         .fence(TINTED_OAK_FENCE)
+        .fenceGate(TINTED_OAK_FENCE_GATE)
+        .door(TINTED_OAK_DOOR)
+        .trapdoor(TINTED_OAK_TRAPDOOR)
+        .pressurePlate(TINTED_OAK_PRESSURE_PLATE)
+        .button(TINTED_OAK_BUTTON)
         .build()
 
     val CINNABAR_FAMILIES = listOf(CINNABAR_FAMILY, POLISHED_CINNABAR_FAMILY, CINNABAR_BRICK_FAMILY)
@@ -860,8 +903,8 @@ object NguhBlocks {
         it.addAll(CHAINS_AND_LANTERNS.flatten())
         it.addAll(ALL_BROCADE_BLOCKS)
 
-        // Slabs may drop 2 or 1 and are thus handled separately.
-        it.addAll(ALL_VARIANT_FAMILY_BLOCKS.filter { it !is SlabBlock })
+        // Slabs may drop 2 or 1 and are thus handled separately. Same for doors
+        it.addAll(ALL_VARIANT_FAMILY_BLOCKS.filter { it !is SlabBlock && it !is DoorBlock })
     }.toTypedArray()
 
     @JvmField
@@ -897,6 +940,20 @@ object NguhBlocks {
         ItemGroupEvents.modifyEntriesEvent(ItemGroups.FUNCTIONAL).register {
             for (B in CHAINS_AND_LANTERNS.flatten()) it.add(B)
         }
+
+        RegisterStrippable(TINTED_OAK_LOG, STRIPPED_TINTED_OAK_LOG)
+        RegisterStrippable(TINTED_OAK_WOOD, STRIPPED_TINTED_OAK_WOOD)
+
+        for (B in WOOD_VARIANT_FAMILY_BLOCKS) {
+            if (B !is DoorBlock && B !is TrapdoorBlock && B !is PressurePlateBlock && B !is ButtonBlock) {
+                RegisterFlammable(B, 5, 5)
+            }
+        }
+        RegisterFlammable(TINTED_OAK_LOG, 5, 5)
+        RegisterFlammable(TINTED_OAK_WOOD, 5, 5)
+        RegisterFlammable(STRIPPED_TINTED_OAK_LOG, 5, 5)
+        RegisterFlammable(STRIPPED_TINTED_OAK_WOOD, 5, 5)
+        for (V in NguhBlockModels.VERTICAL_SLABS) { if (V.Wood) { RegisterFlammable(V.VerticalSlab, 5, 5) } }
     }
 
     @Suppress("DEPRECATION")
@@ -957,4 +1014,8 @@ object NguhBlocks {
         ::VerticalSlabBlock,
         AbstractBlock.Settings.copy(SlabBlock)
     ).also { (VERTICAL_SLABS as MutableList).add(it) }
+
+    fun RegisterStrippable(L: Block, S: Block) = StrippableBlockRegistry.register(L, S)
+
+    fun RegisterFlammable(b: Block, burn: Int, spread: Int) = FlammableBlockRegistry.getDefaultInstance().add(b, burn, spread)
 }
