@@ -179,6 +179,18 @@ class NguhcraftRecipeGenerator(
             cinput('c', Items.CHARCOAL)
         }
 
+        offerShaped(NguhBlocks.PERMAFROST_BRICKS, 4) {
+            pattern("##")
+            pattern("##")
+            cinput('#', Items.PERMAFROST_BLOCK)
+        }
+
+        offerShaped(NguhBlocks.MAGMA_BRICKS, 4) {
+            pattern("##")
+            pattern("##")
+            cinput('#', Items.MAGMA_BLOCK)
+        }
+
         offerChainAndLantern(NguhBlocks.OCHRE_CHAIN, NguhBlocks.OCHRE_LANTERN, Items.RESIN_CLUMP, Items.OCHRE_FROGLIGHT)
         offerChainAndLantern(NguhBlocks.PEARLESCENT_CHAIN, NguhBlocks.PEARLESCENT_LANTERN, Items.AMETHYST_SHARD, Items.PEARLESCENT_FROGLIGHT)
         offerChainAndLantern(NguhBlocks.VERDANT_CHAIN, NguhBlocks.VERDANT_LANTERN, Items.EMERALD, Items.VERDANT_FROGLIGHT)
@@ -282,6 +294,9 @@ class NguhcraftRecipeGenerator(
 
         offerShapelessRecipe(NguhBlocks.CINNABAR, 2, Items.NETHERRACK to 1, Items.COBBLESTONE to 1)
 
+        offerShapelessRecipe(NguhBlocks.PERMAFROST, 2, Items.PACKED_ICE to 1, Items.COBBLESTONE to 1)
+
+        
         // =========================================================================
         //  Tinted Oak
         // =========================================================================
@@ -362,6 +377,8 @@ class NguhcraftRecipeGenerator(
         for (F in NguhBlocks.STONE_FAMILY_GROUPS) offerRelatedStonecuttingFamilies(F)
         offerStonecuttingFamily(NguhBlocks.POLISHED_CALCITE_FAMILY, Blocks.CALCITE)
         offerStonecuttingFamily(NguhBlocks.CALCITE_BRICK_FAMILY, Blocks.CALCITE)
+        offerStonecuttingFamily(NguhBlocks.MAGMA_BRICK_FAMILY, Blocks.MAGMA_BLOCK)
+        offerStonecuttingFamily(NguhBlocks.PERMAFROST_FAMILIES, NguhBlocks.PERMAFROST)
         offerStonecuttingRecipe(Out = NguhBlocks.PYRITE_BRICKS, In = NguhBlocks.PYRITE)
         offerStonecuttingRecipe(Out = NguhBlocks.DRIPSTONE_BRICKS, In = Blocks.DRIPSTONE_BLOCK)
 
