@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "#": "minecraft:pale_oak_planks",
+    "A": "minecraft:amethyst_shard"
+  },
+  "pattern": [
+    " # ",
+    "#A#",
+    " # "
+  ],
+  "result": {
+    "count": 4,
+    "id": "nguhcraft:tinted_oak_planks"
+  }
+}

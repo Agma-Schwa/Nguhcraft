@@ -1,17 +1,16 @@
 {
   "type": "minecraft:crafting_shaped",
-  "category": "misc",
+  "category": "building",
+  "group": "bark",
   "key": {
-    "A": "minecraft:amethyst_shard",
-    "P": "minecraft:stripped_pale_oak_wood"
+    "#": "nguhcraft:stripped_tinted_oak_log"
   },
   "pattern": [
-    "P",
-    "A",
-    "P"
+    "##",
+    "##"
   ],
   "result": {
-    "count": 2,
+    "count": 3,
     "id": "nguhcraft:stripped_tinted_oak_wood"
   }
 }

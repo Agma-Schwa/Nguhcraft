@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:block/button",
+  "textures": {
+    "texture": "nguhcraft:block/tinted_oak_planks"
+  }
+}

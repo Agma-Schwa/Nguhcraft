@@ -1,6 +1,7 @@
 {
   "type": "minecraft:crafting_shaped",
-  "category": "misc",
+  "category": "building",
+  "group": "wooden_stairs",
   "key": {
     "#": "nguhcraft:tinted_oak_planks"
   },

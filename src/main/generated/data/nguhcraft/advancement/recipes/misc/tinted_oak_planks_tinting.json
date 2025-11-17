@@ -11,11 +11,11 @@
       },
       "trigger": "minecraft:inventory_changed"
     },
-    "has_pale_oak_log": {
+    "has_pale_oak_planks": {
       "conditions": {
         "items": [
           {
-            "items": "minecraft:pale_oak_log"
+            "items": "minecraft:pale_oak_planks"
           }
         ]
       },
@@ -23,7 +23,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:tinted_oak_log"
+        "recipe": "nguhcraft:tinted_oak_planks_tinting"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
@@ -31,13 +31,13 @@
   "requirements": [
     [
       "has_the_recipe",
-      "has_pale_oak_log",
+      "has_pale_oak_planks",
       "has_amethyst_shard"
     ]
   ],
   "rewards": {
     "recipes": [
-      "nguhcraft:tinted_oak_log"
+      "nguhcraft:tinted_oak_planks_tinting"
     ]
   }
 }

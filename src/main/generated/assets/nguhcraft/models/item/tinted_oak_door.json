@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "nguhcraft:item/tinted_oak_door"
+  }
+}

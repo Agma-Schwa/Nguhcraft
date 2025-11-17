@@ -1,6 +1,7 @@
 {
   "type": "minecraft:crafting_shaped",
   "category": "misc",
+  "group": "wooden_vertical_slab",
   "key": {
     "#": "minecraft:cherry_planks"
   },

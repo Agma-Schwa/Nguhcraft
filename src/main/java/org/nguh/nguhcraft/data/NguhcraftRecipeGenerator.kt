@@ -237,7 +237,7 @@ class NguhcraftRecipeGenerator(
             }
 
             F.FenceGate?.let {
-                offerShaped(RecipeCategory.REDSTONE, it, 1) {
+                offerShaped(it, 1, Category = RecipeCategory.REDSTONE) {
                     pattern("s#s")
                     pattern("s#s")
                     cinput('#', F.baseBlock)
@@ -247,7 +247,7 @@ class NguhcraftRecipeGenerator(
             }
 
             F.Door?.let {
-                offerShaped(RecipeCategory.REDSTONE, it, 3) {
+                offerShaped(it, 3, Category = RecipeCategory.REDSTONE) {
                     pattern("##")
                     pattern("##")
                     pattern("##")
@@ -257,7 +257,7 @@ class NguhcraftRecipeGenerator(
             }
 
             F.Trapdoor?.let {
-                offerShaped(RecipeCategory.REDSTONE, it, 2) {
+                offerShaped(it, 2, Category = RecipeCategory.REDSTONE) {
                     pattern("###")
                     pattern("###")
                     cinput('#', F.baseBlock)
@@ -266,7 +266,7 @@ class NguhcraftRecipeGenerator(
             }
 
             F.Slab?.let {
-                offerShaped(RecipeCategory.BUILDING_BLOCKS, it, 6) {
+                offerShaped(it, 6, Category = RecipeCategory.BUILDING_BLOCKS) {
                     pattern("###")
                     cinput('#', F.baseBlock)
 
@@ -282,7 +282,7 @@ class NguhcraftRecipeGenerator(
             }
 
             F.Stairs?.let {
-                offerShaped(RecipeCategory.BUILDING_BLOCKS, it, 4) {
+                offerShaped(it, 4, Category = RecipeCategory.BUILDING_BLOCKS) {
                     pattern("#  ")
                     pattern("## ")
                     pattern("###")
@@ -361,17 +361,17 @@ class NguhcraftRecipeGenerator(
             cinput('A', Items.AMETHYST_SHARD)
         }
 
-        // other wood stuff
         offerPlanksRecipe(NguhBlocks.TINTED_OAK_PLANKS, NguhItems.TINTED_LOGS, 4)
         offerBarkBlockRecipe(NguhBlocks.TINTED_OAK_WOOD, NguhBlocks.TINTED_OAK_LOG)
         offerBarkBlockRecipe(NguhBlocks.STRIPPED_TINTED_OAK_WOOD, NguhBlocks.STRIPPED_TINTED_OAK_LOG)
         
-        offerShaped(RecipeCategory.REDSTONE, NguhBlocks.TINTED_OAK_PRESSURE_PLATE, 1) {
+        offerShaped(NguhBlocks.TINTED_OAK_PRESSURE_PLATE, 1, Category = RecipeCategory.REDSTONE) {
             pattern("PP")
             cinput('P', NguhBlocks.TINTED_OAK_PLANKS)
             group("wooden_pressure_plate")
         }
-        offerShaped(RecipeCategory.REDSTONE, NguhBlocks.TINTED_OAK_BUTTON, 1) {
+
+        offerShaped(NguhBlocks.TINTED_OAK_BUTTON, 1, Category = RecipeCategory.REDSTONE) {
             pattern("P")
             cinput('P', NguhBlocks.TINTED_OAK_PLANKS)
             group("wooden_button")
@@ -438,7 +438,8 @@ class NguhcraftRecipeGenerator(
             offerStonecuttingRecipe(Out = F.StrippedWood, In = F.Wood)
         }
 
-        // bamboo (this is separate, bc bamboo doesn't have wood and therefore cant fit in the usual wood families
+        // Bamboo (this is separate, bc bamboo doesn't have wood and therefore can't fit
+        // in the usual wood families).
         offerStonecuttingFamily(BlockFamilies.BAMBOO)
         offerStonecuttingFamily(BlockFamilies.BAMBOO_MOSAIC)
 
@@ -530,25 +531,12 @@ class NguhcraftRecipeGenerator(
         Output: ItemConvertible,
         Count: Int = 1,
         Suffix: String = "",
+        Category: RecipeCategory = RecipeCategory.MISC,
         Consumer: ShapedRecipeJsonBuilder.() -> Unit,
     ) {
         var Name: String = getItemPath(Output)
         if (!Suffix.isEmpty()) Name += "_$Suffix"
-        val B = createShaped(RecipeCategory.MISC, Output, Count)
-        B.Consumer()
-        B.offerTo(E, Name)
-    }
-
-    inline fun offerShaped(
-        category: RecipeCategory,
-        Output: ItemConvertible,
-        Count: Int = 1,
-        Suffix: String = "",
-        Consumer: ShapedRecipeJsonBuilder.() -> Unit,
-    ) {
-        var Name: String = getItemPath(Output)
-        if (!Suffix.isEmpty()) Name += "_$Suffix"
-        val B = createShaped(category, Output, Count)
+        val B = createShaped(Category, Output, Count)
         B.Consumer()
         B.offerTo(E, Name)
     }

@@ -1,6 +1,7 @@
 {
   "type": "minecraft:crafting_shaped",
-  "category": "misc",
+  "category": "building",
+  "group": "wooden_slab",
   "key": {
     "#": "nguhcraft:tinted_oak_planks"
   },
@@ -8,7 +9,7 @@
     "###"
   ],
   "result": {
-    "count": 3,
+    "count": 6,
     "id": "nguhcraft:tinted_oak_planks_slab"
   }
 }
