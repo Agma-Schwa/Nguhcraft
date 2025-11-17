@@ -2,16 +2,16 @@ package org.nguh.nguhcraft.mixin.common;
 
 import com.llamalad7.mixinextras.sugar.Share;
 import com.llamalad7.mixinextras.sugar.ref.LocalRef;
-import net.minecraft.enchantment.Enchantment;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.damage.DamageSource;
-import net.minecraft.item.ItemStack;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.registry.tag.EnchantmentTags;
-import net.minecraft.screen.ScreenTexts;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.core.Holder;
+import net.minecraft.tags.EnchantmentTags;
+import net.minecraft.network.chat.CommonComponents;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.network.chat.Component;
+import net.minecraft.ChatFormatting;
 import org.apache.commons.lang3.mutable.MutableFloat;
 import org.nguh.nguhcraft.Constants;
 import org.nguh.nguhcraft.Utils;
@@ -25,8 +25,8 @@ public abstract class EnchantmentMixin {
     @Shadow @Final public static int MAX_LEVEL;
 
     @Unique
-    private static Text FormatLevel(int Lvl) {
-        return Text.literal(Lvl >= 255 || Lvl < 0 ? "∞" : Utils.RomanNumeral(Lvl));
+    private static Component FormatLevel(int Lvl) {
+        return Component.literal(Lvl >= 255 || Lvl < 0 ? "∞" : Utils.RomanNumeral(Lvl));
     }
 
     /**
@@ -36,18 +36,18 @@ public abstract class EnchantmentMixin {
      * @reason Easier to rewrite the entire thing.
      */
     @Overwrite
-    public static Text getName(RegistryEntry<Enchantment> Key, int Lvl) {
+    public static Component getFullname(Holder<Enchantment> Key, int Lvl) {
         var E = Key.value();
-        var Name = Text.empty().append(E.description());
-        if (E.getMaxLevel() > 1 || Lvl > 1) Name.append(ScreenTexts.SPACE).append(FormatLevel(Lvl));
-        Name.formatted(Key.isIn(EnchantmentTags.CURSE) ? Formatting.RED : Formatting.GRAY);
+        var Name = Component.empty().append(E.description());
+        if (E.getMaxLevel() > 1 || Lvl > 1) Name.append(CommonComponents.SPACE).append(FormatLevel(Lvl));
+        Name.withStyle(Key.is(EnchantmentTags.CURSE) ? ChatFormatting.RED : ChatFormatting.GRAY);
         return Name;
     }
 
     /** Save the initial damage so we can check whether it was modified. */
     @Inject(method = "modifyDamage", at = @At("HEAD"))
     private void inject$modifyDamage$0(
-        ServerWorld W,
+        ServerLevel W,
         int Lvl,
         ItemStack S,
         Entity User,
@@ -62,7 +62,7 @@ public abstract class EnchantmentMixin {
     /** And set it to ∞ if it was and we’re at max level. */
     @Inject(method = "modifyDamage", at = @At("TAIL"))
     private void inject$modifyDamage$1(
-        ServerWorld W,
+        ServerLevel W,
         int Lvl,
         ItemStack S,
         Entity User,

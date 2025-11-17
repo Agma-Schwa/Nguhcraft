@@ -2,11 +2,11 @@ package org.nguh.nguhcraft.mixin.protect.server;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.FireBlock;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.GameRules;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.FireBlock;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.GameRules;
 import org.nguh.nguhcraft.protect.ProtectionManager;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -19,18 +19,18 @@ public abstract class FireBlockMixin {
     * We accomplish this by returning false from the game rule check.
     */
     @WrapOperation(
-        method = "scheduledTick",
+        method = "tick",
         at = @At(
             value = "INVOKE",
-            target = "Lnet/minecraft/world/GameRules;getBoolean(Lnet/minecraft/world/GameRules$Key;)Z"
+            target = "Lnet/minecraft/world/level/GameRules;getBoolean(Lnet/minecraft/world/level/GameRules$Key;)Z"
         )
     )
     private boolean inject$scheduledTick(
         GameRules GR,
-        GameRules.Key<GameRules.BooleanRule> R,
+        GameRules.Key<GameRules.BooleanValue> R,
         Operation<Boolean> Op,
         BlockState St,
-        ServerWorld SW,
+        ServerLevel SW,
         BlockPos Pos
     ) {
         if (ProtectionManager.IsProtectedBlock(SW, Pos)) return false;

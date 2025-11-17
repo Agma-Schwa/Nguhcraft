@@ -6,44 +6,44 @@ import com.mojang.serialization.codecs.RecordCodecBuilder
 import net.fabricmc.api.EnvType
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking
 import net.fabricmc.loader.api.FabricLoader
-import net.minecraft.block.BlockState
-import net.minecraft.block.entity.BlockEntity
-import net.minecraft.entity.EntityType
-import net.minecraft.entity.LivingEntity
-import net.minecraft.entity.SpawnReason
-import net.minecraft.entity.effect.StatusEffect
-import net.minecraft.entity.effect.StatusEffectInstance
-import net.minecraft.entity.mob.AbstractPiglinEntity
-import net.minecraft.entity.mob.Monster
-import net.minecraft.entity.passive.IronGolemEntity
-import net.minecraft.entity.passive.VillagerEntity
-import net.minecraft.entity.projectile.ProjectileUtil
-import net.minecraft.entity.projectile.TridentEntity
-import net.minecraft.item.ItemStack
-import net.minecraft.network.packet.CustomPayload
-import net.minecraft.network.packet.s2c.play.SubtitleS2CPacket
-import net.minecraft.network.packet.s2c.play.TitleS2CPacket
-import net.minecraft.recipe.RecipeType
-import net.minecraft.recipe.SmeltingRecipe
-import net.minecraft.recipe.input.SingleStackRecipeInput
-import net.minecraft.registry.RegistryKey
-import net.minecraft.registry.RegistryKeys
-import net.minecraft.registry.entry.RegistryEntry
+import net.minecraft.world.level.block.state.BlockState
+import net.minecraft.world.level.block.entity.BlockEntity
+import net.minecraft.world.entity.EntityType
+import net.minecraft.world.entity.LivingEntity
+import net.minecraft.world.entity.EntitySpawnReason
+import net.minecraft.world.effect.MobEffect
+import net.minecraft.world.effect.MobEffectInstance
+import net.minecraft.world.entity.monster.piglin.AbstractPiglin
+import net.minecraft.world.entity.monster.Enemy
+import net.minecraft.world.entity.animal.IronGolem
+import net.minecraft.world.entity.npc.Villager
+import net.minecraft.world.entity.projectile.ProjectileUtil
+import net.minecraft.world.entity.projectile.ThrownTrident
+import net.minecraft.world.item.ItemStack
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload
+import net.minecraft.network.protocol.game.ClientboundSetSubtitleTextPacket
+import net.minecraft.network.protocol.game.ClientboundSetTitleTextPacket
+import net.minecraft.world.item.crafting.RecipeType
+import net.minecraft.world.item.crafting.SmeltingRecipe
+import net.minecraft.world.item.crafting.SingleRecipeInput
+import net.minecraft.resources.ResourceKey
+import net.minecraft.core.registries.Registries
+import net.minecraft.core.Holder
 import net.minecraft.server.MinecraftServer
-import net.minecraft.server.command.ServerCommandSource
-import net.minecraft.server.network.ServerPlayerEntity
-import net.minecraft.server.world.ServerWorld
-import net.minecraft.text.Text
-import net.minecraft.util.Formatting
-import net.minecraft.util.Hand
-import net.minecraft.util.hit.HitResult
-import net.minecraft.util.math.BlockPos
-import net.minecraft.util.math.Box
-import net.minecraft.util.math.MathHelper
-import net.minecraft.util.math.Vec3d
-import net.minecraft.world.RaycastContext
-import net.minecraft.world.TeleportTarget
-import net.minecraft.world.World
+import net.minecraft.commands.CommandSourceStack
+import net.minecraft.server.level.ServerPlayer
+import net.minecraft.server.level.ServerLevel
+import net.minecraft.network.chat.Component
+import net.minecraft.ChatFormatting
+import net.minecraft.world.InteractionHand
+import net.minecraft.world.phys.HitResult
+import net.minecraft.core.BlockPos
+import net.minecraft.world.phys.AABB
+import net.minecraft.util.Mth
+import net.minecraft.world.phys.Vec3
+import net.minecraft.world.level.ClipContext
+import net.minecraft.world.level.portal.TeleportTransition
+import net.minecraft.world.level.Level
 import org.nguh.nguhcraft.Constants.MAX_HOMING_DISTANCE
 import org.nguh.nguhcraft.Effects
 import org.nguh.nguhcraft.NguhDamageTypes
@@ -60,26 +60,26 @@ import org.slf4j.Logger
 
 /** A TeleportTarget that doesn’t store the world directly and can actually be saved. */
 class SerialisedTeleportTarget(
-    val World: RegistryKey<World>,
+    val World: ResourceKey<Level>,
     val X: Double,
     val Y: Double,
     val Z: Double,
     val Yaw: Float,
     val Pitch: Float,
 ) {
-    fun Instantiate(S: MinecraftServer) = TeleportTarget(
-        S.getWorld(World),
-        Vec3d(X, Y, Z),
-        Vec3d.ZERO,
+    fun Instantiate(S: MinecraftServer) = TeleportTransition(
+        S.getLevel(World)!!,
+        Vec3(X, Y, Z),
+        Vec3.ZERO,
         Yaw,
         Pitch,
-        TeleportTarget.NO_OP
+        TeleportTransition.DO_NOTHING
     )
 
     companion object {
         val CODEC: Codec<SerialisedTeleportTarget> = RecordCodecBuilder.create {
             it.group(
-                RegistryKey.createCodec(RegistryKeys.WORLD).fieldOf("World").forGetter(SerialisedTeleportTarget::World),
+                ResourceKey.codec(Registries.DIMENSION).fieldOf("World").forGetter(SerialisedTeleportTarget::World),
                 Codec.DOUBLE.fieldOf("X").forGetter(SerialisedTeleportTarget::X),
                 Codec.DOUBLE.fieldOf("Y").forGetter(SerialisedTeleportTarget::Y),
                 Codec.DOUBLE.fieldOf("Z").forGetter(SerialisedTeleportTarget::Z),
@@ -98,8 +98,8 @@ class SerialisedTeleportTarget(
  * run from the pre-launch entrypoint.
  */
 object ServerUtils {
-    private val BORDER_TITLE: Text = Text.literal("TURN BACK").formatted(Formatting.RED)
-    private val BORDER_SUBTITLE: Text = Text.literal("You may not cross the border")
+    private val BORDER_TITLE: Component = Component.literal("TURN BACK").withStyle(ChatFormatting.RED)
+    private val BORDER_SUBTITLE: Component = Component.literal("You may not cross the border")
     private val LOGGER: Logger = LogUtils.getLogger()
 
     /** Living entity tick. */
@@ -108,10 +108,10 @@ object ServerUtils {
         // Handle entities with NaN health.
         if (LE.health.isNaN()) {
             // Disconnect players.
-            if (LE is ServerPlayerEntity) {
+            if (LE is ServerPlayer) {
                 LOGGER.warn("Player {} had NaN health, disconnecting.", LE.Name.string)
                 LE.health = 0F
-                LE.networkHandler.disconnect(Text.of("Health was NaN!"))
+                LE.connection.disconnect(Component.nullToEmpty("Health was NaN!"))
                 return
             }
 
@@ -123,7 +123,7 @@ object ServerUtils {
 
     /** Sync data on join. */
     @JvmStatic
-    fun ActOnPlayerJoin(SP: ServerPlayerEntity) {
+    fun ActOnPlayerJoin(SP: ServerPlayer) {
         // Sync data with the client.
         val LEA = SP as LivingEntityAccessor
         Manager.SendAll(SP)
@@ -138,8 +138,8 @@ object ServerUtils {
     * This currently handles the world border check.
     */
     @JvmStatic
-    fun ActOnPlayerTick(SP: ServerPlayerEntity) {
-        val SW = SP.world
+    fun ActOnPlayerTick(SP: ServerPlayer) {
+        val SW = SP.level()
 
         // Check if the player is outside the world border.
         // TODO: Can we make a 'global' region for the entire world
@@ -147,8 +147,8 @@ object ServerUtils {
         //       be a region that cannot be deleted and which is always
         //       at the end of the list (and which expands first if the
         //       world border is increased).
-        if (!SW.worldBorder.contains(SP.boundingBox)) {
-            SP.Teleport(SW, SW.spawnPos)
+        if (!SW.worldBorder.isWithinBounds(SP.boundingBox)) {
+            SP.Teleport(SW, SW.sharedSpawnPos)
             SendTitle(SP, BORDER_TITLE, BORDER_SUBTITLE)
             LOGGER.warn("Player {} tried to leave the border.", SP.Name.string)
         }
@@ -158,7 +158,7 @@ object ServerUtils {
 
     /** Broadcast a join message for a player. */
     @JvmStatic
-    fun ActOnPlayerQuit(SP: ServerPlayerEntity, Msg: Text) {
+    fun ActOnPlayerQuit(SP: ServerPlayer, Msg: Component) {
         SP.Server.ProtectionManager.TickPlayerQuit(SP)
         SendPlayerJoinQuitMessage(SP, Msg)
     }
@@ -166,31 +166,31 @@ object ServerUtils {
     /** Apply beacon effects to mobs. */
     @JvmStatic
     fun ApplyBeaconEffectsToVillagers(
-        W: World,
+        W: Level,
         Pos: BlockPos,
         BeaconLevel: Int,
-        Primary: RegistryEntry<StatusEffect>?,
-        Secondary: RegistryEntry<StatusEffect>?
+        Primary: Holder<MobEffect>?,
+        Secondary: Holder<MobEffect>?
     ) {
         // Check if these effects are applicable to villagers.
         var Primary = Primary
         var Secondary = Secondary
         if (!Effects.BEACON_EFFECTS_AFFECTING_VILLAGERS.contains(Secondary)) Secondary = null
         if (!Effects.BEACON_EFFECTS_AFFECTING_VILLAGERS.contains(Primary)) Primary = Secondary
-        if (W !is ServerWorld || Primary == null) return
+        if (W !is ServerLevel || Primary == null) return
 
         // This calculation is taken from BeaconBlockEntity::applyPlayerEffects().
         val Distance = (BeaconLevel * 10 + 10).toDouble()
         val Amplifier = if (BeaconLevel >= 4 && Primary == Secondary) 1 else 0
         val Duration = (9 + BeaconLevel * 2) * 20
         val SeparateSecondary = BeaconLevel >= 4 && Primary != Secondary && Secondary != null
-        val B = Box(Pos).expand(Distance).stretch(0.0, W.height.toDouble(), 0.0)
+        val B = AABB(Pos).inflate(Distance).expandTowards(0.0, W.height.toDouble(), 0.0)
 
         // Apply the status effect(s) to all villager entities.
-        for (E in W.getEntitiesByType(EntityType.VILLAGER, B) { true }) {
-            E.addStatusEffect(StatusEffectInstance(Primary, Duration, Amplifier, true, true))
+        for (E in W.getEntities(EntityType.VILLAGER, B) { true }) {
+            E.addEffect(MobEffectInstance(Primary, Duration, Amplifier, true, true))
             if (SeparateSecondary)
-                E.addStatusEffect(StatusEffectInstance(Secondary, Duration, 0, true, true))
+                E.addEffect(MobEffectInstance(Secondary, Duration, 0, true, true))
         }
     }
 
@@ -200,19 +200,19 @@ object ServerUtils {
 
     /** Check if a player is linked or an operator. */
     @JvmStatic
-    fun IsLinkedOrOperator(SP: ServerPlayerEntity) =
+    fun IsLinkedOrOperator(SP: ServerPlayer) =
         IsIntegratedServer() || Discord.__IsLinkedOrOperatorImpl(SP)
 
     /** Check if this server command source has moderator permissions. */
     @JvmStatic
-    fun IsModerator(S: ServerCommandSource) =
-        S.hasPermissionLevel(4) || S.player?.Data?.IsModerator == true
+    fun IsModerator(S: CommandSourceStack) =
+        S.hasPermission(4) || S.player?.Data?.IsModerator == true
 
     /** @return `true` if the entity entered or was already in a hypershot context. */
     @JvmStatic
     fun MaybeEnterHypershotContext(
         Shooter: LivingEntity,
-        Hand: Hand,
+        Hand: InteractionHand,
         Weapon: ItemStack,
         Projectiles: List<ItemStack>,
         Speed: Float,
@@ -224,7 +224,7 @@ object ServerUtils {
         if (NLE.hypershotContext != null) return true
 
         // Stack does not have hypershot.
-        val HSLvl = EnchantLvl(Shooter.world, Weapon, NguhcraftEnchantments.HYPERSHOT)
+        val HSLvl = EnchantLvl(Shooter.level(), Weapon, NguhcraftEnchantments.HYPERSHOT)
         if (HSLvl == 0) return false
 
         // Enter hypershot context.
@@ -241,7 +241,7 @@ object ServerUtils {
         )
 
         // If this is a player, tell them about this.
-        if (Shooter is ServerPlayerEntity) Shooter.SetClientFlag(
+        if (Shooter is ServerPlayer) Shooter.SetClientFlag(
             ClientFlags.IN_HYPERSHOT_CONTEXT,
             true
         )
@@ -250,34 +250,34 @@ object ServerUtils {
     }
 
     @JvmStatic
-    fun MaybeMakeHomingArrow(W: World, Shooter: LivingEntity): LivingEntity? {
+    fun MaybeMakeHomingArrow(W: Level, Shooter: LivingEntity): LivingEntity? {
         // Perform a ray cast up to the max distance, starting at the shooter’s
         // position. Passing a 1 for the tick delta yields the actual camera pos
         // etc.
-        val VCam = Shooter.getCameraPosVec(1.0f)
-        val VRot = Shooter.getRotationVec(1.0f)
+        val VCam = Shooter.getEyePosition(1.0f)
+        val VRot = Shooter.getViewVector(1.0f)
         var VEnd = VCam.add(VRot.x * MAX_HOMING_DISTANCE, VRot.y * MAX_HOMING_DISTANCE, VRot.z * MAX_HOMING_DISTANCE)
-        val Ray = W.raycast(RaycastContext(
+        val Ray = W.clip(ClipContext(
             VCam,
             VEnd,
-            RaycastContext.ShapeType.OUTLINE,
-            RaycastContext.FluidHandling.NONE, Shooter
+            ClipContext.Block.OUTLINE,
+            ClipContext.Fluid.NONE, Shooter
         ))
 
         // If we hit something, don’t go further.
-        if (Ray.type !== HitResult.Type.MISS) VEnd = Ray.pos
+        if (Ray.type !== HitResult.Type.MISS) VEnd = Ray.location
 
         // Search for an entity to target. Extend the arrow’s bounding box to
         // the block that we’ve hit, or to the max distance if we missed and
         // check for entity collisions.
-        val BB = Box.from(VCam).stretch(VEnd.subtract(VCam)).expand(1.0)
-        val EHR = ProjectileUtil.raycast(
+        val BB = AABB.unitCubeFromLowerCorner(VCam).expandTowards(VEnd.subtract(VCam)).inflate(1.0)
+        val EHR = ProjectileUtil.getEntityHitResult(
             Shooter,
             VCam,
             VEnd,
             BB,
-            { !it.isSpectator && it.canHit() },
-            MathHelper.square(MAX_HOMING_DISTANCE).toDouble()
+            { !it.isSpectator && it.isPickable() },
+            Mth.square(MAX_HOMING_DISTANCE).toDouble()
         )
 
         // If we’re aiming at an entity, use it as the target.
@@ -286,20 +286,20 @@ object ServerUtils {
         }
 
         // If we can’t find an entity, look around to see if there is anything else nearby.
-        val Es = W.getOtherEntities(Shooter, BB.expand(5.0)) {
+        val Es = W.getEntities(Shooter, BB.inflate(5.0)) {
             it is LivingEntity &&
-            it !is VillagerEntity &&
-            it !is IronGolemEntity &&
-            (it !is AbstractPiglinEntity || it.target != null) &&
-            it.canHit() &&
+            it !is Villager &&
+            it !is IronGolem &&
+            (it !is AbstractPiglin || it.target != null) &&
+            it.isPickable() &&
             !it.isSpectator &&
-            Shooter.canSee(it)
+            Shooter.hasLineOfSight(it)
         }
 
         // Prefer hostile entities over friendly ones and sort by distance.
         Es.sortWith { A, B ->
-            if (A is Monster == B is Monster) A.distanceTo(Shooter).compareTo(B.distanceTo(Shooter))
-            else if (A is Monster) -1
+            if (A is Enemy == B is Enemy) A.distanceTo(Shooter).compareTo(B.distanceTo(Shooter))
+            else if (A is Enemy) -1
             else 1
         }
 
@@ -307,7 +307,7 @@ object ServerUtils {
     }
 
     @JvmStatic
-    fun Multicast(P: Collection<ServerPlayerEntity>, Packet: CustomPayload) {
+    fun Multicast(P: Collection<ServerPlayer>, Packet: CustomPacketPayload) {
         for (Player in P) ServerPlayNetworking.send(Player, Packet)
     }
 
@@ -317,23 +317,23 @@ object ServerUtils {
      * This summons a lightning bolt at their location (which is only there
      * for atmosphere, though), then kills them.
      */
-    fun Obliterate(SP: ServerPlayerEntity) {
-        if (SP.isDead || SP.isSpectator || SP.isCreative) return
-        val SW = SP.world
-        StrikeLightning(SW, SP.pos, null, true)
-        SP.damage(SW, NguhDamageTypes.Obliterated(SW), Float.MAX_VALUE)
+    fun Obliterate(SP: ServerPlayer) {
+        if (SP.isDeadOrDying || SP.isSpectator || SP.isCreative) return
+        val SW = SP.level()
+        StrikeLightning(SW, SP.position(), null, true)
+        SP.hurtServer(SW, NguhDamageTypes.Obliterated(SW), Float.MAX_VALUE)
     }
 
     fun RoundExp(Exp: Float): Int {
-        var Int = MathHelper.floor(Exp)
-        val Frac = MathHelper.fractionalPart(Exp)
+        var Int = Mth.floor(Exp)
+        val Frac = Mth.frac(Exp)
         if (Frac != 0.0f && Math.random() < Frac.toDouble()) Int++
         return Int
     }
 
     /** Broadcast a join message for a player. */
     @JvmStatic
-    fun SendPlayerJoinQuitMessage(SP: ServerPlayerEntity, Msg: Text) {
+    fun SendPlayerJoinQuitMessage(SP: ServerPlayer, Msg: Component) {
         if (!SP.Data.Vanished) SP.Server.Broadcast(Msg)
     }
 
@@ -343,31 +343,31 @@ object ServerUtils {
     * @param Title The title to send. Ignored if `null`.
     * @param Subtitle The subtitle to send. Ignored if `null`.
     */
-    fun SendTitle(SP: ServerPlayerEntity, Title: Text?, Subtitle: Text?) {
-        if (Title != null) SP.networkHandler.sendPacket(TitleS2CPacket(Title))
-        if (Subtitle != null) SP.networkHandler.sendPacket(SubtitleS2CPacket(Subtitle))
+    fun SendTitle(SP: ServerPlayer, Title: Component?, Subtitle: Component?) {
+        if (Title != null) SP.connection.send(ClientboundSetTitleTextPacket(Title))
+        if (Subtitle != null) SP.connection.send(ClientboundSetSubtitleTextPacket(Subtitle))
     }
 
     /** Unconditionally strike lightning. */
     @JvmStatic
     @JvmOverloads
-    fun StrikeLightning(W: ServerWorld, Where: Vec3d, TE: TridentEntity? = null, Cosmetic: Boolean = false) {
+    fun StrikeLightning(W: ServerLevel, Where: Vec3, TE: ThrownTrident? = null, Cosmetic: Boolean = false) {
         val Lightning = EntityType.LIGHTNING_BOLT.spawn(
             W,
-            BlockPos.ofFloored(Where),
-            SpawnReason.SPAWN_ITEM_USE
+            BlockPos.containing(Where),
+            EntitySpawnReason.SPAWN_ITEM_USE
         )
 
         if (Lightning != null) {
-            Lightning.setCosmetic(Cosmetic)
-            Lightning.channeler = TE?.owner as? ServerPlayerEntity
+            Lightning.setVisualOnly(Cosmetic)
+            Lightning.cause = TE?.owner as? ServerPlayer
             if (TE != null) (TE as TridentEntityAccessor).`Nguhcraft$SetStruckLightning`()
         }
     }
 
     /** Called during the world tick on the server. */
     @JvmStatic
-    fun TickWorld(SW: ServerWorld) {
+    fun TickWorld(SW: ServerLevel) {
         TreeToChop.Tick(SW)
         SW.server.EntitySpawnManager.Tick(SW)
     }
@@ -377,25 +377,25 @@ object ServerUtils {
 
     /** Try to smelt this block as an item. */
     @JvmStatic
-    fun TrySmeltBlock(W: ServerWorld, Block: BlockState): SmeltingResult? {
+    fun TrySmeltBlock(W: ServerLevel, Block: BlockState): SmeltingResult? {
         val I = ItemStack(Block.block.asItem())
         if (I.isEmpty) return null
 
-        val Input = SingleStackRecipeInput(I)
-        val optional = W.recipeManager.getFirstMatch(RecipeType.SMELTING, Input, W)
+        val Input = SingleRecipeInput(I)
+        val optional = W.recipeAccess().getRecipeFor(RecipeType.SMELTING, Input, W)
         if (optional.isEmpty) return null
 
         val Recipe: SmeltingRecipe = optional.get().value()
-        val Smelted: ItemStack = Recipe.craft(Input, W.registryManager)
+        val Smelted: ItemStack = Recipe.assemble(Input, W.registryAccess())
         if (Smelted.isEmpty) return null
-        return SmeltingResult(Smelted.copyWithCount(I.count), RoundExp(Recipe.experience))
+        return SmeltingResult(Smelted.copyWithCount(I.count), RoundExp(Recipe.experience()))
     }
 
     /** Update the lock on a container. Pass null to unlock it. */
     fun UpdateLock(LE: LockableBlockEntity, NewLock: String?) {
         LE as BlockEntity // Every LockableBlockEntity is a BlockEntity.
         LE.`Nguhcraft$SetLockInternal`(NewLock)
-        (LE.world as ServerWorld).chunkManager.markForUpdate(LE.pos)
-        LE.markDirty()
+        (LE.level as ServerLevel).chunkSource.blockChanged(LE.blockPos)
+        LE.setChanged()
     }
 }

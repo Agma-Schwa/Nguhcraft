@@ -1,16 +1,16 @@
 package org.nguh.nguhcraft.event
 
-import net.minecraft.entity.Entity
-import net.minecraft.entity.EntityType
-import net.minecraft.entity.LivingEntity
-import net.minecraft.entity.SpawnReason
-import net.minecraft.server.world.ServerWorld
-import net.minecraft.util.math.BlockPos
-import net.minecraft.util.math.Vec3d
+import net.minecraft.world.entity.Entity
+import net.minecraft.world.entity.EntityType
+import net.minecraft.world.entity.LivingEntity
+import net.minecraft.world.entity.EntitySpawnReason
+import net.minecraft.server.level.ServerLevel
+import net.minecraft.core.BlockPos
+import net.minecraft.world.phys.Vec3
 import org.nguh.nguhcraft.entity.Parameters
 import org.nguh.nguhcraft.event.NguhMobs.DoSpawn
 
-enum class NguhMobType(private val Factory: (SW: ServerWorld, Where: Vec3d, D: EventDifficulty) -> Entity?) {
+enum class NguhMobType(private val Factory: (SW: ServerLevel, Where: Vec3, D: EventDifficulty) -> Entity?) {
     // Default mobs for the event.
     BOGGED(DoSpawn(EntityType.BOGGED)),
     CREEPER(DoSpawn(EntityType.CREEPER)),
@@ -22,8 +22,8 @@ enum class NguhMobType(private val Factory: (SW: ServerWorld, Where: Vec3d, D: E
     ZOMBIE(DoSpawn(EntityType.ZOMBIE));
 
     fun Spawn(
-        SW: ServerWorld,
-        Where: Vec3d,
+        SW: ServerLevel,
+        Where: Vec3,
         D: EventDifficulty = SW.server.EventManager.Difficulty
     ) = Factory(SW, Where, D)
 }
@@ -32,19 +32,19 @@ object NguhMobs {
     internal inline fun<reified T : Entity> DoSpawn(
         Type: EntityType<T>,
         noinline Transform: (T.() -> Unit)? = null
-    ): (SW: ServerWorld, Where: Vec3d, D: EventDifficulty) -> Entity? = {
-            SW: ServerWorld,
-            Where: Vec3d,
+    ): (SW: ServerLevel, Where: Vec3, D: EventDifficulty) -> Entity? = {
+            SW: ServerLevel,
+            Where: Vec3,
             D: EventDifficulty
 
         ->
 
         fun Update(E: T) {
-            E.refreshPositionAndAngles(Where.x, Where.y, Where.z, E.yaw, E.pitch)
+            E.snapTo(Where.x, Where.y, Where.z, E.yRot, E.xRot)
             if (E is LivingEntity) Parameters.BY_TYPE[Type]?.Apply(E, D)
             Transform?.invoke(E)
         }
 
-        Type.spawn(SW, ::Update, BlockPos.ofFloored(Where), SpawnReason.COMMAND, true, false)
+        Type.spawn(SW, ::Update, BlockPos.containing(Where), EntitySpawnReason.COMMAND, true, false)
     }
 }

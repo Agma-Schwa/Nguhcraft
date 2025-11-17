@@ -2,7 +2,7 @@ package org.nguh.nguhcraft.mixin.datafixer;
 
 import com.google.common.escape.Escaper;
 import com.mojang.serialization.Dynamic;
-import net.minecraft.datafixer.fix.LockComponentPredicateFix;
+import net.minecraft.util.datafix.fixes.LockComponentPredicateFix;
 import org.nguh.nguhcraft.item.KeyItem;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;

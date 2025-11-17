@@ -4,9 +4,9 @@ import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
 import net.fabricmc.fabric.api.client.networking.v1.ClientLoginNetworking
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking
-import net.minecraft.network.packet.CustomPayload
-import net.minecraft.text.Text
-import net.minecraft.util.Formatting
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload
+import net.minecraft.network.chat.Component
+import net.minecraft.ChatFormatting
 import org.nguh.nguhcraft.Constants
 import org.nguh.nguhcraft.SyncedGameRule
 import org.nguh.nguhcraft.Utils
@@ -24,16 +24,16 @@ import java.util.concurrent.CompletableFuture
 @Environment(EnvType.CLIENT)
 object ClientNetworkHandler {
     /** Coloured components used in chat messages. */
-    private val ARROW_COMPONENT: Text = Text.literal(" → ").withColor(Constants.DeepKoamaru)
-    private val ME_COMPONENT = Text.literal("me").withColor(Constants.Lavender)
-    private val SPACE_COMPONENT = Text.literal(" ")
+    private val ARROW_COMPONENT: Component = Component.literal(" → ").withColor(Constants.DeepKoamaru)
+    private val ME_COMPONENT = Component.literal("me").withColor(Constants.Lavender)
+    private val SPACE_COMPONENT = Component.literal(" ")
 
     private fun Execute(CB: () -> Unit) = Client().execute(CB)
 
     /** Incoming chat message. */
     private fun HandleChatPacket(Packet: ClientboundChatPacket) {
         // Render content as Markdown.
-        var Message = MarkdownParser.Render(Packet.Content).formatted(Formatting.WHITE)
+        var Message = MarkdownParser.Render(Packet.Content).withStyle(ChatFormatting.WHITE)
         Message = when (Packet.MessageKind) {
             // Player: Message content
             ClientboundChatPacket.MK_PUBLIC -> Packet.PlayerName.copy()
@@ -59,13 +59,13 @@ object ClientNetworkHandler {
                 .append(Message)
 
             // Should never happen, but render the message anyway.
-            else -> Text.literal("<ERROR: Invalid Message Format>\n").formatted(Formatting.RED)
+            else -> Component.literal("<ERROR: Invalid Message Format>\n").withStyle(ChatFormatting.RED)
                 .append(Packet.PlayerName)
                 .append(SPACE_COMPONENT)
                 .append(Message)
         }
 
-        Execute { Client().messageHandler.onGameMessage(Message, false) }
+        Execute { Client().chatListener.handleSystemMessage(Message, false) }
     }
 
     /**
@@ -75,24 +75,24 @@ object ClientNetworkHandler {
     */
     private fun HandleLinkUpdatePacket(Packet: ClientboundLinkUpdatePacket) {
         val C = Client()
-        val NW = C.networkHandler ?: return
+        val NW = C.connection ?: return
         Execute {
-            NW.playerList.firstOrNull { it.profile.id == Packet.PlayerId }?.let {
+            NW.onlinePlayers.firstOrNull { it.profile.id == Packet.PlayerId }?.let {
                 it as ClientPlayerListEntryAccessor
                 it.isLinked = Packet.Linked
 
                 // Player is not linked.
                 if (!Packet.Linked) {
-                    it.nameAboveHead = Text.literal(Packet.MinecraftName)
-                    it.displayName = Text.literal(Packet.MinecraftName).formatted(Formatting.GRAY)
+                    it.nameAboveHead = Component.literal(Packet.MinecraftName)
+                    it.tabListDisplayName = Component.literal(Packet.MinecraftName).withStyle(ChatFormatting.GRAY)
                 }
 
                 // If the player is linked, the player list shows the Minecraft name as well.
                 else {
-                    val DiscordName = Text.literal(Packet.DiscordName).withColor(Packet.DiscordColour)
+                    val DiscordName = Component.literal(Packet.DiscordName).withColor(Packet.DiscordColour)
                     it.nameAboveHead = DiscordName
-                    it.displayName = DiscordName.copy()
-                        .append(Text.literal(" "))
+                    it.tabListDisplayName = DiscordName.copy()
+                        .append(Component.literal(" "))
                         .append(Utils.BracketedLiteralComponent(Packet.MinecraftName))
                 }
             }
@@ -122,7 +122,7 @@ object ClientNetworkHandler {
     /** Sync protection manager state. */
     private fun HandleSyncProtectionMgrPacket(Packet: ClientboundSyncProtectionMgrPacket) {
         Execute {
-            val A = (Client().networkHandler as? ProtectionManagerAccess)
+            val A = (Client().connection as? ProtectionManagerAccess)
             A?.`Nguhcraft$SetProtectionManager`(ClientProtectionManager(Packet))
         }
     }
@@ -148,7 +148,7 @@ object ClientNetworkHandler {
     }
 
     /** Register a packet handler. */
-    private fun <T : CustomPayload?> Register(ID: CustomPayload.Id<T>, Handler: (T) -> Unit) {
+    private fun <T : CustomPacketPayload?> Register(ID: CustomPacketPayload.Type<T>, Handler: (T) -> Unit) {
         ClientPlayNetworking.registerGlobalReceiver(ID) { Payload, _ -> Handler(Payload) }
     }
 }

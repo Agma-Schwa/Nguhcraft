@@ -2,20 +2,20 @@ package org.nguh.nguhcraft.server
 
 import com.mojang.brigadier.StringReader
 import com.mojang.logging.LogUtils
-import net.minecraft.command.EntitySelector
-import net.minecraft.command.argument.EntityArgumentType
-import net.minecraft.entity.Entity
-import net.minecraft.nbt.NbtElement
+import net.minecraft.commands.arguments.selector.EntitySelector
+import net.minecraft.commands.arguments.EntityArgument
+import net.minecraft.world.entity.Entity
+import net.minecraft.nbt.Tag
 import net.minecraft.server.MinecraftServer
-import net.minecraft.server.command.ServerCommandSource
-import net.minecraft.server.network.ServerPlayerEntity
-import net.minecraft.storage.ReadView
-import net.minecraft.storage.WriteView
-import net.minecraft.text.ClickEvent
-import net.minecraft.text.MutableText
-import net.minecraft.text.Text
-import net.minecraft.util.Formatting
-import net.minecraft.util.WorldSavePath
+import net.minecraft.commands.CommandSourceStack
+import net.minecraft.server.level.ServerPlayer
+import net.minecraft.world.level.storage.ValueInput
+import net.minecraft.world.level.storage.ValueOutput
+import net.minecraft.network.chat.ClickEvent
+import net.minecraft.network.chat.MutableComponent
+import net.minecraft.network.chat.Component
+import net.minecraft.ChatFormatting
+import net.minecraft.world.level.storage.LevelResource
 import java.nio.file.Path
 import kotlin.io.path.Path
 import kotlin.io.path.exists
@@ -120,20 +120,20 @@ object MCBASIC {
 
         /** Print the procedure. */
         fun DisplaySource(
-            MT: MutableText,
+            MT: MutableComponent,
             Indent: Int
-        ): MutableText {
+        ): MutableComponent {
             val IndentStr = " ".repeat(Indent)
             if (SourceLines.isEmpty()) {
-                MT.append(IndentStr).append(Text.literal("<empty>").formatted(Formatting.GRAY))
+                MT.append(IndentStr).append(Component.literal("<empty>").withStyle(ChatFormatting.GRAY))
                 return MT
             }
 
             SourceLines.forEachIndexed { I, S ->
                 MT.append("${if (I == 0) "" else "\n"}$IndentStr[$I] ").append(
-                    Text.literal(S)
-                    .formatted(Formatting.AQUA)
-                    .styled { it.withClickEvent(
+                    Component.literal(S)
+                    .withStyle(ChatFormatting.AQUA)
+                    .withStyle { it.withClickEvent(
                         ClickEvent.SuggestCommand("/procedure set $Name $I $S")
                     )
                 })
@@ -147,7 +147,7 @@ object MCBASIC {
          * @throws Exception If there was a syntax error or an unexpected error executing the procedure.
          */
         @Throws(Exception::class)
-        fun ExecuteAndThrow(S: ServerCommandSource) {
+        fun ExecuteAndThrow(S: CommandSourceStack) {
             when (AST) {
                 is CachedAST.Cached -> Executor(S).ExecuteAST((AST as CachedAST.Cached).Root)
                 is CachedAST.Error -> throw (AST as CachedAST.Error).Err
@@ -168,11 +168,11 @@ object MCBASIC {
         fun LineCount(): Int = SourceLines.size
 
         /** Print the AST. */
-        fun Listing(MT: MutableText) {
+        fun Listing(MT: MutableComponent) {
             when (AST) {
                 is CachedAST.Cached -> Writer(MT).also { (AST as CachedAST.Cached).Root.Display(it) }
-                is CachedAST.Error -> MT.append(Text.literal("Listing not available due to syntax error").formatted(Formatting.RED))
-                is CachedAST.NotCached -> MT.append(Text.literal("Listing not available until compiled").formatted(Formatting.GRAY))
+                is CachedAST.Error -> MT.append(Component.literal("Listing not available due to syntax error").withStyle(ChatFormatting.RED))
+                is CachedAST.NotCached -> MT.append(Component.literal("Listing not available until compiled").withStyle(ChatFormatting.GRAY))
             }
         }
 
@@ -247,8 +247,8 @@ object MCBASIC {
         fun GetOrCreateManaged(Name: String) = GetOrCreateImpl(Name, true)
 
         /** Load stored procedures. */
-        override fun ReadData(RV: ReadView) {
-            SaveDir = S.getSavePath(WorldSavePath.ROOT).resolve("nguhcraft").resolve("procedures")
+        override fun ReadData(RV: ValueInput) {
+            SaveDir = S.getWorldPath(LevelResource.ROOT).resolve("nguhcraft").resolve("procedures")
             if (SaveDir == null || !SaveDir!!.exists()) return
             val Dir = SaveDir!!.toFile()
             for (F in Dir.walkTopDown()) {
@@ -268,7 +268,7 @@ object MCBASIC {
          *
          * Empty procedures are not saved.
          */
-        override fun WriteData(WV: WriteView) {
+        override fun WriteData(WV: ValueOutput) {
             if (SaveDir == null) return
             val Dir = SaveDir!!.toFile()
             Dir.mkdirs()
@@ -286,8 +286,8 @@ object MCBASIC {
         }
     }
 
-    private class Executor(CommandSource: ServerCommandSource) {
-        val Source: ServerCommandSource = CommandSource.withReturnValueConsumer {
+    private class Executor(CommandSource: CommandSourceStack) {
+        val Source: CommandSourceStack = CommandSource.withCallback {
             Success, Value -> CommandReturnValue = if (Success) Value else 0
         }
 
@@ -304,7 +304,7 @@ object MCBASIC {
     }
 
     private class Writer(
-        val MT: MutableText,
+        val MT: MutableComponent,
         var IndentWidth: Int = 0
     ) {
         var FirstLine = true
@@ -315,9 +315,9 @@ object MCBASIC {
             else MT.append("\n")
             MT.append(" ".repeat(IndentWidth))
         }
-        fun Write(S: String, F: Formatting? = null) {
-            val T = Text.literal(S)
-            if (F != null) T.formatted(F)
+        fun Write(S: String, F: ChatFormatting? = null) {
+            val T = Component.literal(S)
+            if (F != null) T.withStyle(F)
             MT.append(T)
         }
         fun WriteStmt(S: Stmt) {
@@ -357,12 +357,12 @@ object MCBASIC {
     private class Block(val Statements: List<Stmt>) : Stmt() {
         override fun Execute(E: Executor) { for (S in Statements) S.Execute(E) }
         override fun Display(W: Writer) {
-            W.Write("begin", Formatting.GOLD)
+            W.Write("begin", ChatFormatting.GOLD)
             W.Indent()
             for (S in Statements) W.WriteStmt(S)
             W.Outdent()
             W.StartLine()
-            W.Write("end", Formatting.GOLD)
+            W.Write("end", ChatFormatting.GOLD)
         }
     }
 
@@ -385,14 +385,14 @@ object MCBASIC {
             W.Write(when (Func) {
                 Builtin.IS_ENTITY_ALIVE -> "alive?"
                 Builtin.IS_GM -> "gm?"
-            }, Formatting.GREEN)
+            }, ChatFormatting.GREEN)
 
-            W.Write("(", Formatting.GOLD)
+            W.Write("(", ChatFormatting.GOLD)
             for ((I, A) in Args.withIndex()) {
-                if (I != 0) W.Write(", ", Formatting.GOLD)
+                if (I != 0) W.Write(", ", ChatFormatting.GOLD)
                 A.Display(W)
             }
-            W.Write(")", Formatting.GOLD)
+            W.Write(")", ChatFormatting.GOLD)
         }
 
         override fun Evaluate(E: Executor): Any {
@@ -403,7 +403,7 @@ object MCBASIC {
                 }
                 Builtin.IS_GM -> {
                     val Ent: Entity = (Args[0] as EntitySelectorExpr).EvaluateToSingleEntity(E)
-                    return if (Ent is ServerPlayerEntity && (Ent.isCreative || Ent.isSpectator)) 1 else 0
+                    return if (Ent is ServerPlayer && (Ent.isCreative || Ent.isSpectator)) 1 else 0
                 }
             }
         }
@@ -412,22 +412,22 @@ object MCBASIC {
     /** An expression that is actually a Minecraft command. */
     private class CommandExpr(val Command: String) : Expr() {
         override fun Display(W: Writer) {
-            W.Write("`", Formatting.GOLD)
+            W.Write("`", ChatFormatting.GOLD)
             DisplayAsStmt(W)
-            W.Write("`", Formatting.GOLD)
+            W.Write("`", ChatFormatting.GOLD)
         }
 
         override fun DisplayAsStmt(W: Writer) {
             val Cmd = Command.split(WHITESPACE_REGEX)[0]
             val Rest = Command.drop(Cmd.length).trimStart()
-            W.Write("/$Cmd", Formatting.GREEN)
-            if (Rest.isNotEmpty()) W.Write(" $Rest", Formatting.YELLOW)
+            W.Write("/$Cmd", ChatFormatting.GREEN)
+            if (Rest.isNotEmpty()) W.Write(" $Rest", ChatFormatting.YELLOW)
         }
 
         override fun Evaluate(E: Executor): Any {
-            val CM = E.Source.server.commandManager
+            val CM = E.Source.server.commands
             val Wrapped = "return run $Command" // Wrap w/ 'return' to get the return value.
-            CM.execute(CM.dispatcher.parse(Wrapped, E.Source), Wrapped)
+            CM.performCommand(CM.dispatcher.parse(Wrapped, E.Source), Wrapped)
             return E.CommandReturnValue
         }
     }
@@ -435,11 +435,11 @@ object MCBASIC {
     /** An expression that selects an entity. */
     private class EntitySelectorExpr(val Sel: EntitySelector, val SelStr: String): Expr() {
         override fun Display(W: Writer) {
-            W.Write(SelStr, Formatting.AQUA)
+            W.Write(SelStr, ChatFormatting.AQUA)
         }
 
         override fun Evaluate(E: Executor): Any {
-            return Sel.getEntities(E.Source)
+            return Sel.findEntities(E.Source)
         }
 
         fun EvaluateToSingleEntity(E: Executor): Entity {
@@ -452,9 +452,9 @@ object MCBASIC {
     /** An 'if' statement, which does what you’d expect. */
     private class IfStmt(val Cond: Expr, val Body: Stmt): Stmt() {
         override fun Display(W: Writer) {
-            W.Write("if ", Formatting.GOLD)
+            W.Write("if ", ChatFormatting.GOLD)
             Cond.Display(W)
-            W.Write(" then", Formatting.GOLD)
+            W.Write(" then", ChatFormatting.GOLD)
             if (Body !is Block) W.Indent()
             W.WriteStmt(Body)
             if (Body !is Block) W.Outdent()
@@ -469,7 +469,7 @@ object MCBASIC {
 
     /** A statement that returns from the current procedure. */
     private class ReturnStmt() : Stmt() {
-        override fun Display(W: Writer) { W.Write("return", Formatting.GOLD) }
+        override fun Display(W: Writer) { W.Write("return", ChatFormatting.GOLD) }
         override fun Execute(E: Executor) { throw ReturnException.INSTANCE }
     }
 
@@ -589,7 +589,7 @@ object MCBASIC {
                 }
                 '@' -> {
                     val SR = StringReader(Code)
-                    val Sel = EntityArgumentType.entities().parse(SR)
+                    val Sel = EntityArgument.entities().parse(SR)
                     Code = SR.string.drop(SR.cursor)
                     return Token(TokenKind.EntitySelector, SR.string.take(SR.cursor), Sel = Sel)
                 }

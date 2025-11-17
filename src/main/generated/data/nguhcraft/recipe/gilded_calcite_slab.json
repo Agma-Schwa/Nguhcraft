@@ -1,6 +1,6 @@
 {
   "type": "minecraft:crafting_shaped",
-  "category": "misc",
+  "category": "building",
   "key": {
     "#": "nguhcraft:gilded_calcite"
   },
@@ -8,7 +8,7 @@
     "###"
   ],
   "result": {
-    "count": 3,
+    "count": 6,
     "id": "nguhcraft:gilded_calcite_slab"
   }
 }

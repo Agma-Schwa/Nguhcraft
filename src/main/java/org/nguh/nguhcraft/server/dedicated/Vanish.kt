@@ -3,16 +3,16 @@ package org.nguh.nguhcraft.server.dedicated
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking
-import net.minecraft.network.packet.CustomPayload
-import net.minecraft.network.packet.Packet
-import net.minecraft.network.packet.s2c.play.PlayerListS2CPacket
-import net.minecraft.network.packet.s2c.play.PlayerRemoveS2CPacket
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload
+import net.minecraft.network.protocol.Packet
+import net.minecraft.network.protocol.game.ClientboundPlayerInfoUpdatePacket
+import net.minecraft.network.protocol.game.ClientboundPlayerInfoRemovePacket
 import net.minecraft.server.MinecraftServer
-import net.minecraft.server.network.ServerCommonNetworkHandler
-import net.minecraft.server.network.ServerPlayNetworkHandler
-import net.minecraft.server.network.ServerPlayerEntity
-import net.minecraft.text.Text
-import net.minecraft.util.Formatting
+import net.minecraft.server.network.ServerCommonPacketListenerImpl
+import net.minecraft.server.network.ServerGamePacketListenerImpl
+import net.minecraft.server.level.ServerPlayer
+import net.minecraft.network.chat.Component
+import net.minecraft.ChatFormatting
 import org.nguh.nguhcraft.network.ClientFlags
 import org.nguh.nguhcraft.server.Broadcast
 import org.nguh.nguhcraft.server.Data
@@ -43,29 +43,29 @@ object Vanish {
     * mainly for packets that are necessary for gameplay.
     */
     @JvmStatic
-    fun BroadcastIfNotVanished(SP: ServerPlayerEntity, Packet: CustomPayload) {
+    fun BroadcastIfNotVanished(SP: ServerPlayer, Packet: CustomPacketPayload) {
         if (SP.Data.Vanished) ServerPlayNetworking.send(SP, Packet)
         else SP.Server.Broadcast(Packet)
     }
 
     @JvmStatic
-    fun BroadcastIfNotVanished(SP: ServerPlayerEntity, Packet: Packet<*>) {
-        if (SP.Data.Vanished) SP.networkHandler.sendPacket(Packet)
+    fun BroadcastIfNotVanished(SP: ServerPlayer, Packet: Packet<*>) {
+        if (SP.Data.Vanished) SP.connection.send(Packet)
         else SP.Server.Broadcast(Packet)
     }
 
     @JvmStatic
     fun FixPlayerListPacket(
         S: MinecraftServer,
-        H: ServerCommonNetworkHandler,
-        PLP: PlayerListS2CPacket
-    ): PlayerListS2CPacket {
+        H: ServerCommonPacketListenerImpl,
+        PLP: ClientboundPlayerInfoUpdatePacket
+    ): ClientboundPlayerInfoUpdatePacket {
         // I don’t think this should happen, but there is not much we can do
         // here if we have no way to get the player from the network handler.
-        if (H !is ServerPlayNetworkHandler) return PLP
+        if (H !is ServerGamePacketListenerImpl) return PLP
 
         // Filter out vanished players.
-        val l = PLP.entries.filter {
+        val l = PLP.entries().filter {
             // Always send ourselves.
             //
             // Note that this packet may get send before a player is added to the
@@ -75,24 +75,26 @@ object Vanish {
 
             // If we can’t get the profile here, then something probably went wrong
             // so send the player anyway.
-            val SP = S.playerManager.getPlayer(it.profileId)
+            val SP = S.playerList.getPlayer(it.profileId)
             SP == null || !SP.Data.Vanished
         }
 
         // If that had no effect, keep the same packet.
-        if (l.size == PLP.entries.size) return PLP
+        if (l.size == PLP.entries().size) return PLP
 
         // Otherwise, build a new one. We can’t simply change the entries in
         // the original packet since the same packet may be broadcast to multiple
         // players, and the resulting packet may have to be different for each
         // player.
-        return PlayerListS2CPacket.entryFromPlayer(l.map { S.playerManager.getPlayer(it.profileId) })
+        return ClientboundPlayerInfoUpdatePacket.createPlayerInitializing(
+            l.map { S.playerList.getPlayer(it.profileId) }
+        )
     }
 
     @JvmStatic
-    fun IsVanished(SP: ServerPlayerEntity): Boolean = SP.Data.Vanished
+    fun IsVanished(SP: ServerPlayer): Boolean = SP.Data.Vanished
 
-    fun Toggle(SP: ServerPlayerEntity) {
+    fun Toggle(SP: ServerPlayer) {
         // Toggle this first since some of the code below depends on it
         // having the correct value.
         SP.Data.Vanished = !SP.Data.Vanished
@@ -102,24 +104,24 @@ object Vanish {
         SP.SetClientFlag(ClientFlags.VANISHED, SP.Data.Vanished)
     }
 
-    private fun HidePlayer(SP: ServerPlayerEntity) {
-        val P = PlayerRemoveS2CPacket(listOf(SP.uuid))
+    private fun HidePlayer(SP: ServerPlayer) {
+        val P = ClientboundPlayerInfoRemovePacket(listOf(SP.uuid))
 
         // Detach any vehicles, otherwise, we might get into weird situations
         // where a client receives packets for a player that is to them no longer
         // on the server.
-        SP.detach()
+        SP.unRide()
 
         // Broadcast the packet to all players.
         SP.Server.Broadcast(SP, P)
 
         // As well as a fake quit message.
-        SP.Server.Broadcast(Text.translatable("multiplayer.player.left", SP.Name).formatted(Formatting.YELLOW))
+        SP.Server.Broadcast(Component.translatable("multiplayer.player.left", SP.Name).withStyle(ChatFormatting.YELLOW))
         Discord.BroadcastJoinQuitMessageImpl(SP, false)
     }
 
-    private fun ShowPlayer(SP: ServerPlayerEntity) {
-        val P = PlayerListS2CPacket.entryFromPlayer(listOf(SP))
+    private fun ShowPlayer(SP: ServerPlayer) {
+        val P = ClientboundPlayerInfoUpdatePacket.createPlayerInitializing(listOf(SP))
 
         // Broadcast the packet to all players.
         SP.Server.Broadcast(SP, P)
@@ -132,6 +134,6 @@ object Vanish {
         Discord.BroadcastClientStateOnJoin(SP)
 
         // Also send out a fake join message.
-        SP.Server.Broadcast(Text.translatable("multiplayer.player.joined", SP.Name).formatted(Formatting.YELLOW))
+        SP.Server.Broadcast(Component.translatable("multiplayer.player.joined", SP.Name).withStyle(ChatFormatting.YELLOW))
     }
 }

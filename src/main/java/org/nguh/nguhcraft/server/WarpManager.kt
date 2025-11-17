@@ -2,13 +2,13 @@ package org.nguh.nguhcraft.server
 
 import com.mojang.serialization.Codec
 import com.mojang.serialization.codecs.RecordCodecBuilder
-import net.minecraft.registry.RegistryKey
-import net.minecraft.registry.RegistryKeys
+import net.minecraft.resources.ResourceKey
+import net.minecraft.core.registries.Registries
 import net.minecraft.server.MinecraftServer
-import net.minecraft.storage.ReadView
-import net.minecraft.storage.WriteView
-import net.minecraft.util.math.Vec3d
-import net.minecraft.world.World
+import net.minecraft.world.level.storage.ValueInput
+import net.minecraft.world.level.storage.ValueOutput
+import net.minecraft.world.phys.Vec3
+import net.minecraft.world.level.Level
 import org.nguh.nguhcraft.Encode
 import org.nguh.nguhcraft.Named
 import org.nguh.nguhcraft.Read
@@ -18,19 +18,19 @@ class WarpManager : Manager() {
     /** A single warp. */
     data class Warp(
         val Name: String,
-        val World: RegistryKey<World>,
+        val World: ResourceKey<Level>,
         val X: Double,
         val Y: Double,
         val Z: Double,
         val Yaw: Float,
         val Pitch: Float
     ) {
-        val Pos get() = Vec3d(X, Y, Z)
+        val Pos get() = Vec3(X, Y, Z)
         companion object {
             val CODEC: Codec<Warp> = RecordCodecBuilder.create {
                 it.group(
                     Codec.STRING.fieldOf("Name").forGetter(Warp::Name),
-                    RegistryKey.createCodec(RegistryKeys.WORLD).fieldOf("World").forGetter(Warp::World),
+                    ResourceKey.codec(Registries.DIMENSION).fieldOf("World").forGetter(Warp::World),
                     Codec.DOUBLE.fieldOf("X").forGetter(Warp::X),
                     Codec.DOUBLE.fieldOf("Y").forGetter(Warp::Y),
                     Codec.DOUBLE.fieldOf("Z").forGetter(Warp::Z),
@@ -45,14 +45,14 @@ class WarpManager : Manager() {
     val Warps = mutableMapOf<String, Warp>()
 
     /** Load warps from save file. */
-    override fun ReadData(RV: ReadView) {
+    override fun ReadData(RV: ValueInput) {
         RV.Read(CODEC).ifPresent {
             Warps.putAll(it.associateBy { it.Name })
         }
     }
 
     /** Save warps to save file. */
-    override fun WriteData(WV: WriteView) = WV.Write(CODEC, Warps.values.toList())
+    override fun WriteData(WV: ValueOutput) = WV.Write(CODEC, Warps.values.toList())
 
     companion object {
         val CODEC = Warp.CODEC.listOf().Named("Warps")

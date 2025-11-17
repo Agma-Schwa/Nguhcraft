@@ -1,16 +1,16 @@
 package org.nguh.nguhcraft.mixin.common;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.block.entity.BlockEntityType;
-import net.minecraft.block.entity.ChestBlockEntity;
-import net.minecraft.block.entity.LootableContainerBlockEntity;
-import net.minecraft.component.ComponentMap;
-import net.minecraft.component.ComponentsAccess;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.storage.ReadView;
-import net.minecraft.storage.WriteView;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.entity.ChestBlockEntity;
+import net.minecraft.world.level.block.entity.RandomizableContainerBlockEntity;
+import net.minecraft.core.component.DataComponentMap;
+import net.minecraft.core.component.DataComponentGetter;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.core.BlockPos;
 import org.jetbrains.annotations.Nullable;
 import org.nguh.nguhcraft.accessors.ChestBlockEntityAccessor;
 import org.nguh.nguhcraft.block.ChestVariant;
@@ -24,7 +24,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import java.util.Locale;
 
 @Mixin(ChestBlockEntity.class)
-public abstract class ChestBlockEntityMixin extends LootableContainerBlockEntity implements ChestBlockEntityAccessor {
+public abstract class ChestBlockEntityMixin extends RandomizableContainerBlockEntity implements ChestBlockEntityAccessor {
     protected ChestBlockEntityMixin(BlockEntityType<?> blockEntityType, BlockPos blockPos, BlockState blockState) {
         super(blockEntityType, blockPos, blockState);
     }
@@ -35,33 +35,33 @@ public abstract class ChestBlockEntityMixin extends LootableContainerBlockEntity
     @Override public @Nullable ChestVariant Nguhcraft$GetChestVariant() { return Variant; }
 
     @Override
-    protected void addComponents(ComponentMap.Builder B) {
-        super.addComponents(B);
-        if (Variant != null) B.add(NguhBlocks.CHEST_VARIANT_COMPONENT, Variant);
+    protected void collectImplicitComponents(DataComponentMap.Builder B) {
+        super.collectImplicitComponents(B);
+        if (Variant != null) B.set(NguhBlocks.CHEST_VARIANT_COMPONENT, Variant);
     }
 
     @Override
-    protected void readComponents(ComponentsAccess CA) {
-        super.readComponents(CA);
+    protected void applyImplicitComponents(DataComponentGetter CA) {
+        super.applyImplicitComponents(CA);
         Variant = CA.get(NguhBlocks.CHEST_VARIANT_COMPONENT);
     }
 
-    @Inject(method = "readData", at = @At("TAIL"))
-    public void inject$readData(ReadView RV, CallbackInfo CI) {
-        RV.getOptionalString(TAG_CHEST_VARIANT).ifPresent(
+    @Inject(method = "loadAdditional", at = @At("TAIL"))
+    public void inject$readData(ValueInput RV, CallbackInfo CI) {
+        RV.getString(TAG_CHEST_VARIANT).ifPresent(
             S -> Variant = ChestVariant.valueOf(S.toUpperCase(Locale.ROOT))
         );
     }
 
     @Override
-    public NbtCompound toInitialChunkDataNbt(RegistryWrapper.WrapperLookup registries) {
-        var Tag = super.toInitialChunkDataNbt(registries);
-        if (Variant != null) Tag.putString(TAG_CHEST_VARIANT, Variant.asString());
+    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
+        var Tag = super.getUpdateTag(registries);
+        if (Variant != null) Tag.putString(TAG_CHEST_VARIANT, Variant.getSerializedName());
         return Tag;
     }
 
-    @Inject(method = "writeData", at = @At("TAIL"))
-    public void inject$writeData(WriteView WV, CallbackInfo CI) {
-        if (Variant != null) WV.putString(TAG_CHEST_VARIANT, Variant.asString());
+    @Inject(method = "saveAdditional", at = @At("TAIL"))
+    public void inject$writeData(ValueOutput WV, CallbackInfo CI) {
+        if (Variant != null) WV.putString(TAG_CHEST_VARIANT, Variant.getSerializedName());
     }
 }

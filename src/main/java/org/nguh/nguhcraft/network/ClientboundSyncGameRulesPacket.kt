@@ -1,18 +1,18 @@
 package org.nguh.nguhcraft.network
 
 import io.netty.buffer.ByteBuf
-import net.minecraft.network.codec.PacketCodec
-import net.minecraft.network.codec.PacketCodecs
-import net.minecraft.network.packet.CustomPayload
+import net.minecraft.network.codec.StreamCodec
+import net.minecraft.network.codec.ByteBufCodecs
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload
 import org.nguh.nguhcraft.Utils
 
 data class ClientboundSyncGameRulesPacket (
     var Flags: Long
-) : CustomPayload {
-    override fun getId() = ID
+) : CustomPacketPayload {
+    override fun type() = ID
     companion object {
         val ID = Utils.PacketId<ClientboundSyncGameRulesPacket>("clientbound/sync_game_rules")
-        val CODEC: PacketCodec<ByteBuf, ClientboundSyncGameRulesPacket> = PacketCodecs.VAR_LONG.xmap(
+        val CODEC: StreamCodec<ByteBuf, ClientboundSyncGameRulesPacket> = ByteBufCodecs.VAR_LONG.map(
             ::ClientboundSyncGameRulesPacket,
             ClientboundSyncGameRulesPacket::Flags
         )

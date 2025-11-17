@@ -1,13 +1,13 @@
 package org.nguh.nguhcraft
 
-import net.minecraft.entity.Entity
-import net.minecraft.entity.damage.DamageSource
-import net.minecraft.entity.damage.DamageType
-import net.minecraft.entity.player.PlayerEntity
-import net.minecraft.registry.Registerable
-import net.minecraft.registry.RegistryKey
-import net.minecraft.registry.RegistryKeys
-import net.minecraft.world.World
+import net.minecraft.world.entity.Entity
+import net.minecraft.world.damagesource.DamageSource
+import net.minecraft.world.damagesource.DamageType
+import net.minecraft.world.entity.player.Player
+import net.minecraft.data.worldgen.BootstrapContext
+import net.minecraft.resources.ResourceKey
+import net.minecraft.core.registries.Registries
+import net.minecraft.world.level.Level
 import org.nguh.nguhcraft.Nguhcraft.Companion.Id
 
 object NguhDamageTypes {
@@ -19,7 +19,7 @@ object NguhDamageTypes {
     val STONECUTTER = Register("stonecutter")
     val BYPASSES_RESISTANCES = arrayOf(MINECART_COLLISION, MINECART_RUN_OVER, MINECART_POOR_TRACK_DESIGN, OBLITERATED)
 
-    fun Bootstrap(R: Registerable<DamageType>) {
+    fun Bootstrap(R: BootstrapContext<DamageType>) {
         R.register(ARCANE, DamageType("arcane", 0.0f))
         R.register(MINECART_COLLISION, DamageType("minecart_collision", 0.0f))
         R.register(MINECART_POOR_TRACK_DESIGN, DamageType("minecart_poor_track_design", 0.0f))
@@ -28,14 +28,14 @@ object NguhDamageTypes {
         R.register(STONECUTTER, DamageType("stonecutter", 0.0f))
     }
 
-    @JvmStatic fun Arcane(W: World, Attacker: Entity) = DamageSource(Entry(W, ARCANE), Attacker)
-    @JvmStatic fun MinecartRunOverBy(W: World, P: PlayerEntity? = null) = DamageSource(Entry(W, MINECART_RUN_OVER), P)
-    @JvmStatic fun MinecartCollision(W: World, P: PlayerEntity? = null) = DamageSource(Entry(W, MINECART_COLLISION), P)
-    @JvmStatic fun MinecartPoorTrackDesign(W: World, P: PlayerEntity? = null) = DamageSource(Entry(W, MINECART_POOR_TRACK_DESIGN), P)
-    @JvmStatic fun Obliterated(W: World) = DamageSource(Entry(W, OBLITERATED), null as Entity?)
-    @JvmStatic fun Stonecutter(W: World) = DamageSource(Entry(W, STONECUTTER), null as Entity?)
+    @JvmStatic fun Arcane(W: Level, Attacker: Entity) = DamageSource(Entry(W, ARCANE), Attacker)
+    @JvmStatic fun MinecartRunOverBy(W: Level, P: Player? = null) = DamageSource(Entry(W, MINECART_RUN_OVER), P)
+    @JvmStatic fun MinecartCollision(W: Level, P: Player? = null) = DamageSource(Entry(W, MINECART_COLLISION), P)
+    @JvmStatic fun MinecartPoorTrackDesign(W: Level, P: Player? = null) = DamageSource(Entry(W, MINECART_POOR_TRACK_DESIGN), P)
+    @JvmStatic fun Obliterated(W: Level) = DamageSource(Entry(W, OBLITERATED), null as Entity?)
+    @JvmStatic fun Stonecutter(W: Level) = DamageSource(Entry(W, STONECUTTER), null as Entity?)
 
-    private fun Register(Key: String) = RegistryKey.of(RegistryKeys.DAMAGE_TYPE, Id(Key))
-    private fun Entry(W: World, Key: RegistryKey<DamageType>) =
-        W.registryManager.getOrThrow(RegistryKeys.DAMAGE_TYPE).getOrThrow(Key)
+    private fun Register(Key: String) = ResourceKey.create(Registries.DAMAGE_TYPE, Id(Key))
+    private fun Entry(W: Level, Key: ResourceKey<DamageType>) =
+        W.registryAccess().lookupOrThrow(Registries.DAMAGE_TYPE).getOrThrow(Key)
 }

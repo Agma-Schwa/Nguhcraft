@@ -1,20 +1,20 @@
 package org.nguh.nguhcraft
 
-import net.minecraft.entity.decoration.painting.PaintingVariant
-import net.minecraft.registry.Registerable
-import net.minecraft.registry.RegistryKey
-import net.minecraft.registry.RegistryKeys.PAINTING_VARIANT
-import net.minecraft.text.Text
-import net.minecraft.util.Formatting
+import net.minecraft.world.entity.decoration.PaintingVariant
+import net.minecraft.data.worldgen.BootstrapContext
+import net.minecraft.resources.ResourceKey
+import net.minecraft.core.registries.Registries.PAINTING_VARIANT
+import net.minecraft.network.chat.Component
+import net.minecraft.ChatFormatting
 import org.nguh.nguhcraft.Nguhcraft.Companion.RKey
 import java.util.Optional
 
 object NguhPaintings {
     // All paintings that can be obtained randomly by placing them.
-    var PLACEABLE = listOf<RegistryKey<PaintingVariant>>()
+    var PLACEABLE = listOf<ResourceKey<PaintingVariant>>()
 
     // Generate definitions for all paintings.
-    fun Bootstrap(R: Registerable<PaintingVariant>) {
+    fun Bootstrap(R: BootstrapContext<PaintingVariant>) {
         // Reset the list.
         PLACEABLE = mutableListOf()
 
@@ -25,9 +25,9 @@ object NguhPaintings {
                 K, PaintingVariant(
                     Width,
                     Height,
-                    K.value,
-                    Optional.of(Text.translatable(K.value.toTranslationKey("painting", "title")).formatted(Formatting.YELLOW)),
-                    Optional.of(Text.translatable(K.value.toTranslationKey("painting", "author")).formatted(Formatting.GRAY))
+                    K.location(),
+                    Optional.of(Component.translatable(K.location().toLanguageKey("painting", "title")).withStyle(ChatFormatting.YELLOW)),
+                    Optional.of(Component.translatable(K.location().toLanguageKey("painting", "author")).withStyle(ChatFormatting.GRAY))
                 )
             )
 

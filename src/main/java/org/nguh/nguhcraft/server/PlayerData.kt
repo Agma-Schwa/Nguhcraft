@@ -2,10 +2,10 @@ package org.nguh.nguhcraft.server
 
 import com.mojang.serialization.Codec
 import com.mojang.serialization.codecs.RecordCodecBuilder
-import net.minecraft.server.network.ServerPlayerEntity
-import net.minecraft.storage.ReadView
-import net.minecraft.storage.WriteView
-import net.minecraft.text.Text
+import net.minecraft.server.level.ServerPlayer
+import net.minecraft.world.level.storage.ValueInput
+import net.minecraft.world.level.storage.ValueOutput
+import net.minecraft.network.chat.Component
 import org.nguh.nguhcraft.Named
 import org.nguh.nguhcraft.Read
 import org.nguh.nguhcraft.Write
@@ -63,7 +63,7 @@ class PlayerData {
     var LastKnownMinecraftName: String = ""
 
     /** If this player is linked, their Discord display name. */
-    @JvmField var NguhcraftDisplayName: Text? = null
+    @JvmField var NguhcraftDisplayName: Component? = null
 
     /** Whether this player is currently muted. */
     var Muted = false
@@ -72,7 +72,7 @@ class PlayerData {
     val IsLinked get() = DiscordId != 0L
 
     /** Serialise. */
-    fun Save(WV: WriteView) = WV.Write(CODEC, this)
+    fun Save(WV: ValueOutput) = WV.Write(CODEC, this)
 
     companion object {
         private val CODEC = RecordCodecBuilder.create {
@@ -108,8 +108,8 @@ class PlayerData {
         }.Named("Nguhcraft")
 
         @JvmStatic
-        fun Load(RV: ReadView) = RV.Read(CODEC)
+        fun Load(RV: ValueInput) = RV.Read(CODEC)
     }
 }
 
-val ServerPlayerEntity.Data get() = (this as PlayerData.Access).`Nguhcraft$GetPlayerData`()
+val ServerPlayer.Data get() = (this as PlayerData.Access).`Nguhcraft$GetPlayerData`()

@@ -1,13 +1,13 @@
 package org.nguh.nguhcraft.mixin.server;
 
-import net.minecraft.enchantment.EnchantmentHelper;
-import net.minecraft.enchantment.Enchantments;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.damage.DamageSource;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.server.world.ServerWorld;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraft.world.item.enchantment.Enchantments;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.server.level.ServerLevel;
 import org.jetbrains.annotations.Nullable;
 import org.nguh.nguhcraft.server.ServerUtils;
 import org.spongepowered.asm.mixin.Mixin;
@@ -23,11 +23,11 @@ import static org.nguh.nguhcraft.Utils.EnchantLvl;
 public abstract class EnchantmentHelperMixin {
     /** Make channeling work with melee weapons. */
     @Inject(
-        method = "onTargetDamaged(Lnet/minecraft/server/world/ServerWorld;Lnet/minecraft/entity/Entity;Lnet/minecraft/entity/damage/DamageSource;Lnet/minecraft/item/ItemStack;Ljava/util/function/Consumer;)V",
+        method = "doPostAttackEffectsWithItemSourceOnBreak(Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/world/entity/Entity;Lnet/minecraft/world/damagesource/DamageSource;Lnet/minecraft/world/item/ItemStack;Ljava/util/function/Consumer;)V",
         at = @At("HEAD")
     )
     private static void inject$onTargetDamaged(
-        ServerWorld SW,
+        ServerLevel SW,
         Entity E,
         DamageSource DS,
         @Nullable ItemStack Weapon,
@@ -35,13 +35,13 @@ public abstract class EnchantmentHelperMixin {
         CallbackInfo CI
     ) {
         if (
-            DS.getAttacker() instanceof LivingEntity &&
+            DS.getEntity() instanceof LivingEntity &&
             E instanceof LivingEntity LE &&
             Weapon != null &&
             EnchantLvl(SW, Weapon, Enchantments.CHANNELING) >= 2
         ) {
-            LE.timeUntilRegen = 0; // Make sure this can deal damage.
-            ServerUtils.StrikeLightning(SW, E.getPos());
+            LE.invulnerableTime = 0; // Make sure this can deal damage.
+            ServerUtils.StrikeLightning(SW, E.position());
         }
     }
 }

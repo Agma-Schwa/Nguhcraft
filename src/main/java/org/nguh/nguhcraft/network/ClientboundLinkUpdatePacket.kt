@@ -2,9 +2,9 @@ package org.nguh.nguhcraft.network
 
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
-import net.minecraft.network.RegistryByteBuf
-import net.minecraft.network.packet.CustomPayload
-import net.minecraft.server.network.ServerPlayerEntity
+import net.minecraft.network.RegistryFriendlyByteBuf
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload
+import net.minecraft.server.level.ServerPlayer
 import org.nguh.nguhcraft.Utils
 import org.nguh.nguhcraft.server.Data
 import java.util.*
@@ -24,31 +24,31 @@ data class ClientboundLinkUpdatePacket(
 
     /** Whether the player is linked.  */
     val Linked: Boolean
-) : CustomPayload {
-    override fun getId() = ID
+) : CustomPacketPayload {
+    override fun type() = ID
 
-    private constructor(buf: RegistryByteBuf) : this(
-        buf.readUuid(),
-        buf.readString(),
+    private constructor(buf: RegistryFriendlyByteBuf) : this(
+        buf.readUUID(),
+        buf.readUtf(),
         buf.readInt(),
-        buf.readString(),
+        buf.readUtf(),
         buf.readBoolean(),
     )
 
     @Environment(EnvType.SERVER)
-    constructor(SP: ServerPlayerEntity) : this(
+    constructor(SP: ServerPlayer) : this(
         SP.uuid,
-        SP.nameForScoreboard,
+        SP.scoreboardName,
         SP.Data.DiscordColour,
         SP.Data.DiscordName,
         SP.Data.IsLinked
     )
 
-    private fun Write(buf: RegistryByteBuf) {
-        buf.writeUuid(PlayerId)
-        buf.writeString(MinecraftName)
+    private fun Write(buf: RegistryFriendlyByteBuf) {
+        buf.writeUUID(PlayerId)
+        buf.writeUtf(MinecraftName)
         buf.writeInt(DiscordColour)
-        buf.writeString(DiscordName)
+        buf.writeUtf(DiscordName)
         buf.writeBoolean(Linked)
     }
 

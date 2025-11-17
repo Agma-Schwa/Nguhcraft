@@ -2,12 +2,12 @@ package org.nguh.nguhcraft.protect
 
 import com.mojang.serialization.Codec
 import com.mojang.serialization.codecs.RecordCodecBuilder
-import net.minecraft.network.codec.PacketCodec
-import net.minecraft.network.codec.PacketCodecs
-import net.minecraft.util.Colors
-import net.minecraft.util.function.BooleanBiFunction
-import net.minecraft.util.shape.VoxelShape
-import net.minecraft.util.shape.VoxelShapes
+import net.minecraft.network.codec.StreamCodec
+import net.minecraft.network.codec.ByteBufCodecs
+import net.minecraft.util.CommonColors
+import net.minecraft.world.phys.shapes.BooleanOp
+import net.minecraft.world.phys.shapes.VoxelShape
+import net.minecraft.world.phys.shapes.Shapes
 import org.nguh.nguhcraft.SmallEnumSet
 import org.nguh.nguhcraft.XZRect
 import java.util.*
@@ -157,9 +157,9 @@ open class Region(
         protected set
 
     /** Voxel shape for collisions from the inside. */
-    val InsideShape: VoxelShape = VoxelShapes.combineAndSimplify(
-        VoxelShapes.UNBOUNDED,
-        VoxelShapes.cuboid(
+    val InsideShape: VoxelShape = Shapes.join(
+        Shapes.INFINITY,
+        Shapes.box(
             MinX.toDouble(),
             Double.NEGATIVE_INFINITY,
             MinZ.toDouble(),
@@ -167,18 +167,18 @@ open class Region(
             Double.POSITIVE_INFINITY,
             OutsideMaxZ.toDouble()
         ),
-        BooleanBiFunction.ONLY_FIRST
+        BooleanOp.ONLY_FIRST
     )
 
     /** Voxel shape for collisions from the outside. */
-    val OutsideShape: VoxelShape = VoxelShapes.cuboid(
+    val OutsideShape: VoxelShape = Shapes.box(
         MinX.toDouble(),
         Double.NEGATIVE_INFINITY,
         MinZ.toDouble(),
         OutsideMaxX.toDouble(),
         Double.POSITIVE_INFINITY,
         OutsideMaxZ.toDouble()
-    ).simplify()
+    ).optimize()
 
     /** Check if this region allows players to attack non-hostile mobs. */
     fun AllowsAttackingFriendlyEntities() = Test(Flags.ATTACK_FRIENDLY)
@@ -233,8 +233,8 @@ open class Region(
         !Test(Flags.RENDER_ENTRY_EXIT_BARRIER) -> null
         ColourOverride != null -> ColourOverride
         !AllowsPlayerEntry() && !AllowsPlayerExit() -> 0xFFFFAA00.toInt()
-        !AllowsPlayerExit() -> Colors.LIGHT_RED
-        !AllowsPlayerEntry() -> Colors.CYAN
+        !AllowsPlayerExit() -> CommonColors.SOFT_RED
+        !AllowsPlayerEntry() -> CommonColors.HIGH_CONTRAST_DIAMOND
         else -> null
     }
 
@@ -263,13 +263,13 @@ open class Region(
             ).apply(it, ::Region)
         }
 
-        val PACKET_CODEC = PacketCodec.tuple(
-            PacketCodecs.STRING, Region::Name,
-            PacketCodecs.INTEGER, Region::MinX,
-            PacketCodecs.INTEGER, Region::MinZ,
-            PacketCodecs.INTEGER, Region::MaxX,
-            PacketCodecs.INTEGER, Region::MaxZ,
-            PacketCodecs.optional(PacketCodecs.INTEGER), { Optional.ofNullable(it.ColourOverride) },
+        val PACKET_CODEC = StreamCodec.composite(
+            ByteBufCodecs.STRING_UTF8, Region::Name,
+            ByteBufCodecs.INT, Region::MinX,
+            ByteBufCodecs.INT, Region::MinZ,
+            ByteBufCodecs.INT, Region::MaxX,
+            ByteBufCodecs.INT, Region::MaxZ,
+            ByteBufCodecs.optional(ByteBufCodecs.INT), { Optional.ofNullable(it.ColourOverride) },
             SmallEnumSet.CreatePacketCodec<Flags>(), Region::RegionFlags,
             ::Region
         )

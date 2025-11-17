@@ -1,6 +1,6 @@
 package org.nguh.nguhcraft
 
-import net.minecraft.datafixer.fix.ItemStackComponentizationFix
+import net.minecraft.util.datafix.fixes.ItemStackComponentizationFix
 import org.nguh.nguhcraft.Nguhcraft.Companion.MOD_ID
 import kotlin.jvm.optionals.getOrNull
 
@@ -59,8 +59,8 @@ object PaperDataFixer {
     *    3. Remove the 'HideFlags'.
     */
     @JvmStatic
-    fun FixSavedLore(Data: ItemStackComponentizationFix.StackData) {
-        Data.applyFixer("display", false) fixer@{ DisplayDyn ->
+    fun FixSavedLore(Data: ItemStackComponentizationFix.ItemStackData) {
+        Data.fixSubTag("display", false) fixer@{ DisplayDyn ->
             val SLRes = DisplayDyn.get("SavedLore").result()
             if (SLRes.isPresent) {
                 var SL = SLRes.get()

@@ -1,15 +1,17 @@
 {
   "type": "minecraft:crafting_shaped",
   "category": "misc",
+  "group": "wooden_fence",
   "key": {
-    "#": "nguhcraft:tinted_oak_planks"
+    "#": "nguhcraft:tinted_oak_planks",
+    "s": "minecraft:stick"
   },
   "pattern": [
-    "###",
-    "###"
+    "#s#",
+    "#s#"
   ],
   "result": {
-    "count": 6,
+    "count": 3,
     "id": "nguhcraft:tinted_oak_planks_fence"
   }
 }

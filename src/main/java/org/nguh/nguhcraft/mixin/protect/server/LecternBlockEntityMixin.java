@@ -1,12 +1,12 @@
 package org.nguh.nguhcraft.mixin.protect.server;
 
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.block.entity.BlockEntityType;
-import net.minecraft.block.entity.LecternBlockEntity;
-import net.minecraft.screen.ScreenHandler;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.entity.LecternBlockEntity;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.core.BlockPos;
 import org.nguh.nguhcraft.server.accessors.LecternScreenHandlerAccessor;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -19,8 +19,8 @@ public abstract class LecternBlockEntityMixin extends BlockEntity {
 
     /** Store the position of the lectern block in the screen handler. */
     @ModifyReturnValue(method = "createMenu", at = @At("RETURN"))
-    private ScreenHandler inject$createMenu(ScreenHandler Original) {
-        ((LecternScreenHandlerAccessor)Original).Nguhcraft$SetLecternPos(getPos());
+    private AbstractContainerMenu inject$createMenu(AbstractContainerMenu Original) {
+        ((LecternScreenHandlerAccessor)Original).Nguhcraft$SetLecternPos(getBlockPos());
         return Original;
     }
 }

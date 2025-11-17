@@ -4,49 +4,57 @@ import com.mojang.serialization.Codec
 import io.netty.buffer.ByteBuf
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents
 import net.fabricmc.fabric.api.`object`.builder.v1.block.entity.FabricBlockEntityTypeBuilder
-import net.minecraft.block.*
-import net.minecraft.block.entity.BlockEntity
-import net.minecraft.block.entity.BlockEntityType
-import net.minecraft.block.piston.PistonBehavior
-import net.minecraft.component.ComponentType
-import net.minecraft.data.family.BlockFamilies
-import net.minecraft.data.family.BlockFamily
-import net.minecraft.item.BlockItem
-import net.minecraft.item.Item
-import net.minecraft.item.ItemGroups
-import net.minecraft.network.codec.PacketCodec
-import net.minecraft.network.codec.PacketCodecs
-import net.minecraft.registry.Registries
-import net.minecraft.registry.Registry
-import net.minecraft.registry.RegistryKey
-import net.minecraft.registry.RegistryKeys
-import net.minecraft.registry.tag.TagKey
-import net.minecraft.text.Style
-import net.minecraft.text.Text
-import net.minecraft.util.StringIdentifiable
-import net.minecraft.util.function.ValueLists
+import net.fabricmc.fabric.api.`object`.builder.v1.block.type.BlockSetTypeBuilder
+import net.fabricmc.fabric.api.`object`.builder.v1.block.type.WoodTypeBuilder
+import net.fabricmc.fabric.api.registry.FlammableBlockRegistry
+import net.fabricmc.fabric.api.registry.StrippableBlockRegistry
+import net.minecraft.core.Registry
+import net.minecraft.core.component.DataComponentType
+import net.minecraft.core.registries.BuiltInRegistries
+import net.minecraft.core.registries.Registries
+import net.minecraft.data.BlockFamilies
+import net.minecraft.data.BlockFamily
+import net.minecraft.network.chat.Component
+import net.minecraft.network.chat.Style
+import net.minecraft.network.codec.ByteBufCodecs
+import net.minecraft.network.codec.StreamCodec
+import net.minecraft.resources.ResourceKey
+import net.minecraft.tags.TagKey
+import net.minecraft.util.ByIdMap
+import net.minecraft.util.StringRepresentable
+import net.minecraft.world.item.BlockItem
+import net.minecraft.world.item.CreativeModeTabs
+import net.minecraft.world.item.Item
+import net.minecraft.world.level.block.*
+import net.minecraft.world.level.block.entity.BlockEntity
+import net.minecraft.world.level.block.entity.BlockEntityType
+import net.minecraft.world.level.block.state.BlockBehaviour
+import net.minecraft.world.level.block.state.properties.BlockSetType
+import net.minecraft.world.level.block.state.properties.WoodType
+import net.minecraft.world.level.material.MapColor
+import net.minecraft.world.level.material.PushReaction
 import org.nguh.nguhcraft.Nguhcraft.Companion.Id
 import org.nguh.nguhcraft.flatten
 import java.util.function.IntFunction
 
-enum class ChestVariant : StringIdentifiable {
+enum class ChestVariant : StringRepresentable {
     CHRISTMAS,
     PALE_OAK;
 
-    val DefaultName: Text = Text.translatable("chest_variant.nguhcraft.${asString()}")
+    val DefaultName: Component = Component.translatable("chest_variant.nguhcraft.${getSerializedName()}")
         .setStyle(Style.EMPTY.withItalic(false))
 
-    override fun asString() = name.lowercase()
+    override fun getSerializedName() = name.lowercase()
 
     companion object {
-        val BY_ID: IntFunction<ChestVariant> = ValueLists.createIndexToValueFunction(
+        val BY_ID: IntFunction<ChestVariant> = ByIdMap.continuous(
             ChestVariant::ordinal,
             entries.toTypedArray(),
-            ValueLists.OutOfBoundsHandling.ZERO
+            ByIdMap.OutOfBoundsStrategy.ZERO
         )
 
-        val CODEC: Codec<ChestVariant> = StringIdentifiable.createCodec(ChestVariant::values)
-        val PACKET_CODEC: PacketCodec<ByteBuf, ChestVariant> = PacketCodecs.indexed(BY_ID, ChestVariant::ordinal)
+        val CODEC: Codec<ChestVariant> = StringRepresentable.fromEnum(ChestVariant::values)
+        val PACKET_CODEC: StreamCodec<ByteBuf, ChestVariant> = ByteBufCodecs.idMapper(BY_ID, ChestVariant::ordinal)
     }
 }
 
@@ -73,12 +81,12 @@ object NguhBlocks {
     @JvmField val CHEST_VARIANT_ID = Id("chest_variant")
 
     @JvmField
-    val CHEST_VARIANT_COMPONENT: ComponentType<ChestVariant> = Registry.register(
-        Registries.DATA_COMPONENT_TYPE,
+    val CHEST_VARIANT_COMPONENT: DataComponentType<ChestVariant> = Registry.register(
+        BuiltInRegistries.DATA_COMPONENT_TYPE,
         CHEST_VARIANT_ID,
-        ComponentType.builder<ChestVariant>()
-            .codec(ChestVariant.CODEC)
-            .packetCodec(ChestVariant.PACKET_CODEC)
+        DataComponentType.builder<ChestVariant>()
+            .persistent(ChestVariant.CODEC)
+            .networkSynchronized(ChestVariant.PACKET_CODEC)
             .build()
     )
 
@@ -91,97 +99,97 @@ object NguhBlocks {
     val BROCADE_WHITE = Register(
         "brocade_white",
         ::Block,
-        AbstractBlock.Settings.copy(Blocks.WHITE_WOOL)
+        BlockBehaviour.Properties.ofFullCopy(Blocks.WHITE_WOOL)
     )
 
     val BROCADE_LIGHT_GREY = Register(
         "brocade_light_grey",
         ::Block,
-        AbstractBlock.Settings.copy(Blocks.LIGHT_GRAY_WOOL)
+        BlockBehaviour.Properties.ofFullCopy(Blocks.LIGHT_GRAY_WOOL)
     )
 
     val BROCADE_GREY = Register(
         "brocade_grey",
         ::Block,
-        AbstractBlock.Settings.copy(Blocks.GRAY_WOOL)
+        BlockBehaviour.Properties.ofFullCopy(Blocks.GRAY_WOOL)
     )
 
     val BROCADE_BLACK = Register(
         "brocade_black",
         ::Block,
-        AbstractBlock.Settings.copy(Blocks.BLACK_WOOL)
+        BlockBehaviour.Properties.ofFullCopy(Blocks.BLACK_WOOL)
     )
 
     val BROCADE_BROWN = Register(
         "brocade_brown",
         ::Block,
-        AbstractBlock.Settings.copy(Blocks.BROWN_WOOL)
+        BlockBehaviour.Properties.ofFullCopy(Blocks.BROWN_WOOL)
     )
 
     val BROCADE_RED = Register(
         "brocade_red",
         ::Block,
-        AbstractBlock.Settings.copy(Blocks.RED_WOOL)
+        BlockBehaviour.Properties.ofFullCopy(Blocks.RED_WOOL)
     )
 
     val BROCADE_ORANGE = Register(
         "brocade_orange",
         ::Block,
-        AbstractBlock.Settings.copy(Blocks.ORANGE_WOOL)
+        BlockBehaviour.Properties.ofFullCopy(Blocks.ORANGE_WOOL)
     )
 
     val BROCADE_YELLOW = Register(
         "brocade_yellow",
         ::Block,
-        AbstractBlock.Settings.copy(Blocks.YELLOW_WOOL)
+        BlockBehaviour.Properties.ofFullCopy(Blocks.YELLOW_WOOL)
     )
 
     val BROCADE_LIME = Register(
         "brocade_lime",
         ::Block,
-        AbstractBlock.Settings.copy(Blocks.LIME_WOOL)
+        BlockBehaviour.Properties.ofFullCopy(Blocks.LIME_WOOL)
     )
 
     val BROCADE_GREEN = Register(
         "brocade_green",
         ::Block,
-        AbstractBlock.Settings.copy(Blocks.GREEN_WOOL)
+        BlockBehaviour.Properties.ofFullCopy(Blocks.GREEN_WOOL)
     )
 
     val BROCADE_CYAN = Register(
         "brocade_cyan",
         ::Block,
-        AbstractBlock.Settings.copy(Blocks.CYAN_WOOL)
+        BlockBehaviour.Properties.ofFullCopy(Blocks.CYAN_WOOL)
     )
 
     val BROCADE_LIGHT_BLUE = Register(
         "brocade_light_blue",
         ::Block,
-        AbstractBlock.Settings.copy(Blocks.LIGHT_BLUE_WOOL)
+        BlockBehaviour.Properties.ofFullCopy(Blocks.LIGHT_BLUE_WOOL)
     )
 
     val BROCADE_BLUE = Register(
         "brocade_blue",
         ::Block,
-        AbstractBlock.Settings.copy(Blocks.BLUE_WOOL)
+        BlockBehaviour.Properties.ofFullCopy(Blocks.BLUE_WOOL)
     )
 
     val BROCADE_PURPLE = Register(
         "brocade_purple",
         ::Block,
-        AbstractBlock.Settings.copy(Blocks.PURPLE_WOOL)
+        BlockBehaviour.Properties.ofFullCopy(Blocks.PURPLE_WOOL)
     )
 
     val BROCADE_MAGENTA = Register(
         "brocade_magenta",
         ::Block,
-        AbstractBlock.Settings.copy(Blocks.MAGENTA_WOOL)
+        BlockBehaviour.Properties.ofFullCopy(Blocks.MAGENTA_WOOL)
     )
 
     val BROCADE_PINK = Register(
         "brocade_pink",
         ::Block,
-        AbstractBlock.Settings.copy(Blocks.PINK_WOOL)
+        BlockBehaviour.Properties.ofFullCopy(Blocks.PINK_WOOL)
     )
 
     val ALL_BROCADE_BLOCKS = arrayOf(
@@ -209,74 +217,74 @@ object NguhBlocks {
     val DECORATIVE_HOPPER = Register(
         "decorative_hopper",
         ::DecorativeHopperBlock,
-        AbstractBlock.Settings.copy(Blocks.HOPPER)
+        BlockBehaviour.Properties.ofFullCopy(Blocks.HOPPER)
     )
 
     val LOCKED_DOOR =  Register(
         "locked_door",
         ::LockedDoorBlock,
-        AbstractBlock.Settings.create()
+        BlockBehaviour.Properties.of()
             .mapColor(MapColor.GOLD)
-            .requiresTool().strength(5.0f, 3600000.0F)
-            .nonOpaque()
-            .pistonBehavior(PistonBehavior.IGNORE)
+            .requiresCorrectToolForDrops().strength(5.0f, 3600000.0F)
+            .noOcclusion()
+            .pushReaction(PushReaction.IGNORE)
     )
 
     val WROUGHT_IRON_BLOCK = Register(
         "wrought_iron_block",
         ::Block,
-        AbstractBlock.Settings.copy(Blocks.IRON_BLOCK)
-            .mapColor(MapColor.GRAY)
+        BlockBehaviour.Properties.ofFullCopy(Blocks.IRON_BLOCK)
+            .mapColor(MapColor.COLOR_GRAY)
     )
 
     val WROUGHT_IRON_BARS = Register(
         "wrought_iron_bars",
-        ::PaneBlock,
-        AbstractBlock.Settings.copy(Blocks.IRON_BARS)
-            .mapColor(MapColor.GRAY)
+        ::IronBarsBlock,
+        BlockBehaviour.Properties.ofFullCopy(Blocks.IRON_BARS)
+            .mapColor(MapColor.COLOR_GRAY)
     )
 
     val GOLD_BARS = Register(
         "gold_bars",
-        ::PaneBlock,
-        AbstractBlock.Settings.copy(Blocks.IRON_BARS)
-            .mapColor(MapColor.YELLOW)
+        ::IronBarsBlock,
+        BlockBehaviour.Properties.ofFullCopy(Blocks.IRON_BARS)
+            .mapColor(MapColor.COLOR_YELLOW)
     )
 
     val IRON_GRATE = Register(
         "iron_grate",
-        ::GrateBlock,
-        AbstractBlock.Settings.copy(Blocks.IRON_BLOCK)
-            .mapColor(MapColor.GRAY)
-            .nonOpaque()
+        ::WaterloggedTransparentBlock,
+        BlockBehaviour.Properties.ofFullCopy(Blocks.IRON_BLOCK)
+            .mapColor(MapColor.COLOR_GRAY)
+            .noOcclusion()
     )
 
     val WROUGHT_IRON_GRATE = Register(
         "wrought_iron_grate",
-        ::GrateBlock,
-        AbstractBlock.Settings.copy(Blocks.IRON_BLOCK)
-            .mapColor(MapColor.GRAY)
-            .nonOpaque()
+        ::WaterloggedTransparentBlock,
+        BlockBehaviour.Properties.ofFullCopy(Blocks.IRON_BLOCK)
+            .mapColor(MapColor.COLOR_GRAY)
+            .noOcclusion()
     )
 
     val COMPRESSED_STONE = Register(
         "compressed_stone",
         ::Block,
-        AbstractBlock.Settings.copy(Blocks.STONE)
-            .mapColor(MapColor.STONE_GRAY)
+        BlockBehaviour.Properties.ofFullCopy(Blocks.STONE)
+            .mapColor(MapColor.STONE)
     )
 
     val PYRITE = Register(
         "pyrite",
         ::Block,
-        AbstractBlock.Settings.copy(Blocks.GOLD_BLOCK)
+        BlockBehaviour.Properties.ofFullCopy(Blocks.GOLD_BLOCK)
             .mapColor(MapColor.GOLD)
     )
 
     val PYRITE_BRICKS = Register(
         "pyrite_bricks",
         ::Block,
-        AbstractBlock.Settings.copy(Blocks.GOLD_BLOCK)
+        BlockBehaviour.Properties.ofFullCopy(Blocks.GOLD_BLOCK)
             .mapColor(MapColor.GOLD)
     )
 
@@ -288,14 +296,14 @@ object NguhBlocks {
     val CHISELED_PYRITE_BRICKS = Register(
         "chiseled_pyrite_bricks",
         ::Block,
-        AbstractBlock.Settings.copy(Blocks.GOLD_BLOCK)
+        BlockBehaviour.Properties.ofFullCopy(Blocks.GOLD_BLOCK)
             .mapColor(MapColor.GOLD)
     )
 
     val DRIPSTONE_BRICKS = Register(
         "dripstone_bricks",
         ::Block,
-        AbstractBlock.Settings.copy(Blocks.DRIPSTONE_BLOCK)
+        BlockBehaviour.Properties.ofFullCopy(Blocks.DRIPSTONE_BLOCK)
             .mapColor(MapColor.TERRACOTTA_BROWN)
     )
 
@@ -307,7 +315,7 @@ object NguhBlocks {
     val CHARCOAL_BLOCK = Register(
         "charcoal_block",
         ::Block,
-        AbstractBlock.Settings.copy(Blocks.COAL_BLOCK)
+        BlockBehaviour.Properties.ofFullCopy(Blocks.COAL_BLOCK)
             .mapColor(MapColor.TERRACOTTA_GRAY)
     )
 
@@ -317,43 +325,43 @@ object NguhBlocks {
     val OCHRE_LANTERN = Register(
         "ochre_lantern",
         ::LanternBlock,
-        AbstractBlock.Settings.copy(Blocks.LANTERN)
-            .mapColor(MapColor.ORANGE)
+        BlockBehaviour.Properties.ofFullCopy(Blocks.LANTERN)
+            .mapColor(MapColor.COLOR_ORANGE)
     )
 
     val OCHRE_CHAIN = Register(
         "ochre_chain",
         ::ChainBlock,
-        AbstractBlock.Settings.copy(Blocks.CHAIN)
-            .mapColor(MapColor.GRAY)
+        BlockBehaviour.Properties.ofFullCopy(Blocks.CHAIN)
+            .mapColor(MapColor.COLOR_GRAY)
     )
 
     val PEARLESCENT_LANTERN = Register(
         "pearlescent_lantern",
         ::LanternBlock,
-        AbstractBlock.Settings.copy(Blocks.LANTERN)
-            .mapColor(MapColor.DULL_PINK)
+        BlockBehaviour.Properties.ofFullCopy(Blocks.LANTERN)
+            .mapColor(MapColor.CRIMSON_STEM)
     )
 
     val PEARLESCENT_CHAIN = Register(
         "pearlescent_chain",
         ::ChainBlock,
-        AbstractBlock.Settings.copy(Blocks.CHAIN)
-            .mapColor(MapColor.GRAY)
+        BlockBehaviour.Properties.ofFullCopy(Blocks.CHAIN)
+            .mapColor(MapColor.COLOR_GRAY)
     )
 
     val VERDANT_LANTERN = Register(
         "verdant_lantern",
         ::LanternBlock,
-        AbstractBlock.Settings.copy(Blocks.LANTERN)
-            .mapColor(MapColor.PALE_GREEN)
+        BlockBehaviour.Properties.ofFullCopy(Blocks.LANTERN)
+            .mapColor(MapColor.GRASS)
     )
 
     val VERDANT_CHAIN = Register(
         "verdant_chain",
         ::ChainBlock,
-        AbstractBlock.Settings.copy(Blocks.CHAIN)
-            .mapColor(MapColor.GRAY)
+        BlockBehaviour.Properties.ofFullCopy(Blocks.CHAIN)
+            .mapColor(MapColor.COLOR_GRAY)
     )
 
     val CHAINS_AND_LANTERNS = listOf(
@@ -368,8 +376,8 @@ object NguhBlocks {
     val CINNABAR = Register(
         "cinnabar",
         ::Block,
-        AbstractBlock.Settings.copy(Blocks.TUFF)
-            .mapColor(MapColor.DARK_RED)
+        BlockBehaviour.Properties.ofFullCopy(Blocks.TUFF)
+            .mapColor(MapColor.NETHER)
     )
 
     val CINNABAR_SLAB = RegisterVariant(CINNABAR, "slab", ::SlabBlock)
@@ -379,8 +387,8 @@ object NguhBlocks {
     val POLISHED_CINNABAR = Register(
         "polished_cinnabar",
         ::Block,
-        AbstractBlock.Settings.copy(Blocks.STONE)
-            .mapColor(MapColor.DARK_RED)
+        BlockBehaviour.Properties.ofFullCopy(Blocks.STONE)
+            .mapColor(MapColor.NETHER)
     )
 
     val POLISHED_CINNABAR_SLAB = RegisterVariant(POLISHED_CINNABAR, "slab", ::SlabBlock)
@@ -391,8 +399,8 @@ object NguhBlocks {
     val CINNABAR_BRICKS = Register(
         "cinnabar_bricks",
         ::Block,
-        AbstractBlock.Settings.copy(Blocks.STONE)
-            .mapColor(MapColor.DARK_RED)
+        BlockBehaviour.Properties.ofFullCopy(Blocks.STONE)
+            .mapColor(MapColor.NETHER)
     )
 
     val CINNABAR_BRICK_SLAB = RegisterVariant(CINNABAR_BRICKS, "slab", ::SlabBlock)
@@ -406,7 +414,7 @@ object NguhBlocks {
     val POLISHED_CALCITE = Register(
         "polished_calcite",
         ::Block,
-        AbstractBlock.Settings.copy(Blocks.CALCITE)
+        BlockBehaviour.Properties.ofFullCopy(Blocks.CALCITE)
             .mapColor(MapColor.TERRACOTTA_WHITE)
     )
 
@@ -418,14 +426,14 @@ object NguhBlocks {
     val CHISELED_CALCITE = Register(
         "chiseled_calcite",
         ::Block,
-        AbstractBlock.Settings.copy(Blocks.CALCITE)
+        BlockBehaviour.Properties.ofFullCopy(Blocks.CALCITE)
             .mapColor(MapColor.TERRACOTTA_WHITE)
     )
 
     val CALCITE_BRICKS = Register(
         "calcite_bricks",
         ::Block,
-        AbstractBlock.Settings.copy(Blocks.CALCITE)
+        BlockBehaviour.Properties.ofFullCopy(Blocks.CALCITE)
             .mapColor(MapColor.TERRACOTTA_WHITE)
     )
 
@@ -437,7 +445,7 @@ object NguhBlocks {
     val CHISELED_CALCITE_BRICKS = Register(
         "chiseled_calcite_bricks",
         ::Block,
-        AbstractBlock.Settings.copy(Blocks.CALCITE)
+        BlockBehaviour.Properties.ofFullCopy(Blocks.CALCITE)
             .mapColor(MapColor.TERRACOTTA_WHITE)
     )
 
@@ -447,7 +455,7 @@ object NguhBlocks {
     val GILDED_CALCITE = Register(
         "gilded_calcite",
         ::Block,
-        AbstractBlock.Settings.copy(Blocks.CALCITE)
+        BlockBehaviour.Properties.ofFullCopy(Blocks.CALCITE)
             .mapColor(MapColor.TERRACOTTA_WHITE)
     )
 
@@ -458,7 +466,7 @@ object NguhBlocks {
     val GILDED_POLISHED_CALCITE = Register(
         "gilded_polished_calcite",
         ::Block,
-        AbstractBlock.Settings.copy(Blocks.CALCITE)
+        BlockBehaviour.Properties.ofFullCopy(Blocks.CALCITE)
             .mapColor(MapColor.TERRACOTTA_WHITE)
     )
 
@@ -470,14 +478,14 @@ object NguhBlocks {
     val GILDED_CHISELED_CALCITE = Register(
         "gilded_chiseled_calcite",
         ::Block,
-        AbstractBlock.Settings.copy(Blocks.CALCITE)
+        BlockBehaviour.Properties.ofFullCopy(Blocks.CALCITE)
             .mapColor(MapColor.TERRACOTTA_WHITE)
     )
 
     val GILDED_CALCITE_BRICKS = Register(
         "gilded_calcite_bricks",
         ::Block,
-        AbstractBlock.Settings.copy(Blocks.CALCITE)
+        BlockBehaviour.Properties.ofFullCopy(Blocks.CALCITE)
             .mapColor(MapColor.TERRACOTTA_WHITE)
     )
 
@@ -489,18 +497,21 @@ object NguhBlocks {
     val GILDED_CHISELED_CALCITE_BRICKS = Register(
         "gilded_chiseled_calcite_bricks",
         ::Block,
-        AbstractBlock.Settings.copy(Blocks.CALCITE)
+        BlockBehaviour.Properties.ofFullCopy(Blocks.CALCITE)
             .mapColor(MapColor.TERRACOTTA_WHITE)
     )
 
     // =========================================================================
     //  Tinted Oak
     // =========================================================================
+    val TINTED_OAK_BLOCK_SET_TYPE = BlockSetTypeBuilder.copyOf(BlockSetType.PALE_OAK).register(Id("tinted_oak"))
+    val TINTED_OAK_WOOD_TYPE = WoodTypeBuilder.copyOf(WoodType.PALE_OAK).register(Id("tinted_oak"), TINTED_OAK_BLOCK_SET_TYPE)
+
     val TINTED_OAK_PLANKS = Register(
         "tinted_oak_planks",
         ::Block,
-        AbstractBlock.Settings.copy(Blocks.PALE_OAK_PLANKS)
-            .mapColor(MapColor.PALE_PURPLE)
+        BlockBehaviour.Properties.ofFullCopy(Blocks.PALE_OAK_PLANKS)
+            .mapColor(MapColor.ICE)
     )
 
     val TINTED_OAK_SLAB = RegisterVariant(TINTED_OAK_PLANKS, "slab", ::SlabBlock)
@@ -508,28 +519,58 @@ object NguhBlocks {
     val TINTED_OAK_STAIRS = RegisterStairs(TINTED_OAK_PLANKS)
     val TINTED_OAK_FENCE = RegisterVariant(TINTED_OAK_PLANKS, "fence", ::FenceBlock)
 
+    val TINTED_OAK_FENCE_GATE = Register(
+        "tinted_oak_fence_gate",
+        { s -> FenceGateBlock(TINTED_OAK_WOOD_TYPE, s) },
+        BlockBehaviour.Properties.ofFullCopy(Blocks.PALE_OAK_FENCE_GATE).mapColor(MapColor.ICE)
+    )
+
+    val TINTED_OAK_DOOR = Register(
+        "tinted_oak_door",
+        { s -> DoorBlock(TINTED_OAK_BLOCK_SET_TYPE, s) },
+        BlockBehaviour.Properties.ofFullCopy(Blocks.PALE_OAK_DOOR).mapColor(MapColor.ICE)
+    )
+
+    val TINTED_OAK_TRAPDOOR = Register(
+        "tinted_oak_trapdoor",
+        { s -> TrapDoorBlock(TINTED_OAK_BLOCK_SET_TYPE, s) },
+        BlockBehaviour.Properties.ofFullCopy(Blocks.PALE_OAK_TRAPDOOR).mapColor(MapColor.ICE)
+    )
+
+    val TINTED_OAK_PRESSURE_PLATE = Register(
+        "tinted_oak_pressure_plate",
+        { s -> PressurePlateBlock(TINTED_OAK_BLOCK_SET_TYPE, s) },
+        BlockBehaviour.Properties.ofFullCopy(Blocks.PALE_OAK_PRESSURE_PLATE).mapColor(MapColor.ICE)
+    )
+
+    val TINTED_OAK_BUTTON = Register(
+        "tinted_oak_button",
+        { s -> ButtonBlock(TINTED_OAK_BLOCK_SET_TYPE, 30, s) },
+        BlockBehaviour.Properties.ofFullCopy(Blocks.PALE_OAK_BUTTON).mapColor(MapColor.ICE)
+    )
+
     val TINTED_OAK_LOG = Register(
         "tinted_oak_log",
-        ::PillarBlock,
-        AbstractBlock.Settings.copy(Blocks.PALE_OAK_LOG).mapColor(MapColor.PALE_PURPLE)
+        ::RotatedPillarBlock,
+        BlockBehaviour.Properties.ofFullCopy(Blocks.PALE_OAK_LOG).mapColor(MapColor.ICE)
     )
 
     val TINTED_OAK_WOOD = Register(
         "tinted_oak_wood",
-        ::PillarBlock,
-        AbstractBlock.Settings.copy(Blocks.PALE_OAK_WOOD).mapColor(MapColor.PALE_PURPLE)
+        ::RotatedPillarBlock,
+        BlockBehaviour.Properties.ofFullCopy(Blocks.PALE_OAK_WOOD).mapColor(MapColor.ICE)
     )
 
     val STRIPPED_TINTED_OAK_LOG = Register(
         "stripped_tinted_oak_log",
-        ::PillarBlock,
-        AbstractBlock.Settings.copy(Blocks.PALE_OAK_LOG).mapColor(MapColor.PALE_PURPLE)
+        ::RotatedPillarBlock,
+        BlockBehaviour.Properties.ofFullCopy(Blocks.PALE_OAK_LOG).mapColor(MapColor.ICE)
     )
 
     val STRIPPED_TINTED_OAK_WOOD = Register(
         "stripped_tinted_oak_wood",
-        ::PillarBlock,
-        AbstractBlock.Settings.copy(Blocks.PALE_OAK_WOOD).mapColor(MapColor.PALE_PURPLE)
+        ::RotatedPillarBlock,
+        BlockBehaviour.Properties.ofFullCopy(Blocks.PALE_OAK_WOOD).mapColor(MapColor.ICE)
     )
 
     // =========================================================================
@@ -545,76 +586,81 @@ object NguhBlocks {
     // =========================================================================
     //  Block families
     // =========================================================================
-    val CINNABAR_FAMILY: BlockFamily = BlockFamilies.register(CINNABAR)
+    val CINNABAR_FAMILY: BlockFamily = BlockFamilies.familyBuilder(CINNABAR)
         .polished(POLISHED_CINNABAR)
         .slab(CINNABAR_SLAB)
         .stairs(CINNABAR_STAIRS)
-        .build()
+        .family
 
-    val POLISHED_CINNABAR_FAMILY: BlockFamily = BlockFamilies.register(POLISHED_CINNABAR)
+    val POLISHED_CINNABAR_FAMILY: BlockFamily = BlockFamilies.familyBuilder(POLISHED_CINNABAR)
         .slab(POLISHED_CINNABAR_SLAB)
         .stairs(POLISHED_CINNABAR_STAIRS)
         .wall(POLISHED_CINNABAR_WALL)
-        .build()
+        .family
 
-    val CINNABAR_BRICK_FAMILY: BlockFamily = BlockFamilies.register(CINNABAR_BRICKS)
+    val CINNABAR_BRICK_FAMILY: BlockFamily = BlockFamilies.familyBuilder(CINNABAR_BRICKS)
         .slab(CINNABAR_BRICK_SLAB)
         .stairs(CINNABAR_BRICK_STAIRS)
         .wall(CINNABAR_BRICK_WALL)
-        .build()
+        .family
 
-    val PYRITE_BRICK_FAMILY: BlockFamily = BlockFamilies.register(PYRITE_BRICKS)
+    val PYRITE_BRICK_FAMILY: BlockFamily = BlockFamilies.familyBuilder(PYRITE_BRICKS)
         .slab(PYRITE_BRICK_SLAB)
         .stairs(PYRITE_BRICK_STAIRS)
         .wall(PYRITE_BRICK_WALL)
         .chiseled(CHISELED_PYRITE_BRICKS)
-        .build()
+        .family
 
-    val DRIPSTONE_BRICK_FAMILY: BlockFamily = BlockFamilies.register(DRIPSTONE_BRICKS)
+    val DRIPSTONE_BRICK_FAMILY: BlockFamily = BlockFamilies.familyBuilder(DRIPSTONE_BRICKS)
         .slab(DRIPSTONE_BRICK_SLAB)
         .stairs(DRIPSTONE_BRICK_STAIRS)
         .wall(DRIPSTONE_BRICK_WALL)
-        .build()
+        .family
 
-    val POLISHED_CALCITE_FAMILY: BlockFamily = BlockFamilies.register(POLISHED_CALCITE)
+    val POLISHED_CALCITE_FAMILY: BlockFamily = BlockFamilies.familyBuilder(POLISHED_CALCITE)
         .slab(POLISHED_CALCITE_SLAB)
         .stairs(POLISHED_CALCITE_STAIRS)
         .wall(POLISHED_CALCITE_WALL)
         .chiseled(CHISELED_CALCITE)
-        .build()
+        .family
 
-    val CALCITE_BRICK_FAMILY: BlockFamily = BlockFamilies.register(CALCITE_BRICKS)
+    val CALCITE_BRICK_FAMILY: BlockFamily = BlockFamilies.familyBuilder(CALCITE_BRICKS)
         .slab(CALCITE_BRICK_SLAB)
         .stairs(CALCITE_BRICK_STAIRS)
         .wall(CALCITE_BRICK_WALL)
         .chiseled(CHISELED_CALCITE_BRICKS)
-        .build()
+        .family
 
-    val GILDED_CALCITE_FAMILY: BlockFamily = BlockFamilies.register(GILDED_CALCITE)
+    val GILDED_CALCITE_FAMILY: BlockFamily = BlockFamilies.familyBuilder(GILDED_CALCITE)
         .polished(GILDED_POLISHED_CALCITE)
         .slab(GILDED_CALCITE_SLAB)
         .stairs(GILDED_CALCITE_STAIRS)
-        .build()
+        .family
 
-    val GILDED_POLISHED_CALCITE_FAMILY: BlockFamily = BlockFamilies.register(GILDED_POLISHED_CALCITE)
+    val GILDED_POLISHED_CALCITE_FAMILY: BlockFamily = BlockFamilies.familyBuilder(GILDED_POLISHED_CALCITE)
         .slab(GILDED_POLISHED_CALCITE_SLAB)
         .stairs(GILDED_POLISHED_CALCITE_STAIRS)
         .wall(GILDED_POLISHED_CALCITE_WALL)
         .chiseled(GILDED_CHISELED_CALCITE)
-        .build()
+        .family
 
-    val GILDED_CALCITE_BRICK_FAMILY: BlockFamily = BlockFamilies.register(GILDED_CALCITE_BRICKS)
+    val GILDED_CALCITE_BRICK_FAMILY: BlockFamily = BlockFamilies.familyBuilder(GILDED_CALCITE_BRICKS)
         .slab(GILDED_CALCITE_BRICK_SLAB)
         .stairs(GILDED_CALCITE_BRICK_STAIRS)
         .wall(GILDED_CALCITE_BRICK_WALL)
         .chiseled(GILDED_CHISELED_CALCITE_BRICKS)
-        .build()
+        .family
 
-    val TINTED_OAK_FAMILY: BlockFamily = BlockFamilies.register(TINTED_OAK_PLANKS)
+    val TINTED_OAK_FAMILY: BlockFamily = BlockFamilies.familyBuilder(TINTED_OAK_PLANKS)
         .slab(TINTED_OAK_SLAB)
         .stairs(TINTED_OAK_STAIRS)
         .fence(TINTED_OAK_FENCE)
-        .build()
+        .fenceGate(TINTED_OAK_FENCE_GATE)
+        .door(TINTED_OAK_DOOR)
+        .trapdoor(TINTED_OAK_TRAPDOOR)
+        .pressurePlate(TINTED_OAK_PRESSURE_PLATE)
+        .button(TINTED_OAK_BUTTON)
+        .family
 
     val CINNABAR_FAMILIES = listOf(CINNABAR_FAMILY, POLISHED_CINNABAR_FAMILY, CINNABAR_BRICK_FAMILY)
     val CALCITE_FAMILIES = listOf(POLISHED_CALCITE_FAMILY, CALCITE_BRICK_FAMILY)
@@ -659,7 +705,7 @@ object NguhBlocks {
     // Information about a wood family and the logs and wood blocks that belong to it.
     val VANILLA_AND_NGUHCRAFT_EXTENDED_WOOD_FAMILIES = arrayOf(
         WoodFamily(
-            BlockFamilies.ACACIA,
+            BlockFamilies.ACACIA_PLANKS,
             Log = Blocks.ACACIA_LOG,
             Wood = Blocks.ACACIA_WOOD,
             StrippedLog = Blocks.STRIPPED_ACACIA_LOG,
@@ -667,7 +713,7 @@ object NguhBlocks {
         ),
 
         WoodFamily(
-            BlockFamilies.BIRCH,
+            BlockFamilies.BIRCH_PLANKS,
             Log = Blocks.BIRCH_LOG,
             Wood = Blocks.BIRCH_WOOD,
             StrippedLog = Blocks.STRIPPED_BIRCH_LOG,
@@ -675,7 +721,7 @@ object NguhBlocks {
         ),
 
         WoodFamily(
-            BlockFamilies.CHERRY,
+            BlockFamilies.CHERRY_PLANKS,
             Log = Blocks.CHERRY_LOG,
             Wood = Blocks.CHERRY_WOOD,
             StrippedLog = Blocks.STRIPPED_CHERRY_LOG,
@@ -683,7 +729,7 @@ object NguhBlocks {
         ),
 
         WoodFamily(
-            BlockFamilies.CRIMSON,
+            BlockFamilies.CRIMSON_PLANKS,
             Log = Blocks.CRIMSON_STEM,
             Wood = Blocks.CRIMSON_HYPHAE,
             StrippedLog = Blocks.STRIPPED_CRIMSON_STEM,
@@ -691,7 +737,7 @@ object NguhBlocks {
         ),
 
         WoodFamily(
-            BlockFamilies.DARK_OAK,
+            BlockFamilies.DARK_OAK_PLANKS,
             Log = Blocks.DARK_OAK_LOG,
             Wood = Blocks.DARK_OAK_WOOD,
             StrippedLog = Blocks.STRIPPED_DARK_OAK_LOG,
@@ -699,7 +745,7 @@ object NguhBlocks {
         ),
 
         WoodFamily(
-            BlockFamilies.JUNGLE,
+            BlockFamilies.JUNGLE_PLANKS,
             Log = Blocks.JUNGLE_LOG,
             Wood = Blocks.JUNGLE_WOOD,
             StrippedLog = Blocks.STRIPPED_JUNGLE_LOG,
@@ -707,7 +753,7 @@ object NguhBlocks {
         ),
 
         WoodFamily(
-            BlockFamilies.MANGROVE,
+            BlockFamilies.MANGROVE_PLANKS,
             Log = Blocks.MANGROVE_LOG,
             Wood = Blocks.MANGROVE_WOOD,
             StrippedLog = Blocks.STRIPPED_MANGROVE_LOG,
@@ -715,7 +761,7 @@ object NguhBlocks {
         ),
 
         WoodFamily(
-            BlockFamilies.OAK,
+            BlockFamilies.OAK_PLANKS,
             Log = Blocks.OAK_LOG,
             Wood = Blocks.OAK_WOOD,
             StrippedLog = Blocks.STRIPPED_OAK_LOG,
@@ -723,7 +769,7 @@ object NguhBlocks {
         ),
 
         WoodFamily(
-            BlockFamilies.PALE_OAK,
+            BlockFamilies.PALE_OAK_PLANKS,
             Log = Blocks.PALE_OAK_LOG,
             Wood = Blocks.PALE_OAK_WOOD,
             StrippedLog = Blocks.STRIPPED_PALE_OAK_LOG,
@@ -731,7 +777,7 @@ object NguhBlocks {
         ),
 
         WoodFamily(
-            BlockFamilies.SPRUCE,
+            BlockFamilies.SPRUCE_PLANKS,
             Log = Blocks.SPRUCE_LOG,
             Wood = Blocks.SPRUCE_WOOD,
             StrippedLog = Blocks.STRIPPED_SPRUCE_LOG,
@@ -739,7 +785,7 @@ object NguhBlocks {
         ),
 
         WoodFamily(
-            BlockFamilies.WARPED,
+            BlockFamilies.WARPED_PLANKS,
             Log = Blocks.WARPED_STEM,
             Wood = Blocks.WARPED_HYPHAE,
             StrippedLog = Blocks.STRIPPED_WARPED_STEM,
@@ -860,86 +906,99 @@ object NguhBlocks {
         it.addAll(CHAINS_AND_LANTERNS.flatten())
         it.addAll(ALL_BROCADE_BLOCKS)
 
-        // Slabs may drop 2 or 1 and are thus handled separately.
-        it.addAll(ALL_VARIANT_FAMILY_BLOCKS.filter { it !is SlabBlock })
+        // Slabs may drop 2 or 1 and are thus handled separately. Same for doors
+        it.addAll(ALL_VARIANT_FAMILY_BLOCKS.filter { it !is SlabBlock && it !is DoorBlock })
     }.toTypedArray()
 
     @JvmField
-    val CAN_DUPLICATE_WITH_BONEMEAL = TagKey.of(RegistryKeys.BLOCK, Id("can_duplicate_with_bonemeal"))
+    val CAN_DUPLICATE_WITH_BONEMEAL = TagKey.create(Registries.BLOCK, Id("can_duplicate_with_bonemeal"))
 
     // =========================================================================
     //  Initialisation
     // =========================================================================
     fun Init() {
-        ItemGroupEvents.modifyEntriesEvent(ItemGroups.REDSTONE).register {
-            it.add(DECORATIVE_HOPPER)
+        ItemGroupEvents.modifyEntriesEvent(CreativeModeTabs.REDSTONE_BLOCKS).register {
+            it.accept(DECORATIVE_HOPPER)
         }
 
-        ItemGroupEvents.modifyEntriesEvent(ItemGroups.BUILDING_BLOCKS).register {
-            it.add(LOCKED_DOOR)
-            it.add(COMPRESSED_STONE)
-            it.add(WROUGHT_IRON_BLOCK)
-            it.add(WROUGHT_IRON_BARS)
-            it.add(IRON_GRATE)
-            it.add(WROUGHT_IRON_GRATE)
-            it.add(GOLD_BARS)
-            it.add(PYRITE)
-            it.add(TINTED_OAK_LOG)
-            it.add(TINTED_OAK_WOOD)
-            it.add(STRIPPED_TINTED_OAK_LOG)
-            it.add(STRIPPED_TINTED_OAK_WOOD)
-            it.add(CHARCOAL_BLOCK)
-            for (B in ALL_VARIANT_FAMILY_BLOCKS) it.add(B)
-            for (B in VERTICAL_SLABS) it.add(B)
-            for (B in ALL_BROCADE_BLOCKS) it.add(B)
+        ItemGroupEvents.modifyEntriesEvent(CreativeModeTabs.BUILDING_BLOCKS).register {
+            it.accept(LOCKED_DOOR)
+            it.accept(COMPRESSED_STONE)
+            it.accept(WROUGHT_IRON_BLOCK)
+            it.accept(WROUGHT_IRON_BARS)
+            it.accept(IRON_GRATE)
+            it.accept(WROUGHT_IRON_GRATE)
+            it.accept(GOLD_BARS)
+            it.accept(PYRITE)
+            it.accept(TINTED_OAK_LOG)
+            it.accept(TINTED_OAK_WOOD)
+            it.accept(STRIPPED_TINTED_OAK_LOG)
+            it.accept(STRIPPED_TINTED_OAK_WOOD)
+            it.accept(CHARCOAL_BLOCK)
+            for (B in ALL_VARIANT_FAMILY_BLOCKS) it.accept(B)
+            for (B in VERTICAL_SLABS) it.accept(B)
+            for (B in ALL_BROCADE_BLOCKS) it.accept(B)
         }
 
-        ItemGroupEvents.modifyEntriesEvent(ItemGroups.FUNCTIONAL).register {
-            for (B in CHAINS_AND_LANTERNS.flatten()) it.add(B)
+        ItemGroupEvents.modifyEntriesEvent(CreativeModeTabs.FUNCTIONAL_BLOCKS).register {
+            for (B in CHAINS_AND_LANTERNS.flatten()) it.accept(B)
         }
+
+        RegisterStrippable(TINTED_OAK_LOG, STRIPPED_TINTED_OAK_LOG)
+        RegisterStrippable(TINTED_OAK_WOOD, STRIPPED_TINTED_OAK_WOOD)
+
+        for (B in WOOD_VARIANT_FAMILY_BLOCKS) {
+            if (B !is DoorBlock && B !is TrapDoorBlock && B !is PressurePlateBlock && B !is ButtonBlock) {
+                RegisterFlammable(B, 5, 5)
+            }
+        }
+        RegisterFlammable(TINTED_OAK_LOG, 5, 5)
+        RegisterFlammable(TINTED_OAK_WOOD, 5, 5)
+        RegisterFlammable(STRIPPED_TINTED_OAK_LOG, 5, 5)
+        RegisterFlammable(STRIPPED_TINTED_OAK_WOOD, 5, 5)
     }
 
     @Suppress("DEPRECATION")
     private fun RegisterVariant(
         Parent: Block,
         Suffix: String,
-        Ctor: (AbstractBlock.Settings) -> Block
+        Ctor: (BlockBehaviour.Properties) -> Block
     ) = Register(
-        "${Registries.BLOCK.getKey(Parent).get().value.path}_$Suffix",
+        "${BuiltInRegistries.BLOCK.getResourceKey(Parent).get().location().path}_$Suffix",
         Ctor,
-        AbstractBlock.Settings.copyShallow(Parent)
+        BlockBehaviour.Properties.ofLegacyCopy(Parent)
     )
 
     @Suppress("DEPRECATION")
     private fun RegisterStairs(Parent: Block) = Register(
-        "${Registries.BLOCK.getKey(Parent).get().value.path}_stairs",
-        { StairsBlock(Parent.defaultState, it) },
-        AbstractBlock.Settings.copyShallow(Parent)
+        "${BuiltInRegistries.BLOCK.getResourceKey(Parent).get().location().path}_stairs",
+        { StairBlock(Parent.defaultBlockState(), it) },
+        BlockBehaviour.Properties.ofLegacyCopy(Parent)
     )
 
     private fun <T : Block> Register(
         Key: String,
-        Ctor: (S: AbstractBlock.Settings) -> T,
-        S: AbstractBlock.Settings,
-        ItemCtor: (B: Block, S: Item.Settings) -> Item = ::BlockItem
+        Ctor: (S: BlockBehaviour.Properties) -> T,
+        S: BlockBehaviour.Properties,
+        ItemCtor: (B: Block, S: Item.Properties) -> Item = ::BlockItem
     ): T {
         // Create registry keys.
-        val ItemKey = RegistryKey.of(RegistryKeys.ITEM, Id(Key))
-        val BlockKey = RegistryKey.of(RegistryKeys.BLOCK, Id(Key))
+        val ItemKey = ResourceKey.create(Registries.ITEM, Id(Key))
+        val BlockKey = ResourceKey.create(Registries.BLOCK, Id(Key))
 
         // Set the registry key for the block settings.
-        S.registryKey(BlockKey)
+        S.setId(BlockKey)
 
         // Create and register the block.
         val B = Ctor(S)
-        Registry.register(Registries.BLOCK, BlockKey, B)
+        Registry.register(BuiltInRegistries.BLOCK, BlockKey, B)
 
         // Create and register the item.
-        val ItemSettings = Item.Settings()
-            .useBlockPrefixedTranslationKey()
-            .registryKey(ItemKey)
+        val ItemSettings = Item.Properties()
+            .useBlockDescriptionPrefix()
+            .setId(ItemKey)
         val I = ItemCtor(B, ItemSettings)
-        Registry.register(Registries.ITEM, ItemKey, I)
+        Registry.register(BuiltInRegistries.ITEM, ItemKey, I)
         return B
     }
 
@@ -947,7 +1006,7 @@ object NguhBlocks {
         Key: String,
         Type: BlockEntityType<C>
     ): BlockEntityType<C> = Registry.register(
-        Registries.BLOCK_ENTITY_TYPE,
+        BuiltInRegistries.BLOCK_ENTITY_TYPE,
         Id(Key),
         Type
     )
@@ -955,6 +1014,10 @@ object NguhBlocks {
     fun RegisterVSlab(Name: String, SlabBlock: Block) = Register(
         "${Name}_slab_vertical",
         ::VerticalSlabBlock,
-        AbstractBlock.Settings.copy(SlabBlock)
+        BlockBehaviour.Properties.ofFullCopy(SlabBlock)
     ).also { (VERTICAL_SLABS as MutableList).add(it) }
+
+    fun RegisterStrippable(L: Block, S: Block) = StrippableBlockRegistry.register(L, S)
+
+    fun RegisterFlammable(b: Block, burn: Int, spread: Int) = FlammableBlockRegistry.getDefaultInstance().add(b, burn, spread)
 }

@@ -4,51 +4,44 @@ import com.mojang.logging.LogUtils
 import com.mojang.serialization.Codec
 import com.mojang.serialization.JavaOps
 import io.netty.buffer.ByteBuf
-import net.minecraft.component.ComponentChanges
-import net.minecraft.enchantment.Enchantment
-import net.minecraft.enchantment.EnchantmentHelper
-import net.minecraft.entity.LivingEntity
-import net.minecraft.entity.player.PlayerEntity
-import net.minecraft.item.Item
-import net.minecraft.item.ItemStack
-import net.minecraft.nbt.NbtElement
+import net.minecraft.core.component.DataComponentPatch
+import net.minecraft.world.item.enchantment.Enchantment
+import net.minecraft.world.item.enchantment.EnchantmentHelper
+import net.minecraft.world.entity.LivingEntity
+import net.minecraft.world.entity.player.Player
+import net.minecraft.world.item.Item
+import net.minecraft.world.item.ItemStack
+import net.minecraft.nbt.Tag
 import net.minecraft.nbt.NbtOps
-import net.minecraft.network.codec.PacketCodec
-import net.minecraft.network.codec.PacketCodecs
-import net.minecraft.network.packet.CustomPayload
-import net.minecraft.registry.Registries
-import net.minecraft.registry.RegistryKey
-import net.minecraft.registry.RegistryKeys
-import net.minecraft.storage.ReadView
-import net.minecraft.storage.WriteView
-import net.minecraft.text.MutableText
-import net.minecraft.text.Text
-import net.minecraft.util.ErrorReporter
-import net.minecraft.util.math.BlockPos
-import net.minecraft.util.math.Box
-import net.minecraft.util.math.Vec2f
-import net.minecraft.util.math.Vec3d
-import net.minecraft.world.World
+import net.minecraft.network.codec.StreamCodec
+import net.minecraft.network.codec.ByteBufCodecs
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload
+import net.minecraft.core.registries.BuiltInRegistries
+import net.minecraft.resources.ResourceKey
+import net.minecraft.core.registries.Registries
+import net.minecraft.network.chat.MutableComponent
+import net.minecraft.network.chat.Component
+import net.minecraft.core.BlockPos
+import net.minecraft.world.phys.AABB
+import net.minecraft.world.phys.Vec2
+import net.minecraft.world.phys.Vec3
+import net.minecraft.world.level.Level
 import org.nguh.nguhcraft.enchantment.NguhcraftEnchantments
-import org.nguh.nguhcraft.mixin.common.EntityEquipmentMapAccessor
+import org.nguh.nguhcraft.mixin.common.EntityEquipmentAccessor
 import org.nguh.nguhcraft.mixin.common.LivingEntityEquipmentAccessor
 import java.text.Normalizer
 import java.util.*
-import kotlin.collections.toList
-import kotlin.collections.toMutableSet
 import kotlin.enums.EnumEntries
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
-import kotlin.reflect.KMutableProperty1
-import kotlin.text.uppercase
 
 typealias MojangPair<A, B> = com.mojang.datafixers.util.Pair<A, B>
 operator fun <A, B> MojangPair<A, B>.component1(): A = this.first
 operator fun <A, B> MojangPair<A, B>.component2(): B = this.second
-operator fun Vec3d.unaryMinus(): Vec3d = negate()
-operator fun Vec3d.plus(o: Vec3d): Vec3d = add(o)
-operator fun Vec3d.minus(o: Vec3d): Vec3d = subtract(o)
+operator fun Vec3.unaryMinus(): Vec3 = reverse()
+operator fun Vec3.plus(o: Vec3): Vec3 = add(o)
+operator fun Vec3.minus(o: Vec3): Vec3 = subtract(o)
 
 /**
 * Transform 'this' using a function iff 'Cond' is true and return
@@ -81,7 +74,7 @@ class SmallEnumSet<T : Enum<T>> private constructor(var Encoded: Long = 0L) {
 
     companion object {
         private val <T: Enum<T>> T.Bit get() = 1L shl ordinal
-        val PACKET_CODEC = PacketCodecs.LONG.xmap(::SmallEnumSet, SmallEnumSet<*>::Encoded)
+        val PACKET_CODEC = ByteBufCodecs.LONG.map(::SmallEnumSet, SmallEnumSet<*>::Encoded)
 
         /** Create a codec for an enum set. */
         inline fun <reified T: Enum<T>> CreateCodec(Entries: EnumEntries<T>): Codec<SmallEnumSet<T>> {
@@ -97,7 +90,7 @@ class SmallEnumSet<T : Enum<T>> private constructor(var Encoded: Long = 0L) {
         /** Get the packet codec for an enum set. This does not create a new object. */
         @Suppress("UNCHECKED_CAST")
         inline fun <reified T : Enum<T>> CreatePacketCodec()
-            = PACKET_CODEC as PacketCodec<ByteBuf, SmallEnumSet<T>>
+            = PACKET_CODEC as StreamCodec<ByteBuf, SmallEnumSet<T>>
     }
 }
 
@@ -125,7 +118,7 @@ open class XZRect(FromX: Int, FromZ: Int, ToX: Int, ToZ: Int) {
 
     /** Check if this rectangle contains a block or another rectangle. */
     operator fun contains(Pos: BlockPos): Boolean = Contains(Pos.x, Pos.z)
-    operator fun contains(Pos: Vec3d): Boolean = Contains(Pos.x, Pos.z)
+    operator fun contains(Pos: Vec3): Boolean = Contains(Pos.x, Pos.z)
     operator fun contains(XZ: XZRect) = Contains(XZ.MinX, XZ.MinZ) && Contains(XZ.MaxX, XZ.MaxZ)
     fun Contains(X: Int, Z: Int): Boolean = X in MinX..MaxX && Z in MinZ..MaxZ
     fun Contains(X: Double, Z: Double): Boolean =
@@ -139,14 +132,14 @@ open class XZRect(FromX: Int, FromZ: Int, ToX: Int, ToZ: Int) {
      * This is a 2D distance calculation that uses the distance field
      * of a rectangle.
      */
-    fun DistanceFrom(Pos: BlockPos) = DistanceFrom(Vec3d.of(Pos))
-    fun DistanceFrom(Pos: Vec3d): Float {
+    fun DistanceFrom(Pos: BlockPos) = DistanceFrom(Vec3.atLowerCornerOf(Pos))
+    fun DistanceFrom(Pos: Vec3): Float {
         if (Pos in this) return 0f
         val C = Center
         val X = abs(Pos.x.toFloat() - C.x.toFloat())
         val Z = abs(Pos.z.toFloat() - C.z.toFloat())
         val Radius = Radius
-        return Vec2f(max(X - Radius.x, 0f), max(Z - Radius.y, 0f)).length()
+        return Vec2(max(X - Radius.x, 0f), max(Z - Radius.y, 0f)).length()
     }
 
     /** Check if a rectangle intersects another. */
@@ -163,7 +156,7 @@ open class XZRect(FromX: Int, FromZ: Int, ToX: Int, ToZ: Int) {
         MinZ <= OutsideMaxX.toDouble() &&
         MaxZ >= this.MinZ.toDouble()
 
-    fun Intersects(BB: Box) = Intersects(
+    fun Intersects(BB: AABB) = Intersects(
         MinX = BB.minX,
         MinZ = BB.minZ,
         MaxX = BB.maxX,
@@ -171,17 +164,17 @@ open class XZRect(FromX: Int, FromZ: Int, ToX: Int, ToZ: Int) {
     )
 
     /** Get the radius of this rectangle. */
-    val Radius: Vec2f get() {
+    val Radius: Vec2 get() {
         val X = (MaxX - MinX) / 2
         val Z = (MaxZ - MinZ) / 2
-        return Vec2f(X.toFloat(), Z.toFloat())
+        return Vec2(X.toFloat(), Z.toFloat())
     }
 }
 
 /** Get an entity’s equipped items. */
 fun LivingEntity.Equipment(): List<ItemStack> {
     val E = (this as LivingEntityEquipmentAccessor).equipment
-    val Map = (E as EntityEquipmentMapAccessor).map
+    val Map = (E as EntityEquipmentAccessor).map
     return Map.values.filter { !it.isEmpty }
 }
 
@@ -195,15 +188,15 @@ object Utils {
      * Used to communicate to players that a message contains a clickable
      * link. Purely cosmetic since the entire message is clickable anyway.
      */
-    val LINK: Text = Text.literal("[").withColor(Constants.Blue)
-        .append(Text.literal("Link").withColor(Constants.Green))
-        .append(Text.literal("]").withColor(Constants.Blue))
-        .append(Text.literal(".").withColor(Constants.Green))
+    val LINK: Component = Component.literal("[").withColor(Constants.Blue)
+        .append(Component.literal("Link").withColor(Constants.Green))
+        .append(Component.literal("]").withColor(Constants.Blue))
+        .append(Component.literal(".").withColor(Constants.Green))
 
 
     /** Coloured '[' and '] ' components (the latter includes a space). */
-    val LBRACK_COMPONENT: Text = Text.literal("[").withColor(Constants.DeepKoamaru)
-    val RBRACK_COMPONENT: Text = Text.literal("]").withColor(Constants.DeepKoamaru)
+    val LBRACK_COMPONENT: Component = Component.literal("[").withColor(Constants.DeepKoamaru)
+    val RBRACK_COMPONENT: Component = Component.literal("]").withColor(Constants.DeepKoamaru)
 
     /** For RomanNumeral conversion. */
     private val M = arrayOf("", "M", "MM", "MMM")
@@ -220,9 +213,9 @@ object Utils {
      * For example, for an input of "foo", this will return '[foo]' with
      * appropriate formatting.
      */
-    fun BracketedLiteralComponent(Content: String): MutableText = Text.empty()
+    fun BracketedLiteralComponent(Content: String): MutableComponent = Component.empty()
         .append(LBRACK_COMPONENT)
-        .append(Text.literal(Content).withColor(Constants.Lavender))
+        .append(Component.literal(Content).withColor(Constants.Lavender))
         .append(RBRACK_COMPONENT)
 
     /**
@@ -231,11 +224,11 @@ object Utils {
      * The callback has no default parameter because at that point you can literally
      * just use the ItemStack constructor instead.
      */
-    fun BuildItemStack(I: Item, Count: Int = 1, ComponentBuilder: ComponentChanges.Builder.() -> Unit): ItemStack {
-        val B = ComponentChanges.builder()
+    fun BuildItemStack(I: Item, Count: Int = 1, ComponentBuilder: DataComponentPatch.Builder.() -> Unit): ItemStack {
+        val B = DataComponentPatch.builder()
         B.ComponentBuilder()
         return ItemStack(
-            Registries.ITEM.getEntry(I),
+            BuiltInRegistries.ITEM.wrapAsHolder(I),
             Count,
             B.build()
         )
@@ -243,7 +236,7 @@ object Utils {
 
     /** Calculate a player’s total saturation enchantment value. */
     @JvmStatic
-    fun CalculateWeightedSaturationEnchantmentValue(P: PlayerEntity): Int {
+    fun CalculateWeightedSaturationEnchantmentValue(P: Player): Int {
         // Accumulate the total saturation level across all armour pieces.
         //
         // The formula for this is weighted, i.e. one armour piece with
@@ -258,7 +251,7 @@ object Utils {
         //
         // where 8 points = 100%. This means the formula to map an enchantment
         // level to how many points it adds is 2^(L-1).
-        val W = P.world
+        val W = P.level()
         return P.Equipment().sumOf {
             val Lvl = EnchantLvl(W, it, NguhcraftEnchantments.SATURATION)
             if (Lvl == 0) 0 else 1 shl (Lvl - 1)
@@ -270,16 +263,16 @@ object Utils {
     fun Debug(Message: String, vararg Objects : Any) = LOGGER.info(Message, *Objects)
 
     /** Deserialise a world from a registry key. */
-    fun DeserialiseWorld(Nbt: NbtElement) =
-        World.CODEC.parse(NbtOps.INSTANCE, Nbt).result().get()
+    fun DeserialiseWorld(Nbt: Tag) =
+        Level.RESOURCE_KEY_CODEC.parse(NbtOps.INSTANCE, Nbt).result().get()
     fun DeserialiseWorld(Str: String) =
-        World.CODEC.parse(JavaOps.INSTANCE, Str).result().get()
+        Level.RESOURCE_KEY_CODEC.parse(JavaOps.INSTANCE, Str).result().get()
 
     /** Get the level of an enchantment on an item stack. */
     @JvmStatic
-    fun EnchantLvl(W: World, Stack: ItemStack, E: RegistryKey<Enchantment>): Int {
-        val R = W.registryManager.getOrThrow(RegistryKeys.ENCHANTMENT)
-        return EnchantmentHelper.getLevel(R.getOrThrow(E), Stack)
+    fun EnchantLvl(W: Level, Stack: ItemStack, E: ResourceKey<Enchantment>): Int {
+        val R = W.registryAccess().lookupOrThrow(Registries.ENCHANTMENT)
+        return EnchantmentHelper.getItemEnchantmentLevel(R.getOrThrow(E), Stack)
     }
 
     /** If this iterable contains a single element, return it, else return null. */
@@ -300,7 +293,7 @@ object Utils {
     fun NormaliseNFKCLower(S: String) = Normalizer.normalize(S, Normalizer.Form.NFKC).lowercase(Locale.getDefault())
 
     /** Create a packet id. */
-    fun <T : CustomPayload> PacketId(Name: String) = CustomPayload.Id<T>(Nguhcraft.Id(Name))
+    fun <T : CustomPacketPayload> PacketId(Name: String) = CustomPacketPayload.Type<T>(Nguhcraft.Id(Name))
 
     /** Format a number as a Roman numeral */
     @JvmStatic
@@ -314,8 +307,8 @@ object Utils {
     }
 
     /** Serialise a world as a registry key. */
-    fun SerialiseWorld(W: RegistryKey<World>) = World.CODEC.encodeStart(NbtOps.INSTANCE, W).result().get()
-    fun SerialiseWorldToString(W: RegistryKey<World>) = World.CODEC.encodeStart(JavaOps.INSTANCE, W).result().get() as String
+    fun SerialiseWorld(W: ResourceKey<Level>) = Level.RESOURCE_KEY_CODEC.encodeStart(NbtOps.INSTANCE, W).result().get()
+    fun SerialiseWorldToString(W: ResourceKey<Level>) = Level.RESOURCE_KEY_CODEC.encodeStart(JavaOps.INSTANCE, W).result().get() as String
 }
 
 /** Parse a string into a UUID, returning null on failure. */
@@ -326,9 +319,9 @@ fun String?.toUUID(): UUID? {
 }
 
 /** Decode a value. */
-fun <T> Codec<T>.Decode(Val: NbtElement): T =
+fun <T> Codec<T>.Decode(Val: Tag): T =
     parse(NbtOps.INSTANCE, Val).getOrThrow()
 
 /** Encode a value. */
-fun <T> Codec<T>.Encode(Val: T): NbtElement =
+fun <T> Codec<T>.Encode(Val: T): Tag =
     encodeStart(NbtOps.INSTANCE, Val).getOrThrow()

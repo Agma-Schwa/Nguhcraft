@@ -1,21 +1,21 @@
 package org.nguh.nguhcraft.item
 
 import com.mojang.logging.LogUtils
-import net.minecraft.component.DataComponentTypes
-import net.minecraft.entity.player.PlayerEntity
-import net.minecraft.item.ItemStack
-import net.minecraft.sound.SoundCategory
-import net.minecraft.sound.SoundEvents
-import net.minecraft.storage.ReadView
-import net.minecraft.text.MutableText
-import net.minecraft.text.Text
-import net.minecraft.util.Formatting
+import net.minecraft.core.component.DataComponents
+import net.minecraft.world.entity.player.Player
+import net.minecraft.world.item.ItemStack
+import net.minecraft.sounds.SoundSource
+import net.minecraft.sounds.SoundEvents
+import net.minecraft.world.level.storage.ValueInput
+import net.minecraft.network.chat.MutableComponent
+import net.minecraft.network.chat.Component
+import net.minecraft.ChatFormatting
 import org.nguh.nguhcraft.protect.ProtectionManager
 import kotlin.jvm.optionals.getOrNull
 
 interface LockableBlockEntity {
     /** Get the name of this entity (the ‘X’ in ‘X is locked’). */
-    fun `Nguhcraft$GetName`(): Text
+    fun `Nguhcraft$GetName`(): Component
 
     /** Get the current lock.  */
     fun `Nguhcraft$GetLock`(): String?
@@ -45,29 +45,29 @@ interface LockableBlockEntity {
  * @param Key The stack used for opening.
  * @return Whether the lock can be opened.
  */
-fun LockableBlockEntity.CheckCanOpen(PE: PlayerEntity?, Key: ItemStack): Boolean {
+fun LockableBlockEntity.CheckCanOpen(PE: Player?, Key: ItemStack): Boolean {
     fun CanOpenImpl(St: ItemStack, Lock: String): Boolean {
         fun CheckKey(St: ItemStack, Lock: String): Boolean {
-            if (!St.isOf(NguhItems.KEY)) return false
+            if (!St.`is`(NguhItems.KEY)) return false
             return St.get(KeyItem.COMPONENT) == Lock
         }
 
-        fun CheckKeyChain(St: ItemStack, Lock: String) = St.get(DataComponentTypes.BUNDLE_CONTENTS)
-            ?.iterate()
+        fun CheckKeyChain(St: ItemStack, Lock: String) = St.get(DataComponents.BUNDLE_CONTENTS)
+            ?.items()
             ?.any { CheckKey(it, Lock) } == true
 
-        if (St.isOf(NguhItems.MASTER_KEY)) return true
-        if (St.isOf(NguhItems.KEY_CHAIN)) return CheckKeyChain(St, Lock)
+        if (St.`is`(NguhItems.MASTER_KEY)) return true
+        if (St.`is`(NguhItems.KEY_CHAIN)) return CheckKeyChain(St, Lock)
         return CheckKey(St, Lock)
     }
 
     if (!IsLocked()) return true
     if (PE != null && ProtectionManager.BypassesRegionProtection(PE)) return true
     if (CanOpenImpl(Key, `Nguhcraft$GetLock`()!!)) return true
-    PE?.sendMessage(FormatLockedMessage(`Nguhcraft$GetLock`()!!, `Nguhcraft$GetName`()), true)
-    if (PE == null || !PE.world.isClient) PE?.playSoundToPlayer(
-        SoundEvents.BLOCK_CHEST_LOCKED,
-        SoundCategory.BLOCKS,
+    PE?.displayClientMessage(FormatLockedMessage(`Nguhcraft$GetLock`()!!, `Nguhcraft$GetName`()), true)
+    if (PE == null || !PE.level().isClientSide) PE?.playNotifySound(
+        SoundEvents.CHEST_LOCKED,
+        SoundSource.BLOCKS,
         1.0f,
         1.0f
     )
@@ -79,7 +79,7 @@ object LockDeserialisation {
 }
 
 /** Extract a container lock from saved data. */
-fun DeserialiseLock(RV: ReadView, PreferredKey: String = "Lock"): String? {
+fun DeserialiseLock(RV: ValueInput, PreferredKey: String = "Lock"): String? {
     // I’m done dealing with stupid data fixer nonsense to try and
     // rename this field properly, so we’re doing this the dumb way.
     //
@@ -98,10 +98,10 @@ fun DeserialiseLock(RV: ReadView, PreferredKey: String = "Lock"): String? {
     //    }
     //
     // Do not use SetLock() here as that will crash during loading.
-    return RV.getOptionalString(PreferredKey).or {
-        val LegacyLock = RV.getReadView("lock")
-            .getReadView("predicates")
-            .getOptionalString("nguhcraft:lock_predicate")
+    return RV.getString(PreferredKey).or {
+        val LegacyLock = RV.childOrEmpty("lock")
+            .childOrEmpty("predicates")
+            .getString("nguhcraft:lock_predicate")
 
         // Report whether we managed to extract the lock if there was one.
         if (RV.contains("lock")) {
@@ -117,10 +117,10 @@ fun DeserialiseLock(RV: ReadView, PreferredKey: String = "Lock"): String? {
 }
 
 /** Format the message that indicates why a container is locked. */
-private fun FormatLockedMessage(Lock: String, BlockName: Text): MutableText = Text.translatable(
+private fun FormatLockedMessage(Lock: String, BlockName: Component): MutableComponent = Component.translatable(
     "nguhcraft.block.locked",
     BlockName,
-    Text.literal(Lock).formatted(Formatting.LIGHT_PURPLE)
+    Component.literal(Lock).withStyle(ChatFormatting.LIGHT_PURPLE)
 )
 
 

@@ -1,12 +1,12 @@
 package org.nguh.nguhcraft.mixin.server.command;
 
 import com.mojang.brigadier.CommandDispatcher;
-import net.minecraft.server.command.MessageCommand;
-import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.server.commands.MsgCommand;
+import net.minecraft.commands.CommandSourceStack;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 
-@Mixin(MessageCommand.class)
+@Mixin(MsgCommand.class)
 public abstract class MsgCommandMixin {
     /**
      * This command is quite useful, but patch it to disable signing. We
@@ -17,5 +17,5 @@ public abstract class MsgCommandMixin {
      * @reason This command uses chat signing.
      */
     @Overwrite
-    public static void register(CommandDispatcher<ServerCommandSource> D) { }
+    public static void register(CommandDispatcher<CommandSourceStack> D) { }
 }

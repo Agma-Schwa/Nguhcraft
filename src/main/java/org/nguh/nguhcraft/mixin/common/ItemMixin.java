@@ -1,8 +1,8 @@
 package org.nguh.nguhcraft.mixin.common;
 
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.damage.DamageSource;
-import net.minecraft.item.Item;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.item.Item;
 import org.nguh.nguhcraft.NguhDamageTypes;
 import org.nguh.nguhcraft.enchantment.NguhcraftEnchantments;
 import org.spongepowered.asm.mixin.Mixin;
@@ -17,9 +17,9 @@ public abstract class ItemMixin {
     /** Implement the ‘arcane’ enchantment / damage type. */
     @Inject(method = "getDamageSource", at = @At("HEAD"), cancellable = true)
     private void inject$getDamageSource(LivingEntity User, CallbackInfoReturnable<DamageSource> CIR) {
-        var W = User.getWorld();
-        var Weapon = User.getWeaponStack();
-        if (EnchantLvl(User.getWorld(), Weapon, NguhcraftEnchantments.ARCANE) > 0)
+        var W = User.level();
+        var Weapon = User.getWeaponItem();
+        if (EnchantLvl(User.level(), Weapon, NguhcraftEnchantments.ARCANE) > 0)
             CIR.setReturnValue(NguhDamageTypes.Arcane(W, User));
     }
 }

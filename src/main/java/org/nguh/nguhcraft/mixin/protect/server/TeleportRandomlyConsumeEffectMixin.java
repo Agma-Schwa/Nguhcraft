@@ -1,8 +1,8 @@
 package org.nguh.nguhcraft.mixin.protect.server;
 
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.item.consume.TeleportRandomlyConsumeEffect;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.consume_effects.TeleportRandomlyConsumeEffect;
+import net.minecraft.core.BlockPos;
 import org.nguh.nguhcraft.protect.ProtectionManager;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -12,10 +12,10 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 public abstract class TeleportRandomlyConsumeEffectMixin {
     /** Prevent chorus fruit teleporting into protected regions. */
     @Redirect(
-        method = "onConsume",
+        method = "apply",
         at = @At(
             value = "INVOKE",
-            target = "Lnet/minecraft/entity/LivingEntity;teleport(DDDZ)Z",
+            target = "Lnet/minecraft/world/entity/LivingEntity;randomTeleport(DDDZ)Z",
             ordinal = 0
         )
     )
@@ -27,7 +27,7 @@ public abstract class TeleportRandomlyConsumeEffectMixin {
         boolean ParticleEffects
     ) {
         var To = new BlockPos((int) X, (int) Y, (int) Z);
-        if (!ProtectionManager.AllowTeleport(LE, LE.getWorld(), To)) return false;
-        return LE.teleport(X, Y, Z, ParticleEffects);
+        if (!ProtectionManager.AllowTeleport(LE, LE.level(), To)) return false;
+        return LE.randomTeleport(X, Y, Z, ParticleEffects);
     }
 }

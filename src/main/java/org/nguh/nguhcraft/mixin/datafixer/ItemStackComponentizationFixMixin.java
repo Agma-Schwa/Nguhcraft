@@ -5,7 +5,7 @@ import com.llamalad7.mixinextras.sugar.ref.LocalRef;
 import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.Dynamic;
 import com.mojang.serialization.OptionalDynamic;
-import net.minecraft.datafixer.fix.ItemStackComponentizationFix;
+import net.minecraft.util.datafix.fixes.ItemStackComponentizationFix;
 import org.nguh.nguhcraft.PaperDataFixer;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -19,7 +19,7 @@ import java.util.List;
 public abstract class ItemStackComponentizationFixMixin {
     /** Yeet the HideFlags. */
     @Redirect(
-        method = "fixStack",
+        method = "fixItemStack",
         at = @At(
             value = "INVOKE",
             target = "Lcom/mojang/serialization/OptionalDynamic;asInt(I)I",
@@ -30,9 +30,9 @@ public abstract class ItemStackComponentizationFixMixin {
     private static int inject$fixStack$0(OptionalDynamic<?> Instance, int i) { return 0; }
 
     /** Run lore data fix. */
-    @Inject(method = "fixStack", at = @At("HEAD"))
+    @Inject(method = "fixItemStack", at = @At("HEAD"))
     private static void inject$fixStack$1(
-        ItemStackComponentizationFix.StackData Data,
+        ItemStackComponentizationFix.ItemStackData Data,
         Dynamic<?> Dyn,
         CallbackInfo CI
     ) {
@@ -48,7 +48,7 @@ public abstract class ItemStackComponentizationFixMixin {
         )
     )
     private static void inject$fixEnchantments(
-        ItemStackComponentizationFix.StackData Data,
+        ItemStackComponentizationFix.ItemStackData Data,
         Dynamic<?> dynamic,
         String nbtKey,
         String componentId,

@@ -1,7 +1,7 @@
 package org.nguh.nguhcraft.mixin.discord.common;
 
-import net.minecraft.entity.Entity;
-import net.minecraft.text.Text;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.network.chat.Component;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -16,7 +16,7 @@ public abstract class EntityMixin {
     * not what we want.
     */
     @Inject(method = "getDisplayName", at = @At("HEAD"), cancellable = true)
-    private void inject$getDisplayName(CallbackInfoReturnable<Text> CIR) {
+    private void inject$getDisplayName(CallbackInfoReturnable<Component> CIR) {
         CIR.setReturnValue(((Entity) (Object) this).getName());
     }
 }

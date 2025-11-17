@@ -3,25 +3,25 @@ package org.nguh.nguhcraft.entity
 import com.mojang.logging.LogUtils
 import com.mojang.serialization.Codec
 import com.mojang.serialization.codecs.RecordCodecBuilder
-import net.minecraft.entity.EntityType
-import net.minecraft.entity.EquipmentSlot
-import net.minecraft.entity.SpawnReason
-import net.minecraft.entity.mob.MobEntity
-import net.minecraft.nbt.NbtCompound
-import net.minecraft.network.codec.PacketCodec
-import net.minecraft.network.codec.PacketCodecs
-import net.minecraft.network.packet.CustomPayload
-import net.minecraft.registry.RegistryKey
-import net.minecraft.registry.RegistryKeys
+import net.minecraft.world.entity.EntityType
+import net.minecraft.world.entity.EquipmentSlot
+import net.minecraft.world.entity.EntitySpawnReason
+import net.minecraft.world.entity.Mob
+import net.minecraft.nbt.CompoundTag
+import net.minecraft.network.codec.StreamCodec
+import net.minecraft.network.codec.ByteBufCodecs
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload
+import net.minecraft.resources.ResourceKey
+import net.minecraft.core.registries.Registries
 import net.minecraft.server.MinecraftServer
-import net.minecraft.server.network.ServerPlayerEntity
-import net.minecraft.server.world.ServerWorld
-import net.minecraft.storage.ReadView
-import net.minecraft.storage.WriteView
-import net.minecraft.util.Uuids
-import net.minecraft.util.math.BlockPos
-import net.minecraft.util.math.Vec3d
-import net.minecraft.world.World
+import net.minecraft.server.level.ServerPlayer
+import net.minecraft.server.level.ServerLevel
+import net.minecraft.world.level.storage.ValueInput
+import net.minecraft.world.level.storage.ValueOutput
+import net.minecraft.core.UUIDUtil
+import net.minecraft.core.BlockPos
+import net.minecraft.world.phys.Vec3
+import net.minecraft.world.level.Level
 import org.nguh.nguhcraft.Named
 import org.nguh.nguhcraft.Read
 import org.nguh.nguhcraft.Write
@@ -33,18 +33,18 @@ import java.util.*
 class EntitySpawnManager(val S: MinecraftServer) : Manager() {
     /** Spawn data shared between client and server. */
     open class Spawn(
-        val World: RegistryKey<World>,
-        val SpawnPos: Vec3d,
+        val World: ResourceKey<Level>,
+        val SpawnPos: Vec3,
         val Id: String,
     ) {
-        override fun toString() = "$Id in ${World.value} at $SpawnPos"
+        override fun toString() = "$Id in ${World.location()} at $SpawnPos"
         companion object {
-            val PACKET_CODEC = PacketCodec.tuple(
-                RegistryKey.createPacketCodec(RegistryKeys.WORLD),
+            val PACKET_CODEC = StreamCodec.composite(
+                ResourceKey.streamCodec(Registries.DIMENSION),
                 Spawn::World,
-                Vec3d.PACKET_CODEC,
+                Vec3.STREAM_CODEC,
                 Spawn::SpawnPos,
-                PacketCodecs.STRING,
+                ByteBufCodecs.STRING_UTF8,
                 Spawn::Id,
                 ::Spawn
             )
@@ -53,20 +53,20 @@ class EntitySpawnManager(val S: MinecraftServer) : Manager() {
 
     /** Server-only spawn data. */
     class ServerSpawn(
-        World: RegistryKey<World>,
-        SpawnPos: Vec3d,
+        World: ResourceKey<Level>,
+        SpawnPos: Vec3,
         Id: String,
-        val Nbt: NbtCompound,
+        val Nbt: CompoundTag,
         var Entity: Optional<UUID> = Optional.empty(),
     ) : Spawn(World, SpawnPos, Id) {
         companion object {
             val CODEC: Codec<ServerSpawn> = RecordCodecBuilder.create {
                 it.group(
-                    RegistryKey.createCodec(RegistryKeys.WORLD).fieldOf("World").forGetter(ServerSpawn::World),
-                    Vec3d.CODEC.fieldOf("SpawnPos").forGetter(ServerSpawn::SpawnPos),
+                    ResourceKey.codec(Registries.DIMENSION).fieldOf("World").forGetter(ServerSpawn::World),
+                    Vec3.CODEC.fieldOf("SpawnPos").forGetter(ServerSpawn::SpawnPos),
                     Codec.STRING.fieldOf("Id").forGetter(ServerSpawn::Id),
-                    NbtCompound.CODEC.fieldOf("Nbt").forGetter(ServerSpawn::Nbt),
-                    Uuids.CODEC.optionalFieldOf("Entity").forGetter(ServerSpawn::Entity),
+                    CompoundTag.CODEC.fieldOf("Nbt").forGetter(ServerSpawn::Nbt),
+                    UUIDUtil.AUTHLIB_CODEC.optionalFieldOf("Entity").forGetter(ServerSpawn::Entity),
                 ).apply(it, ::ServerSpawn)
             }
         }
@@ -91,13 +91,13 @@ class EntitySpawnManager(val S: MinecraftServer) : Manager() {
     }
 
     /** Tick all spawns in a world. */
-    fun Tick(SW: ServerWorld) {
-        if (SW.time > 100 && SW.time % 100L != 0L) return // Tick all 5 seconds
-        for (Sp in Spawns.filter { it.World == SW.registryKey }) {
-            val Block = BlockPos.ofFloored(Sp.SpawnPos)
+    fun Tick(SW: ServerLevel) {
+        if (SW.gameTime > 100 && SW.gameTime % 100L != 0L) return // Tick all 5 seconds
+        for (Sp in Spawns.filter { it.World == SW.dimension() }) {
+            val Block = BlockPos.containing(Sp.SpawnPos)
 
             // Skip spawns that are not loaded.
-            if (!SW.isPosLoaded(Block)) continue
+            if (!SW.isLoaded(Block)) continue
 
             // Skip spawns whose entity is alive.
             val E = Sp.Entity.orElse(null)?.let { SW.getEntity(it) }
@@ -110,23 +110,23 @@ class EntitySpawnManager(val S: MinecraftServer) : Manager() {
             //        come up w/ our custom format (use the one from the event branch)
             //        for defining entity spawns.
             Sp.Entity = Optional.empty()
-            val NewEntity = EntityType.loadEntityWithPassengers(Sp.Nbt.copy(), SW, SpawnReason.SPAWNER) {
+            val NewEntity = EntityType.loadEntityRecursive(Sp.Nbt.copy(), SW, EntitySpawnReason.SPAWNER) {
                 it.Data.ManagedBySpawnPos = true
-                it.refreshPositionAndAngles(Sp.SpawnPos, 0.0f, 0.0f)
+                it.snapTo(Sp.SpawnPos, 0.0f, 0.0f)
                 it
             }
 
             // Ignore this if the spawn failed.
-            if (NewEntity == null || !SW.spawnNewEntityAndPassengers(NewEntity)) {
+            if (NewEntity == null || !SW.tryAddFreshEntityWithPassengers(NewEntity)) {
                 LOGGER.error("Failed to spawn entity for spawn $Sp")
                 continue
             }
 
             // Make the entity persistent.
-            if (NewEntity is MobEntity) {
-                NewEntity.setPersistent()
+            if (NewEntity is Mob) {
+                NewEntity.setPersistenceRequired()
                 NewEntity.setCanPickUpLoot(false)
-                for (E in EquipmentSlot.entries) NewEntity.setEquipmentDropChance(E, 0.0f)
+                for (E in EquipmentSlot.entries) NewEntity.setDropChance(E, 0.0f)
             }
 
             // Register this as our entity.
@@ -134,11 +134,11 @@ class EntitySpawnManager(val S: MinecraftServer) : Manager() {
         }
     }
 
-    override fun ReadData(RV: ReadView) = RV.Read(CODEC).ifPresent(Spawns::addAll)
-    override fun WriteData(WV: WriteView) = WV.Write(CODEC, Spawns)
+    override fun ReadData(RV: ValueInput) = RV.Read(CODEC).ifPresent(Spawns::addAll)
+    override fun WriteData(WV: ValueOutput) = WV.Write(CODEC, Spawns)
 
-    override fun ToPacket(SP: ServerPlayerEntity): CustomPayload? {
-        if (!SP.hasPermissionLevel(4)) return null
+    override fun ToPacket(SP: ServerPlayer): CustomPacketPayload? {
+        if (!SP.hasPermissions(4)) return null
         return ClientboundSyncSpawnsPacket(Spawns)
     }
 

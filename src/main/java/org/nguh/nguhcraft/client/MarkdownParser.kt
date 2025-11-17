@@ -3,9 +3,9 @@ package org.nguh.nguhcraft.client
 import com.mojang.logging.LogUtils
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
-import net.minecraft.text.MutableText
-import net.minecraft.text.Text
-import net.minecraft.util.Formatting
+import net.minecraft.network.chat.MutableComponent
+import net.minecraft.network.chat.Component
+import net.minecraft.ChatFormatting
 import org.apache.commons.lang3.StringUtils
 import org.nguh.nguhcraft.client.ClientUtils.EMOJI_REPLACEMENTS
 import org.slf4j.Logger
@@ -23,7 +23,7 @@ import java.util.*
 @Environment(EnvType.CLIENT)
 internal class MarkdownParser private constructor(private val MD: String) {
     private open class Node
-    private class Emph(var S: Formatting) : Node() {
+    private class Emph(var S: ChatFormatting) : Node() {
         var Children: LinkedList<Node> = LinkedList()
     }
 
@@ -124,12 +124,12 @@ internal class MarkdownParser private constructor(private val MD: String) {
      * @param Strong Whether the delimiter run contains 2 or more delimiters.
      * @return The style that corresponds to a delimiter
      */
-    private fun DelimiterStyle(Kind: Char, Strong: Boolean): Formatting {
+    private fun DelimiterStyle(Kind: Char, Strong: Boolean): ChatFormatting {
         return when (Kind) {
-            '*' -> if (Strong) Formatting.BOLD else Formatting.ITALIC
-            '_' -> if (Strong) Formatting.UNDERLINE else Formatting.ITALIC
-            '~' -> Formatting.STRIKETHROUGH // Always strong
-            '|' -> Formatting.OBFUSCATED // Always strong
+            '*' -> if (Strong) ChatFormatting.BOLD else ChatFormatting.ITALIC
+            '_' -> if (Strong) ChatFormatting.UNDERLINE else ChatFormatting.ITALIC
+            '~' -> ChatFormatting.STRIKETHROUGH // Always strong
+            '|' -> ChatFormatting.OBFUSCATED // Always strong
             else -> throw IllegalArgumentException("Invalid delimiter kind: $Kind")
         }
     }
@@ -459,21 +459,21 @@ internal class MarkdownParser private constructor(private val MD: String) {
     }
 
     /** Render Markdown AST to Component.  */
-    private fun RenderNodes(Nodes: List<Node>): MutableText {
-        val C = Text.empty()
+    private fun RenderNodes(Nodes: List<Node>): MutableComponent {
+        val C = Component.empty()
         for (N in Nodes) {
             if (N is Span) C.append(Render(N))
             else if (N is Emph) C.append(Render(N))
-            else if (N is LiteralText) C.append(Text.of(N.Text))
+            else if (N is LiteralText) C.append(Component.nullToEmpty(N.Text))
         }
         return C
     }
 
     /** Render an Emph to a Component.  */
-    private fun Render(E: Emph) = RenderNodes(E.Children).formatted(E.S)
+    private fun Render(E: Emph) = RenderNodes(E.Children).withStyle(E.S)
 
     /** Render a Span to a Component.  */
-    private fun Render(S: Span): Text {
+    private fun Render(S: Span): Component {
         // Apply normalisation to code spans.
         if (S.IsCode) {
             // First, line endings are converted to spaces.
@@ -490,7 +490,7 @@ internal class MarkdownParser private constructor(private val MD: String) {
             ) T = T.substring(1, T.length - 1)
 
             // That’s all for code spans.
-            return Text.literal(T)
+            return Component.literal(T)
         }
 
         // Regular text; process escapes.
@@ -522,7 +522,7 @@ internal class MarkdownParser private constructor(private val MD: String) {
         }
 
         // Return the processed text.
-        return Text.literal(SB.toString())
+        return Component.literal(SB.toString())
     }
 
     /** Set the stored index in a Span to that Span’s index in the Nodes array.  */
@@ -537,14 +537,14 @@ internal class MarkdownParser private constructor(private val MD: String) {
         private const val ESCAPABLE = "!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~"
 
         /** Render a Markdown string into a Component.  */
-        fun Render(MD: String): MutableText {
+        fun Render(MD: String): MutableComponent {
             try {
                 val P = MarkdownParser(MD)
                 return P.RenderNodes(P.Nodes)
             } catch (E: Exception) {
                 LOGGER.error("Error rendering markdown: {}", MD)
                 E.printStackTrace()
-                return Text.literal(MD)
+                return Component.literal(MD)
             }
         }
     }

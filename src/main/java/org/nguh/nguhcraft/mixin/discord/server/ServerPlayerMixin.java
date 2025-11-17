@@ -1,11 +1,11 @@
 package org.nguh.nguhcraft.mixin.discord.server;
 
 import com.mojang.authlib.GameProfile;
-import net.minecraft.entity.damage.DamageTracker;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
-import net.minecraft.world.World;
+import net.minecraft.world.damagesource.CombatTracker;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.level.Level;
 import org.nguh.nguhcraft.server.dedicated.Discord;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -13,23 +13,23 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(ServerPlayerEntity.class)
-public abstract class ServerPlayerMixin extends PlayerEntity {
-    public ServerPlayerMixin(World world, GameProfile profile) {
+@Mixin(ServerPlayer.class)
+public abstract class ServerPlayerMixin extends Player {
+    public ServerPlayerMixin(Level world, GameProfile profile) {
         super(world, profile);
     }
 
     /** Inject code to send a death message to discord (and for custom death messages). */
     @Redirect(
-        method = "onDeath(Lnet/minecraft/entity/damage/DamageSource;)V",
+        method = "die(Lnet/minecraft/world/damagesource/DamageSource;)V",
         at = @At(
             value = "INVOKE",
-            target = "Lnet/minecraft/entity/damage/DamageTracker;getDeathMessage()Lnet/minecraft/text/Text;"
+            target = "Lnet/minecraft/world/damagesource/CombatTracker;getDeathMessage()Lnet/minecraft/network/chat/Component;"
         )
     )
-    private Text inject$onDeath(DamageTracker I) {
+    private Component inject$onDeath(CombatTracker I) {
         var DeathMessage = I.getDeathMessage();
-        Discord.BroadcastDeathMessage((ServerPlayerEntity) (Object) this, DeathMessage);
+        Discord.BroadcastDeathMessage((ServerPlayer) (Object) this, DeathMessage);
         return DeathMessage;
     }
 
@@ -37,6 +37,6 @@ public abstract class ServerPlayerMixin extends PlayerEntity {
     @SuppressWarnings("UnreachableCode")
     @Inject(method = "tick()V", at = @At("HEAD"))
     private void inject$tick(CallbackInfo ci) {
-        Discord.TickPlayer((ServerPlayerEntity)(Object)this);
+        Discord.TickPlayer((ServerPlayer)(Object)this);
     }
 }

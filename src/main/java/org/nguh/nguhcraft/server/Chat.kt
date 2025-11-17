@@ -3,17 +3,17 @@ package org.nguh.nguhcraft.server
 import com.mojang.logging.LogUtils
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.Context
-import net.minecraft.network.packet.s2c.play.GameMessageS2CPacket
-import net.minecraft.screen.ScreenTexts
+import net.minecraft.network.protocol.game.ClientboundSystemChatPacket
+import net.minecraft.network.chat.CommonComponents
 import net.minecraft.server.MinecraftServer
-import net.minecraft.server.network.ServerPlayNetworkHandler
-import net.minecraft.server.network.ServerPlayerEntity
-import net.minecraft.server.world.ServerWorld
-import net.minecraft.text.MutableText
-import net.minecraft.text.Text
-import net.minecraft.util.Formatting
-import net.minecraft.util.math.BlockPos
-import net.minecraft.world.World
+import net.minecraft.server.network.ServerGamePacketListenerImpl
+import net.minecraft.server.level.ServerPlayer
+import net.minecraft.server.level.ServerLevel
+import net.minecraft.network.chat.MutableComponent
+import net.minecraft.network.chat.Component
+import net.minecraft.ChatFormatting
+import net.minecraft.core.BlockPos
+import net.minecraft.world.level.Level
 import org.nguh.nguhcraft.Constants
 import org.nguh.nguhcraft.Utils
 import org.nguh.nguhcraft.network.ClientboundChatPacket
@@ -23,38 +23,38 @@ import org.nguh.nguhcraft.server.ServerUtils.Multicast
 import org.nguh.nguhcraft.server.dedicated.Discord
 
 /** Get a player’s name. */
-val ServerPlayerEntity.Name get(): Text = displayName ?: Text.literal(nameForScoreboard).formatted(Formatting.GRAY)
+val ServerPlayer.Name get(): Component = displayName ?: Component.literal(scoreboardName).withStyle(ChatFormatting.GRAY)
 
 /** This handles everything related to chat and messages */
 object Chat {
     private val LOGGER = LogUtils.getLogger()
-    private val ERR_NEEDS_LINK_TO_CHAT: Text = Text.literal("You must link your account to send messages in chat or run commands (other than /discord link)").formatted(Formatting.RED)
-    private val ERR_MUTED: Text = Text.literal("You are muted and cannot send messages in chat").formatted(Formatting.RED)
+    private val ERR_NEEDS_LINK_TO_CHAT: Component = Component.literal("You must link your account to send messages in chat or run commands (other than /discord link)").withStyle(ChatFormatting.RED)
+    private val ERR_MUTED: Component = Component.literal("You are muted and cannot send messages in chat").withStyle(ChatFormatting.RED)
 
     /** Components used in sender names. */
-    val SERVER_COMPONENT: Text = Utils.BracketedLiteralComponent("Server")
-    val RCON_COMPONENT: Text = Utils.BracketedLiteralComponent("RCon")
-    private val SRV_LIT_COMPONENT: Text = Text.literal("Server").withColor(Constants.Lavender)
-    private val COLON_COMPONENT: Text = Text.literal(":")
-    private val COMMA_COMPONENT = Text.literal(", ").withColor(Constants.DeepKoamaru)
-    private val DISCORD_COMPONENT: Text = Utils.BracketedLiteralComponent("Discord").append(ScreenTexts.SPACE)
-    private val REPLY_COMPONENT: Text = ScreenTexts.space().append(Utils.BracketedLiteralComponent("Reply"))
-    private val IMAGE_COMPONENT: Text = ScreenTexts.space().append(Utils.BracketedLiteralComponent("Image"))
+    val SERVER_COMPONENT: Component = Utils.BracketedLiteralComponent("Server")
+    val RCON_COMPONENT: Component = Utils.BracketedLiteralComponent("RCon")
+    private val SRV_LIT_COMPONENT: Component = Component.literal("Server").withColor(Constants.Lavender)
+    private val COLON_COMPONENT: Component = Component.literal(":")
+    private val COMMA_COMPONENT = Component.literal(", ").withColor(Constants.DeepKoamaru)
+    private val DISCORD_COMPONENT: Component = Utils.BracketedLiteralComponent("Discord").append(CommonComponents.SPACE)
+    private val REPLY_COMPONENT: Component = CommonComponents.space().append(Utils.BracketedLiteralComponent("Reply"))
+    private val IMAGE_COMPONENT: Component = CommonComponents.space().append(Utils.BracketedLiteralComponent("Image"))
 
 
     /** Broadcast a command to subscribed operators. */
     private fun BroadcastCommand(
         S: MinecraftServer,
-        Source: MutableText,
+        Source: MutableComponent,
         Command: String,
-        SP: ServerPlayerEntity? = null
+        SP: ServerPlayer? = null
     ) {
-        Source.append(Text.literal(" issued command\n    /$Command").formatted(Formatting.GRAY))
+        Source.append(Component.literal(" issued command\n    /$Command").withStyle(ChatFormatting.GRAY))
         S.BroadcastToOperators(Source, SP)
     }
 
     /** Actually send a message. */
-    fun DispatchMessage(S: MinecraftServer, Sender: ServerPlayerEntity?, Message: String) {
+    fun DispatchMessage(S: MinecraftServer, Sender: ServerPlayer?, Message: String) {
         // On the integrated server, don’t bother with the linking.
         if (IsIntegratedServer()) {
             S.Broadcast(ClientboundChatPacket(
@@ -68,7 +68,7 @@ object Chat {
         // On the dedicated server, actually do everything properly.
         val Name = (
             if (Sender == null) SERVER_COMPONENT
-            else Text.empty()
+            else Component.empty()
                 .append(Sender.Name)
                 .append(COLON_COMPONENT.copy().withColor(
                     Sender.Data.DiscordColour)
@@ -86,13 +86,13 @@ object Chat {
         // On the dedicated server, check if the player is linked.
         val SP = Context.player()
         if (!IsLinkedOrOperator(SP)) {
-            Context.responseSender().sendPacket(GameMessageS2CPacket(ERR_NEEDS_LINK_TO_CHAT, false))
+            Context.responseSender().sendPacket(ClientboundSystemChatPacket(ERR_NEEDS_LINK_TO_CHAT, false))
             return false
         }
 
         // Or muted.
         if (Discord.IsMuted(SP)) {
-            Context.responseSender().sendPacket(GameMessageS2CPacket(ERR_MUTED, false))
+            Context.responseSender().sendPacket(ClientboundSystemChatPacket(ERR_MUTED, false))
             return false
         }
 
@@ -100,11 +100,11 @@ object Chat {
     }
 
     /** Log a chat message. */
-    fun LogChat(SP: ServerPlayerEntity, Message: String, IsCommand: Boolean) {
+    fun LogChat(SP: ServerPlayer, Message: String, IsCommand: Boolean) {
         val Linked = IsLinkedOrOperator(SP)
         if (IsCommand) BroadcastCommand(
             SP.Server,
-            SP.Name.copy() ?: Text.literal(SP.nameForScoreboard),
+            SP.Name.copy() ?: Component.literal(SP.scoreboardName),
             Message,
             SP
         )
@@ -112,7 +112,7 @@ object Chat {
         LOGGER.info(
             "[CHAT] {}{}{}: {}{}",
             SP.Name.string,
-            if (Linked) " [${SP.nameForScoreboard}]" else "",
+            if (Linked) " [${SP.scoreboardName}]" else "",
             if (IsCommand) " issued command" else " says",
             if (IsCommand) "/" else "",
             Message
@@ -128,9 +128,9 @@ object Chat {
     * the command originally came from.
     */
     @JvmStatic
-    fun LogCommandBlock(S: String, SW: ServerWorld, Pos: BlockPos) {
-        val WorldKey = if (SW.registryKey == World.OVERWORLD) "" else "${SW.registryKey.value.path}:"
-        BroadcastCommand(SW.server, Text.literal("Command block at $WorldKey[${Pos.toShortString()}]"), S)
+    fun LogCommandBlock(S: String, SW: ServerLevel, Pos: BlockPos) {
+        val WorldKey = if (SW.dimension() == Level.OVERWORLD) "" else "${SW.dimension().location().path}:"
+        BroadcastCommand(SW.server, Component.literal("Command block at $WorldKey[${Pos.toShortString()}]"), S)
         LOGGER.info(
             "[CMD] Command block at {}[{}] issued command /{}",
             WorldKey,
@@ -142,7 +142,7 @@ object Chat {
     /** Log RCon command execution. */
     @JvmStatic
     fun LogRConCommand(S: MinecraftServer, Command: String) {
-        BroadcastCommand(S, Text.literal("Remote console"), Command)
+        BroadcastCommand(S, Component.literal("Remote console"), Command)
         LOGGER.info(
             "[RCon] Remote console issued command /{}",
             if (Command.startsWith('/')) Command.substring(1) else Command
@@ -162,20 +162,20 @@ object Chat {
     }
 
     /** Process an incoming command. */
-    fun ProcessCommand(Handler: ServerPlayNetworkHandler, Command: String) {
+    fun ProcessCommand(Handler: ServerGamePacketListenerImpl, Command: String) {
         val SP = Handler.player
         LogChat(SP, Command, true)
 
         // An unlinked player can only run /discord link.
         if (!IsLinkedOrOperator(SP) && !Command.startsWith("discord")) {
-            Handler.sendPacket(GameMessageS2CPacket(ERR_NEEDS_LINK_TO_CHAT, false))
+            Handler.send(ClientboundSystemChatPacket(ERR_NEEDS_LINK_TO_CHAT, false))
             return
         }
 
         // Dew it.
         val S = SP.Server
-        val ParsedCommand = S.commandManager.dispatcher.parse(Command, SP.commandSource)
-        S.commandManager.execute(ParsedCommand, Command)
+        val ParsedCommand = S.commands.dispatcher.parse(Command, SP.createCommandSourceStack())
+        S.commands.performCommand(ParsedCommand, Command)
     }
 
     /** Process a message sent from Discord. */
@@ -187,7 +187,7 @@ object Chat {
         HasReference: Boolean,
         HasAttachments: Boolean
     ) {
-        val Comp = DISCORD_COMPONENT.copy().append(Text.literal(MemberName).append(":").withColor(Colour))
+        val Comp = DISCORD_COMPONENT.copy().append(Component.literal(MemberName).append(":").withColor(Colour))
         if (HasReference) Comp.append(REPLY_COMPONENT)
         if (HasAttachments) Comp.append(IMAGE_COMPONENT)
         S.Broadcast(ClientboundChatPacket(Comp, Content, ClientboundChatPacket.MK_PUBLIC))
@@ -201,10 +201,10 @@ object Chat {
     }
 
     /** Send a private message to players. */
-    fun SendPrivateMessage(From: ServerPlayerEntity?, Players: Collection<ServerPlayerEntity>, Message: String) {
+    fun SendPrivateMessage(From: ServerPlayer?, Players: Collection<ServerPlayer>, Message: String) {
         if (From != null && !IsIntegratedServer()) {
             if (Discord.IsMuted(From)) {
-                From.sendMessage(ERR_MUTED, false)
+                From.displayClientMessage(ERR_MUTED, false)
                 return
             }
         }
@@ -221,7 +221,7 @@ object Chat {
         // anything if the console is the sender because the command will have
         // already been logged anyway.
         if (From == null) return
-        val AllReceivers = Text.empty()
+        val AllReceivers = Component.empty()
         var First = true
         for (P in Players) {
             if (First) First = false

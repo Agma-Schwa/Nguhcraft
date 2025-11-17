@@ -1,9 +1,9 @@
 package org.nguh.nguhcraft.network
 
 import io.netty.buffer.ByteBuf
-import net.minecraft.network.RegistryByteBuf
-import net.minecraft.network.codec.PacketCodec
-import net.minecraft.network.packet.CustomPayload
+import net.minecraft.network.RegistryFriendlyByteBuf
+import net.minecraft.network.codec.StreamCodec
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload
 import org.nguh.nguhcraft.Utils
 
 enum class ClientFlags {
@@ -21,8 +21,8 @@ data class ClientboundSyncFlagPacket(
 
     /** The value of the flag. */
     val Value: Boolean
-) : CustomPayload {
-    private constructor(B: RegistryByteBuf): this(
+) : CustomPacketPayload {
+    private constructor(B: RegistryFriendlyByteBuf): this(
         ClientFlags.entries[B.readByte().toInt()],
         B.readBoolean()
     )
@@ -32,7 +32,7 @@ data class ClientboundSyncFlagPacket(
         buf.writeBoolean(Value)
     }
 
-    override fun getId() = ID
+    override fun type() = ID
     companion object {
         val ID = Utils.PacketId<ClientboundSyncFlagPacket>("clientbound/sync_protection_bypass")
         val CODEC = MakeCodec(ClientboundSyncFlagPacket::Write, ::ClientboundSyncFlagPacket)

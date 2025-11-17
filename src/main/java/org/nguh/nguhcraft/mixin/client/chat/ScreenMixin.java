@@ -1,7 +1,7 @@
 package org.nguh.nguhcraft.mixin.client.chat;
 
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.util.InputUtil;
+import net.minecraft.client.gui.screens.Screen;
+import com.mojang.blaze3d.platform.InputConstants;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -17,7 +17,7 @@ public abstract class ScreenMixin {
     /** Support SHIFT+INSERT as paste. */
     @Inject(method = "isPaste", at = @At("HEAD"), cancellable = true)
     private static void inject$isPaste(int K, CallbackInfoReturnable<Boolean> CIR) {
-        if (hasShiftDown() && !hasControlDown() && !hasAltDown() && K == InputUtil.GLFW_KEY_INSERT)
+        if (hasShiftDown() && !hasControlDown() && !hasAltDown() && K == InputConstants.KEY_INSERT)
             CIR.setReturnValue(true);
     }
 }

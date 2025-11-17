@@ -2,7 +2,7 @@ package org.nguh.nguhcraft.server
 
 import com.mojang.serialization.Codec
 import com.mojang.serialization.codecs.RecordCodecBuilder
-import net.minecraft.entity.Entity
+import net.minecraft.world.entity.Entity
 
 class NguhcraftEntityData(
     var ManagedBySpawnPos: Boolean = false

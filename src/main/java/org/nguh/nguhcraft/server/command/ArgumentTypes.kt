@@ -7,15 +7,15 @@ import com.mojang.brigadier.exceptions.Dynamic2CommandExceptionType
 import com.mojang.brigadier.exceptions.DynamicCommandExceptionType
 import com.mojang.brigadier.suggestion.Suggestions
 import com.mojang.brigadier.suggestion.SuggestionsBuilder
-import net.minecraft.client.network.ClientCommandSource
-import net.minecraft.command.CommandSource
-import net.minecraft.registry.RegistryKey
-import net.minecraft.registry.RegistryKeys
-import net.minecraft.server.command.ServerCommandSource
-import net.minecraft.server.network.ServerPlayerEntity
-import net.minecraft.text.Text
-import net.minecraft.util.Identifier
-import net.minecraft.world.World
+import net.minecraft.client.multiplayer.ClientSuggestionProvider
+import net.minecraft.commands.SharedSuggestionProvider
+import net.minecraft.resources.ResourceKey
+import net.minecraft.core.registries.Registries
+import net.minecraft.commands.CommandSourceStack
+import net.minecraft.server.level.ServerPlayer
+import net.minecraft.network.chat.Component
+import net.minecraft.resources.ResourceLocation
+import net.minecraft.world.level.Level
 import org.nguh.nguhcraft.client.ClientUtils.Client
 import org.nguh.nguhcraft.event.NguhMobType
 import org.nguh.nguhcraft.protect.ProtectionManager
@@ -41,21 +41,21 @@ fun StringReader.ReadUntilWhitespace(): String {
 class DisplayArgumentType : ArgumentType<String> {
     override fun parse(R: StringReader) =  R.readString()
     companion object {
-        private val NO_SUCH_DISPLAY = DynamicCommandExceptionType { Text.literal("No such display: '$it'") }
+        private val NO_SUCH_DISPLAY = DynamicCommandExceptionType { Component.literal("No such display: '$it'") }
 
         fun Display() = ProcedureArgumentType()
 
-        fun Resolve(Ctx: CommandContext<ServerCommandSource>, ArgName: String): DisplayHandle {
+        fun Resolve(Ctx: CommandContext<CommandSourceStack>, ArgName: String): DisplayHandle {
             val Name = Ctx.getArgument(ArgName, String::class.java)
             return Ctx.source.server.DisplayManager.GetExisting(Name) ?: throw NO_SUCH_DISPLAY.create(Name)
         }
 
         fun Suggest(
-            Ctx: CommandContext<ServerCommandSource>,
+            Ctx: CommandContext<CommandSourceStack>,
             SB: SuggestionsBuilder
         ): CompletableFuture<Suggestions> {
             val Displays = Ctx.source.server.DisplayManager.GetExistingDisplayNames()
-            return CommandSource.suggestMatching(Displays, SB)
+            return SharedSuggestionProvider.suggest(Displays, SB)
         }
     }
 }
@@ -63,8 +63,8 @@ class DisplayArgumentType : ArgumentType<String> {
 class HomeArgumentType : ArgumentType<String> {
     override fun parse(R: StringReader) = R.ReadUntilWhitespace()
     companion object {
-        private val NO_SUCH_HOME = DynamicCommandExceptionType { Text.literal("No such home: $it") }
-        private val NO_SUCH_PLAYER = DynamicCommandExceptionType { Text.literal("No such player: $it") }
+        private val NO_SUCH_HOME = DynamicCommandExceptionType { Component.literal("No such home: $it") }
+        private val NO_SUCH_PLAYER = DynamicCommandExceptionType { Component.literal("No such player: $it") }
         private val INVALID_HOME_NAME = Exn("Home names may not contain ':'!")
 
         /**
@@ -77,28 +77,28 @@ class HomeArgumentType : ArgumentType<String> {
         * If the player is not an operator, an error is raised if this
         * would access another player’s home.
         */
-        fun MapOrThrow(SP: ServerPlayerEntity, RawName: String): Pair<ServerPlayerEntity, String> {
+        fun MapOrThrow(SP: ServerPlayer, RawName: String): Pair<ServerPlayer, String> {
             if (":" !in RawName) return SP to RawName
-            if (!SP.hasPermissionLevel(4)) throw INVALID_HOME_NAME.create()
+            if (!SP.hasPermissions(4)) throw INVALID_HOME_NAME.create()
             val (Player, Home) = RawName.split(":", limit = 2)
             val Other = SP.Server.PlayerByName(Player) ?: throw NO_SUCH_PLAYER.create(Player)
             return Other to Home
         }
 
-        fun Resolve(Ctx: CommandContext<ServerCommandSource>, ArgName: String): Home {
+        fun Resolve(Ctx: CommandContext<CommandSourceStack>, ArgName: String): Home {
             val S = Ctx.source
-            val (SP, Name) = MapOrThrow(S.playerOrThrow, Ctx.getArgument(ArgName, String::class.java))
+            val (SP, Name) = MapOrThrow(S.playerOrException, Ctx.getArgument(ArgName, String::class.java))
             if (Name == Home.BED_HOME) return Home.Bed(SP)
             val Homes = SP.Data.Homes
             return Homes.find { it.Name == Name } ?: throw NO_SUCH_HOME.create(Name)
         }
 
         fun Suggest(
-            Ctx: CommandContext<ServerCommandSource>,
+            Ctx: CommandContext<CommandSourceStack>,
             SB: SuggestionsBuilder
         ): CompletableFuture<Suggestions> {
             val S = Ctx.source
-            val SP = S.playerOrThrow
+            val SP = S.playerOrException
             val Homes = SP.Data.Homes
             val Names = Homes.map { it.Name }.toMutableList()
             Names.add(Home.BED_HOME)
@@ -106,19 +106,19 @@ class HomeArgumentType : ArgumentType<String> {
             // If the player is an operator, and the argument so far contains
             // a colon, also try to search for the homes of another player, and
             // suggest all players otherwise.
-            if (SP.hasPermissionLevel(4)) {
+            if (SP.hasPermissions(4)) {
                 if (":" in SB.remaining) {
                     S.server.PlayerByName(SB.remaining.split(":")[0])?.let {
                         val OtherHomes = SP.Data.Homes
                         Names.addAll(OtherHomes.map { H -> "${it.name.string}:${H.Name}" })
                     }
                 } else {
-                    for (P in S.server.playerManager.playerList)
+                    for (P in S.server.playerList.players)
                         Names.add("${P.name.string}:")
                 }
             }
 
-            return CommandSource.suggestMatching(Names, SB)
+            return SharedSuggestionProvider.suggest(Names, SB)
         }
 
         fun Home() = HomeArgumentType()
@@ -132,16 +132,16 @@ class MobArgumentType : ArgumentType<String> {
         Ctx: CommandContext<S>,
         SB: SuggestionsBuilder
     ): CompletableFuture<Suggestions> {
-        return CommandSource.suggestMatching(LOWERCASE_KEYS, SB)
+        return SharedSuggestionProvider.suggest(LOWERCASE_KEYS, SB)
     }
 
     companion object {
-        private val UNKNOWN_KEY = DynamicCommandExceptionType { Text.literal("Unknown mob type: '${it}'") }
+        private val UNKNOWN_KEY = DynamicCommandExceptionType { Component.literal("Unknown mob type: '${it}'") }
         private val LOWERCASE_MAP = NguhMobType.entries.associateBy { it.name.lowercase() }
         private val LOWERCASE_KEYS = LOWERCASE_MAP.keys
 
         fun Mob() = MobArgumentType()
-        fun Resolve(Ctx: CommandContext<ServerCommandSource>, ArgName: String): NguhMobType {
+        fun Resolve(Ctx: CommandContext<CommandSourceStack>, ArgName: String): NguhMobType {
             val Name = Ctx.getArgument(ArgName, String::class.java)
             return LOWERCASE_MAP[Name] ?: throw UNKNOWN_KEY.create(Name)
         }
@@ -151,21 +151,21 @@ class MobArgumentType : ArgumentType<String> {
 class ProcedureArgumentType : ArgumentType<String> {
     override fun parse(R: StringReader) =  R.ReadUntilWhitespace()
     companion object {
-        private val NO_SUCH_PROCEDURE = DynamicCommandExceptionType { Text.literal("No such procedure: '$it'") }
+        private val NO_SUCH_PROCEDURE = DynamicCommandExceptionType { Component.literal("No such procedure: '$it'") }
 
         fun Procedure() = ProcedureArgumentType()
 
-        fun Resolve(Ctx: CommandContext<ServerCommandSource>, ArgName: String): MCBASIC.Procedure {
+        fun Resolve(Ctx: CommandContext<CommandSourceStack>, ArgName: String): MCBASIC.Procedure {
             val Name = Ctx.getArgument(ArgName, String::class.java)
             return Ctx.source.server.ProcedureManager.GetExisting(Name) ?: throw NO_SUCH_PROCEDURE.create(Name)
         }
 
         fun Suggest(
-            Ctx: CommandContext<ServerCommandSource>,
+            Ctx: CommandContext<CommandSourceStack>,
             SB: SuggestionsBuilder
         ): CompletableFuture<Suggestions> {
             val Procedures = Ctx.source.server.ProcedureManager.Procedures.map { it.Name }
-            return CommandSource.suggestMatching(Procedures, SB)
+            return SharedSuggestionProvider.suggest(Procedures, SB)
         }
     }
 }
@@ -179,51 +179,51 @@ class RegionArgumentType : ArgumentType<String> {
         SB: SuggestionsBuilder
     ): CompletableFuture<Suggestions> {
         val S = Ctx.source
-        if (S !is ClientCommandSource) return Suggestions.empty()
-        val P = ProtectionManager.Get(Client().world!!)
+        if (S !is ClientSuggestionProvider) return Suggestions.empty()
+        val P = ProtectionManager.Get(Client().level!!)
 
         // If the input contains a ':', filter by the world
         // to the left of it.
         if (":" in SB.remaining) {
             val (W, _) = SB.remaining.split(":", limit = 2)
-            val Key = RegistryKey.of(RegistryKeys.WORLD, Identifier.ofVanilla(W))
+            val Key = ResourceKey.create(Registries.DIMENSION, ResourceLocation.withDefaultNamespace(W))
             val Regions = P.TryGetRegions(Key) ?: return Suggestions.empty()
-            return CommandSource.suggestMatching(Regions.map { "${Key.value.path}:${it.Name}" }, SB)
+            return SharedSuggestionProvider.suggest(Regions.map { "${Key.location().path}:${it.Name}" }, SB)
         }
 
         // Otherwise, suggest all regions in the current world if there is one.
         val Regions = mutableListOf<String>()
-        val W = Client().world
+        val W = Client().level
         if (W != null) Regions.addAll(ProtectionManager.GetRegions(W).map { it.Name })
 
         // And add the registry keys for any worlds that contain regions.
-        fun AddWorldKey(W: RegistryKey<World>) {
+        fun AddWorldKey(W: ResourceKey<Level>) {
             if (P.TryGetRegions(W)!!.isNotEmpty())
-                Regions.add("${W.value.path}:")
+                Regions.add("${W.location().path}:")
         }
 
-        AddWorldKey(World.OVERWORLD)
-        AddWorldKey(World.NETHER)
-        AddWorldKey(World.END)
-        return CommandSource.suggestMatching(Regions, SB)
+        AddWorldKey(Level.OVERWORLD)
+        AddWorldKey(Level.NETHER)
+        AddWorldKey(Level.END)
+        return SharedSuggestionProvider.suggest(Regions, SB)
     }
 
     companion object {
-        private val NO_SUCH_WORLD = DynamicCommandExceptionType { Text.literal("No such world: $it") }
-        private val NO_SUCH_REGION = Dynamic2CommandExceptionType { R, W -> Text.literal(
-            "No region '$R' in world ${(W as World).registryKey.value.path}"
+        private val NO_SUCH_WORLD = DynamicCommandExceptionType { Component.literal("No such world: $it") }
+        private val NO_SUCH_REGION = Dynamic2CommandExceptionType { R, W -> Component.literal(
+            "No region '$R' in world ${(W as Level).dimension().location().path}"
         ) }
 
         fun Region() = RegionArgumentType()
 
-        fun Resolve(Ctx: CommandContext<ServerCommandSource>, ArgName: String): ServerRegion {
+        fun Resolve(Ctx: CommandContext<CommandSourceStack>, ArgName: String): ServerRegion {
             var Name = Ctx.getArgument(ArgName, String::class.java)
             val S = Ctx.source
-            var W = S.world
+            var W = S.level
             if (":" in Name) {
                 val (WorldKey, RegionName) = Name.split(":", limit = 2)
-                val Key = RegistryKey.of(RegistryKeys.WORLD, Identifier.ofVanilla(WorldKey))
-                W = S.server.getWorld(Key) ?: throw NO_SUCH_WORLD.create(Key.value.path)
+                val Key = ResourceKey.create(Registries.DIMENSION, ResourceLocation.withDefaultNamespace(WorldKey))
+                W = S.server.getLevel(Key) ?: throw NO_SUCH_WORLD.create(Key.location().path)
                 Name = RegionName
             }
 
@@ -235,17 +235,17 @@ class RegionArgumentType : ArgumentType<String> {
 class WarpArgumentType : ArgumentType<String> {
     override fun parse(R: StringReader) = R.readUnquotedString()
     companion object {
-        private val NO_SUCH_WARP = DynamicCommandExceptionType { Text.literal("No such warp: $it") }
+        private val NO_SUCH_WARP = DynamicCommandExceptionType { Component.literal("No such warp: $it") }
 
-        fun Resolve(Ctx: CommandContext<ServerCommandSource>, Name: String): WarpManager.Warp {
+        fun Resolve(Ctx: CommandContext<CommandSourceStack>, Name: String): WarpManager.Warp {
             val WarpName = Ctx.getArgument(Name, String::class.java)
             return Ctx.source.server.WarpManager.Warps[WarpName] ?: throw NO_SUCH_WARP.create(WarpName)
         }
 
         fun Suggest(
-            Ctx: CommandContext<ServerCommandSource>,
+            Ctx: CommandContext<CommandSourceStack>,
             SB: SuggestionsBuilder
-        ): CompletableFuture<Suggestions> = CommandSource.suggestMatching(
+        ): CompletableFuture<Suggestions> = SharedSuggestionProvider.suggest(
             Ctx.source.server.WarpManager.Warps.keys,
             SB
         )

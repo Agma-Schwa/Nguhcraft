@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "powered=false": {
+      "model": "nguhcraft:block/tinted_oak_pressure_plate"
+    },
+    "powered=true": {
+      "model": "nguhcraft:block/tinted_oak_pressure_plate_down"
+    }
+  }
+}

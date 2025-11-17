@@ -1,16 +1,16 @@
 package org.nguh.nguhcraft.mixin.server;
 
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.ExperienceOrbEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.World;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.ExperienceOrb;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.level.Level;
 import org.nguh.nguhcraft.enchantment.NguhcraftEnchantments;
 import org.nguh.nguhcraft.server.ServerUtils;
 import org.nguh.nguhcraft.server.TreeToChop;
@@ -25,46 +25,46 @@ import static org.nguh.nguhcraft.Utils.EnchantLvl;
 @Mixin(Block.class)
 public abstract class BlockMixin {
     @Inject(
-        method = "dropStacks(Lnet/minecraft/block/BlockState;Lnet/minecraft/world/World;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/entity/BlockEntity;Lnet/minecraft/entity/Entity;Lnet/minecraft/item/ItemStack;)V",
+        method = "dropResources(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/entity/BlockEntity;Lnet/minecraft/world/entity/Entity;Lnet/minecraft/world/item/ItemStack;)V",
         cancellable = true,
         at = @At(
             value = "INVOKE",
-            target = "net/minecraft/block/Block.getDroppedStacks (Lnet/minecraft/block/BlockState;Lnet/minecraft/server/world/ServerWorld;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/entity/BlockEntity;Lnet/minecraft/entity/Entity;Lnet/minecraft/item/ItemStack;)Ljava/util/List;",
+            target = "Lnet/minecraft/world/level/block/Block;getDrops(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/entity/BlockEntity;Lnet/minecraft/world/entity/Entity;Lnet/minecraft/world/item/ItemStack;)Ljava/util/List;",
             ordinal = 0
         )
     )
-    private static void inject$dropStacks(
+    private static void inject$dropResources(
         BlockState State,
-        World World,
+        Level World,
         BlockPos Pos,
         BlockEntity BE,
         Entity E,
         ItemStack T,
         CallbackInfo CI
     ) {
-        if (!(World instanceof ServerWorld SW)) return;
+        if (!(World instanceof ServerLevel SW)) return;
 
         // Try to smelt the block if the tool has smelting.
         var Smelting = EnchantLvl(World, T, NguhcraftEnchantments.SMELTING);
         ServerUtils.SmeltingResult SR = null;
         if (Smelting != 0) SR = ServerUtils.TrySmeltBlock(SW, State);
         if (SR != null) {
-            Block.dropStack(SW, Pos, SR.getStack());
-            ExperienceOrbEntity.spawn(SW, Vec3d.ofCenter(Pos), SR.getExperience());
+            Block.popResource(SW, Pos, SR.getStack());
+            ExperienceOrb.award(SW, Vec3.atCenterOf(Pos), SR.getExperience());
             CI.cancel();
         }
     }
 
     /** Hook into tree chopping code. */
     @Inject(
-        method = "onBreak(Lnet/minecraft/world/World;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/BlockState;Lnet/minecraft/entity/player/PlayerEntity;)Lnet/minecraft/block/BlockState;",
+        method = "playerWillDestroy(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/entity/player/Player;)Lnet/minecraft/world/level/block/state/BlockState;",
         at = @At("TAIL")
     )
     private void inject$onBreak(
-        World W,
+        Level W,
         BlockPos Pos,
         BlockState State,
-        PlayerEntity PE,
+        Player PE,
         CallbackInfoReturnable<BlockState> CIR
     ) {
         TreeToChop.ActOnBlockDestroyed(W, Pos, W.getBlockState(Pos), PE);

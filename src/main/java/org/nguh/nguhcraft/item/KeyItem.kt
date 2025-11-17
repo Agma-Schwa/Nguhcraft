@@ -1,78 +1,78 @@
 package org.nguh.nguhcraft.item
 
 import com.mojang.serialization.Codec
-import net.minecraft.block.Block
-import net.minecraft.block.ChestBlock
-import net.minecraft.block.DoorBlock
-import net.minecraft.block.DoubleBlockProperties
-import net.minecraft.block.entity.BlockEntity
-import net.minecraft.block.entity.ChestBlockEntity
-import net.minecraft.block.entity.LockableContainerBlockEntity
-import net.minecraft.block.enums.DoubleBlockHalf
-import net.minecraft.component.ComponentType
-import net.minecraft.component.DataComponentTypes
-import net.minecraft.component.type.BundleContentsComponent
-import net.minecraft.component.type.TooltipDisplayComponent
-import net.minecraft.entity.LivingEntity
-import net.minecraft.entity.player.PlayerEntity
-import net.minecraft.inventory.StackReference
-import net.minecraft.item.BundleItem
-import net.minecraft.item.Item
-import net.minecraft.item.ItemStack
-import net.minecraft.item.ItemUsageContext
-import net.minecraft.item.tooltip.TooltipType
-import net.minecraft.registry.Registries
-import net.minecraft.registry.Registry
-import net.minecraft.registry.RegistryKey
-import net.minecraft.registry.RegistryKeys
-import net.minecraft.screen.slot.Slot
-import net.minecraft.server.world.ServerWorld
-import net.minecraft.sound.SoundCategory
-import net.minecraft.sound.SoundEvents
-import net.minecraft.text.Text
-import net.minecraft.util.ActionResult
-import net.minecraft.util.ClickType
-import net.minecraft.util.Formatting
-import net.minecraft.util.Rarity
-import net.minecraft.util.math.BlockPos
-import net.minecraft.world.World
+import net.minecraft.world.level.block.Block
+import net.minecraft.world.level.block.ChestBlock
+import net.minecraft.world.level.block.DoorBlock
+import net.minecraft.world.level.block.DoubleBlockCombiner
+import net.minecraft.world.level.block.entity.BlockEntity
+import net.minecraft.world.level.block.entity.ChestBlockEntity
+import net.minecraft.world.level.block.entity.BaseContainerBlockEntity
+import net.minecraft.world.level.block.state.properties.DoubleBlockHalf
+import net.minecraft.core.component.DataComponentType
+import net.minecraft.core.component.DataComponents
+import net.minecraft.world.item.component.BundleContents
+import net.minecraft.world.item.component.TooltipDisplay
+import net.minecraft.world.entity.LivingEntity
+import net.minecraft.world.entity.player.Player
+import net.minecraft.world.entity.SlotAccess
+import net.minecraft.world.item.BundleItem
+import net.minecraft.world.item.Item
+import net.minecraft.world.item.ItemStack
+import net.minecraft.world.item.context.UseOnContext
+import net.minecraft.world.item.TooltipFlag
+import net.minecraft.core.registries.BuiltInRegistries
+import net.minecraft.core.Registry
+import net.minecraft.resources.ResourceKey
+import net.minecraft.core.registries.Registries
+import net.minecraft.world.inventory.Slot
+import net.minecraft.server.level.ServerLevel
+import net.minecraft.sounds.SoundSource
+import net.minecraft.sounds.SoundEvents
+import net.minecraft.network.chat.Component
+import net.minecraft.world.InteractionResult
+import net.minecraft.world.inventory.ClickAction
+import net.minecraft.ChatFormatting
+import net.minecraft.world.item.Rarity
+import net.minecraft.core.BlockPos
+import net.minecraft.world.level.Level
 import org.nguh.nguhcraft.Nguhcraft.Companion.Id
 import org.nguh.nguhcraft.block.LockedDoorBlockEntity
 import org.nguh.nguhcraft.server.ServerUtils.UpdateLock
 import java.util.function.Consumer
 
 class KeyItem : Item(
-    Settings()
-    .fireproof()
+    Properties()
+    .fireResistant()
     .rarity(Rarity.UNCOMMON)
-    .registryKey(RegistryKey.of(RegistryKeys.ITEM, ID))
+    .setId(ResourceKey.create(Registries.ITEM, ID))
 ) {
     @Deprecated("Deprecated by Mojang")
-    override fun appendTooltip(
+    override fun appendHoverText(
         S: ItemStack,
         Ctx: TooltipContext,
-        TDC: TooltipDisplayComponent,
-        TC: Consumer<Text>,
-        Ty: TooltipType
+        TDC: TooltipDisplay,
+        TC: Consumer<Component>,
+        Ty: TooltipFlag
     ) { TC.accept(GetLockTooltip(S, Ty, KEY_PREFIX)) }
 
-    override fun useOnBlock(Ctx: ItemUsageContext) = UseOnBlock(Ctx)
+    override fun useOn(Ctx: UseOnContext) = UseOnBlock(Ctx)
 
     companion object {
         @JvmField val ID = Id("key")
         @JvmField val COMPONENT_ID = ID
 
         @JvmField
-        val COMPONENT: ComponentType<String> = Registry.register(
-            Registries.DATA_COMPONENT_TYPE,
+        val COMPONENT: DataComponentType<String> = Registry.register(
+            BuiltInRegistries.DATA_COMPONENT_TYPE,
             COMPONENT_ID,
-            ComponentType.builder<String>().codec(Codec.STRING).build()
+            DataComponentType.builder<String>().persistent(Codec.STRING).build()
         )
 
-        private val KEY_PREFIX = Text.literal("Id: ").formatted(Formatting.YELLOW)
+        private val KEY_PREFIX = Component.literal("Id: ").withStyle(ChatFormatting.YELLOW)
 
-        private object Accessor : DoubleBlockProperties.PropertyRetriever<ChestBlockEntity, ChestBlockEntity?> {
-            override fun getFromBoth(
+        private object Accessor : DoubleBlockCombiner.Combiner<ChestBlockEntity, ChestBlockEntity?> {
+            override fun acceptDouble(
                 Left: ChestBlockEntity,
                 Right: ChestBlockEntity
             ): ChestBlockEntity {
@@ -80,15 +80,15 @@ class KeyItem : Item(
                 return Right
             }
 
-            override fun getFrom(BE: ChestBlockEntity) = BE
-            override fun getFallback() = null
+            override fun acceptSingle(BE: ChestBlockEntity) = BE
+            override fun acceptNone() = null
         }
 
         /** Create an instance with the specified key. */
         fun Create(Key: String): ItemStack {
             val St = ItemStack(NguhItems.KEY)
             St.set(COMPONENT, Key)
-            St.set(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE, true)
+            St.set(DataComponents.ENCHANTMENT_GLINT_OVERRIDE, true)
             return St
         }
 
@@ -104,140 +104,140 @@ class KeyItem : Item(
         * For lockable doors, get the lower half instead.
         */
         @JvmStatic
-        fun GetLockableEntity(W: World, Pos: BlockPos): LockableBlockEntity? {
+        fun GetLockableEntity(W: Level, Pos: BlockPos): LockableBlockEntity? {
             val BE = W.getBlockEntity(Pos)
 
             // Handle (double) chests.
             if (BE is ChestBlockEntity) {
                 val St = W.getBlockState(Pos)
-                val BES = (St.block as ChestBlock).getBlockEntitySource(St, W, Pos, true)
+                val BES = (St.block as ChestBlock).combine(St, W, Pos, true)
 
                 // This stupid cast is necessary because Kotlin is too dumb to
                 // interface with the corresponding Java method properly.
-                val Cast =  BES as DoubleBlockProperties.PropertySource<ChestBlockEntity>
+                val Cast =  BES as DoubleBlockCombiner.NeighborCombineResult<ChestBlockEntity>
                 return Cast.apply(Accessor) as LockableBlockEntity
             }
 
             // Handle doors.
             if (BE is LockedDoorBlockEntity) {
                 val St = W.getBlockState(Pos)
-                if (St.get(DoorBlock.HALF) == DoubleBlockHalf.UPPER) return GetLockableEntity(W, Pos.down())
+                if (St.getValue(DoorBlock.HALF) == DoubleBlockHalf.UPPER) return GetLockableEntity(W, Pos.below())
                 return BE
             }
 
             // All other containers are not double blocks.
-            if (BE is LockableContainerBlockEntity) return BE as LockableBlockEntity
+            if (BE is BaseContainerBlockEntity) return BE as LockableBlockEntity
             return null
         }
 
         /** Get the UUID tooltip for a key or lock item. */
-        fun GetLockTooltip(S: ItemStack, Ty: TooltipType, Prefix: Text): Text {
+        fun GetLockTooltip(S: ItemStack, Ty: TooltipFlag, Prefix: Component): Component {
             val Key = S.get(COMPONENT) ?: return Prefix
-            val Str = Text.literal(if (Ty.isAdvanced || Key.length < 13) Key else Key.substring(0..<13) + "...")
-            return Text.empty().append(Prefix).append(Str.formatted(Formatting.LIGHT_PURPLE))
+            val Str = Component.literal(if (Ty.isAdvanced || Key.length < 13) Key else Key.substring(0..<13) + "...")
+            return Component.empty().append(Prefix).append(Str.withStyle(ChatFormatting.LIGHT_PURPLE))
         }
 
         /** Check if a chest is locked. */
         @JvmStatic
         fun IsChestLocked(BE: BlockEntity): Boolean {
-            val W = BE.world ?: return false
-            val E = GetLockableEntity(W, BE.pos) ?: return false
+            val W = BE.level ?: return false
+            val E = GetLockableEntity(W, BE.blockPos) ?: return false
             return E.IsLocked()
         }
 
         /** Run when a key is used on a block. */
-        fun UseOnBlock(Ctx: ItemUsageContext): ActionResult {
+        fun UseOnBlock(Ctx: UseOnContext): InteractionResult {
             // If this is not a lockable block, do nothing.
-            val W = Ctx.world
-            val BE = GetLockableEntity(W, Ctx.blockPos) ?: return ActionResult.PASS
+            val W = Ctx.level
+            val BE = GetLockableEntity(W, Ctx.clickedPos) ?: return InteractionResult.PASS
 
             // If the block is not locked, do nothing; if it is, and the
             // key doesn’t match, then we fail here.
-            val Key = BE.`Nguhcraft$GetLock`() ?: return ActionResult.PASS
-            if (!BE.CheckCanOpen(Ctx.player, Ctx.stack)) return ActionResult.FAIL
+            val Key = BE.`Nguhcraft$GetLock`() ?: return InteractionResult.PASS
+            if (!BE.CheckCanOpen(Ctx.player, Ctx.itemInHand)) return InteractionResult.FAIL
 
             // Key matches. Drop the lock and clear it.
-            if (W is ServerWorld) {
+            if (W is ServerLevel) {
                 val Lock = LockItem.Create(Key)
-                Block.dropStack(W, Ctx.blockPos, Lock)
+                Block.popResource(W, Ctx.clickedPos, Lock)
                 UpdateLock(BE, null)
             }
 
             W.playSound(
                 Ctx.player,
-                Ctx.blockPos,
-                SoundEvents.BLOCK_CHAIN_BREAK,
-                SoundCategory.BLOCKS,
+                Ctx.clickedPos,
+                SoundEvents.CHAIN_BREAK,
+                SoundSource.BLOCKS,
                 1.0f,
                 1.0f
             )
 
-            return ActionResult.SUCCESS
+            return InteractionResult.SUCCESS
         }
     }
 }
 
 class MasterKeyItem : Item(
-    Settings()
-        .fireproof()
+    Properties()
+        .fireResistant()
         .rarity(Rarity.EPIC)
-        .registryKey(RegistryKey.of(RegistryKeys.ITEM, ID))
+        .setId(ResourceKey.create(Registries.ITEM, ID))
 ) {
-    override fun useOnBlock(Ctx: ItemUsageContext) = KeyItem.UseOnBlock(Ctx)
+    override fun useOn(Ctx: UseOnContext) = KeyItem.UseOnBlock(Ctx)
     companion object {
         @JvmField val ID = Id("master_key")
     }
 }
 
 class KeyChainItem : BundleItem(
-    Settings()
-        .fireproof()
-        .maxCount(1)
+    Properties()
+        .fireResistant()
+        .stacksTo(1)
         .rarity(Rarity.UNCOMMON)
-        .component(DataComponentTypes.BUNDLE_CONTENTS, BundleContentsComponent.DEFAULT)
-        .registryKey(RegistryKey.of(RegistryKeys.ITEM, ID))
+        .component(DataComponents.BUNDLE_CONTENTS, BundleContents.EMPTY)
+        .setId(ResourceKey.create(Registries.ITEM, ID))
 ) {
-    override fun onClicked(
+    override fun overrideOtherStackedOnMe(
         St: ItemStack,
         Other: ItemStack,
         Slot: Slot,
-        Click: ClickType,
-        PE: PlayerEntity,
-        StackRef: StackReference
+        Click: ClickAction,
+        PE: Player,
+        StackRef: SlotAccess
     ): Boolean {
         // A left click on the keyring is only valid if no item is selected
         // or if the selected item is a key.
-        if (Click == ClickType.LEFT && !IsEmptyOrKey(Other))
+        if (Click == ClickAction.PRIMARY && !IsEmptyOrKey(Other))
             return false
 
-        return super.onClicked(St, Other, Slot, Click, PE, StackRef)
+        return super.overrideOtherStackedOnMe(St, Other, Slot, Click, PE, StackRef)
     }
 
-    override fun onStackClicked(
+    override fun overrideStackedOnOther(
         St: ItemStack,
         Slot: Slot,
-        Click: ClickType,
-        PE: PlayerEntity
-    ) = IsEmptyOrKey(Slot.stack) && super.onStackClicked(St, Slot, Click, PE)
+        Click: ClickAction,
+        PE: Player
+    ) = IsEmptyOrKey(Slot.item) && super.overrideStackedOnOther(St, Slot, Click, PE)
 
-    override fun usageTick(W: World, U: LivingEntity, St: ItemStack, Ticks: Int) {
+    override fun onUseTick(W: Level, U: LivingEntity, St: ItemStack, Ticks: Int) {
         /** Do nothing so people can’t accidentally drop the contents of this. */
     }
 
-    override fun useOnBlock(Ctx: ItemUsageContext) = KeyItem.UseOnBlock(Ctx)
+    override fun useOn(Ctx: UseOnContext) = KeyItem.UseOnBlock(Ctx)
     companion object {
         @JvmField val ID = Id("key_chain")
-        @JvmStatic fun `is`(S: ItemStack) = S.isOf(NguhItems.KEY_CHAIN)
+        @JvmStatic fun `is`(S: ItemStack) = S.`is`(NguhItems.KEY_CHAIN)
 
         /** Get the tooltip to render for the selected key. */
         @JvmStatic
         fun GetKeyTooltip(St: ItemStack) = KeyItem.GetLockTooltip(
             St,
-            TooltipType.BASIC,
-            Text.empty().append(St.formattedName).append(": ")
+            TooltipFlag.NORMAL,
+            Component.empty().append(St.styledHoverName).append(": ")
         )
 
         /** We don’t allow adding master keys to keychains because that’s kind of pointless. */
-        private fun IsEmptyOrKey(St: ItemStack): Boolean = St.isEmpty || St.isOf(NguhItems.KEY)
+        private fun IsEmptyOrKey(St: ItemStack): Boolean = St.isEmpty || St.`is`(NguhItems.KEY)
     }
 }

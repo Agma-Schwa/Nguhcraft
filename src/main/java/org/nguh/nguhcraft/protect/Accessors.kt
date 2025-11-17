@@ -1,11 +1,11 @@
 package org.nguh.nguhcraft.protect
 
-import net.minecraft.entity.LivingEntity
-import net.minecraft.entity.SpawnReason
+import net.minecraft.world.entity.LivingEntity
+import net.minecraft.world.entity.EntitySpawnReason
 
 interface SpawnReasonAccessor {
-    fun `Nguhcraft$SetSpawnReason`(R: SpawnReason)
-    fun `Nguhcraft$GetSpawnReason`(): SpawnReason?
+    fun `Nguhcraft$SetSpawnReason`(R: EntitySpawnReason)
+    fun `Nguhcraft$GetSpawnReason`(): EntitySpawnReason?
 }
 
 val LivingEntity.SpawnReason get() = (this as SpawnReasonAccessor).`Nguhcraft$GetSpawnReason`()

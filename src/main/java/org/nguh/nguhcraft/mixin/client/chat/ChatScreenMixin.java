@@ -1,8 +1,8 @@
 package org.nguh.nguhcraft.mixin.client.chat;
 
-import net.minecraft.client.gui.screen.ChatScreen;
-import net.minecraft.client.gui.widget.TextFieldWidget;
-import net.minecraft.util.StringHelper;
+import net.minecraft.client.gui.screens.ChatScreen;
+import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.util.StringUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.spongepowered.asm.mixin.Mixin;
@@ -16,12 +16,12 @@ import static org.nguh.nguhcraft.client.ClientUtils.MAX_CHAT_LENGTH;
 
 @Mixin(ChatScreen.class)
 public abstract class ChatScreenMixin {
-    @Shadow protected TextFieldWidget chatField;
+    @Shadow protected EditBox input;
 
     /** Override the max length of the text box. */
     @Inject(method = "init()V", at = @At("TAIL"))
     private void inject$init(CallbackInfo CI) {
-        chatField.setMaxLength(MAX_CHAT_LENGTH);
+        input.setMaxLength(MAX_CHAT_LENGTH);
     }
 
     /**
@@ -31,8 +31,8 @@ public abstract class ChatScreenMixin {
     * @reason This is so short an injection isn’t worth it.
     */
     @Overwrite
-    public String normalize(@NotNull String Message) {
-        return StringHelper.truncate(
+    public String normalizeChatMessage(@NotNull String Message) {
+        return StringUtil.truncateStringIfNecessary(
             StringUtils.normalizeSpace(Message.trim()),
             MAX_CHAT_LENGTH,
             false

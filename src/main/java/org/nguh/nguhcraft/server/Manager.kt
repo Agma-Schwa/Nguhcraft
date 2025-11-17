@@ -2,11 +2,11 @@ package org.nguh.nguhcraft.server
 
 import com.mojang.logging.LogUtils
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking
-import net.minecraft.network.packet.CustomPayload
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload
 import net.minecraft.server.MinecraftServer
-import net.minecraft.server.network.ServerPlayerEntity
-import net.minecraft.storage.ReadView
-import net.minecraft.storage.WriteView
+import net.minecraft.server.level.ServerPlayer
+import net.minecraft.world.level.storage.ValueInput
+import net.minecraft.world.level.storage.ValueOutput
 
 interface ServerManagerInterface {
     /** Do not call this directly. */
@@ -39,24 +39,24 @@ interface ServerManagerInterface {
  */
 abstract class Manager {
     /** Load this manager to disk. */
-    abstract fun ReadData(RV: ReadView)
+    abstract fun ReadData(RV: ValueInput)
 
     /** Sync this manager to a player. */
-    fun Sync(SP: ServerPlayerEntity) {
+    fun Sync(SP: ServerPlayer) {
         val Packet = ToPacket(SP)
         if (Packet != null) ServerPlayNetworking.send(SP, Packet)
     }
 
     /** Sync this manager to all players. */
     fun Sync(S: MinecraftServer) {
-        for (SP in S.playerManager.playerList) Sync(SP)
+        for (SP in S.playerList.players) Sync(SP)
     }
 
     /** Convert this to a packet that can be synchronised to clients. */
-    open fun ToPacket(SP: ServerPlayerEntity): CustomPayload? { return null }
+    open fun ToPacket(SP: ServerPlayer): CustomPacketPayload? { return null }
 
     /** Save this manager to disk. */
-    abstract fun WriteData(WV: WriteView)
+    abstract fun WriteData(WV: ValueOutput)
 
     companion object {
         private val LOGGER = LogUtils.getLogger()
@@ -71,7 +71,7 @@ abstract class Manager {
 
         /** Initialise all managers. */
         @JvmStatic
-        fun InitFromSaveData(S: MinecraftServer, SaveData: ReadView) {
+        fun InitFromSaveData(S: MinecraftServer, SaveData: ValueInput) {
             for (M in S.AllManagers()) {
                 try {
                     M.ReadData(SaveData)
@@ -83,13 +83,13 @@ abstract class Manager {
 
         /** Save all managers. */
         @JvmStatic
-        fun SaveAll(S: MinecraftServer, SaveData: WriteView) {
+        fun SaveAll(S: MinecraftServer, SaveData: ValueOutput) {
             for (M in S.AllManagers()) M.WriteData(SaveData)
         }
 
         /** Send the state of all managers to a player. */
         @JvmStatic
-        fun SendAll(SP: ServerPlayerEntity) {
+        fun SendAll(SP: ServerPlayer) {
             for (M in SP.Server.AllManagers()) M.Sync(SP)
         }
 

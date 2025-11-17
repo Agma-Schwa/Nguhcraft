@@ -2,9 +2,9 @@ package org.nguh.nguhcraft.mixin.server.command;
 
 import com.mojang.brigadier.builder.ArgumentBuilder;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.server.dedicated.command.BanCommand;
-import net.minecraft.server.dedicated.command.PardonIpCommand;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.server.commands.BanPlayerCommands;
+import net.minecraft.server.commands.PardonIpCommand;
 import org.nguh.nguhcraft.server.ServerUtils;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -23,8 +23,8 @@ public abstract class PardonIpCommandMixin {
             target = "Lcom/mojang/brigadier/builder/LiteralArgumentBuilder;requires(Ljava/util/function/Predicate;)Lcom/mojang/brigadier/builder/ArgumentBuilder;"
         )
     )
-    private static ArgumentBuilder inject$register(LiteralArgumentBuilder<ServerCommandSource> I, Predicate Unused) {
-        Predicate<ServerCommandSource> Pred = ServerUtils::IsModerator;
+    private static ArgumentBuilder inject$register(LiteralArgumentBuilder<CommandSourceStack> I, Predicate Unused) {
+        Predicate<CommandSourceStack> Pred = ServerUtils::IsModerator;
         return I.requires(Pred);
     }
 }

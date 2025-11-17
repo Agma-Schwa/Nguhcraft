@@ -1,10 +1,10 @@
 package org.nguh.nguhcraft.mixin.protect.server;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.ModifiableWorld;
-import net.minecraft.world.gen.feature.Feature;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.LevelWriter;
+import net.minecraft.world.level.levelgen.feature.Feature;
 import org.nguh.nguhcraft.protect.ProtectionManager;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -19,9 +19,9 @@ public abstract class FeatureMixin {
      * For instance, this prevents locked chests from being
      * replaced by huge mushroom caps.
      */
-    @Inject(method = "setBlockState", at = @At("HEAD"), cancellable = true)
-    private void inject$setBlockState(ModifiableWorld MW, BlockPos Pos, BlockState St, CallbackInfo CI) {
-        if (MW instanceof ServerWorld SW && ProtectionManager.IsProtectedBlock(SW, Pos))
+    @Inject(method = "setBlock", at = @At("HEAD"), cancellable = true)
+    private void inject$setBlockState(LevelWriter MW, BlockPos Pos, BlockState St, CallbackInfo CI) {
+        if (MW instanceof ServerLevel SW && ProtectionManager.IsProtectedBlock(SW, Pos))
             CI.cancel();
     }
 }

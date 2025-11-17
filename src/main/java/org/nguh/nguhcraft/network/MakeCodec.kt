@@ -1,7 +1,7 @@
 package org.nguh.nguhcraft.network
 
-import net.minecraft.network.RegistryByteBuf
-import net.minecraft.network.codec.PacketCodec
+import net.minecraft.network.RegistryFriendlyByteBuf
+import net.minecraft.network.codec.StreamCodec
 
 /**
  * Helper to create a custom packet codec.
@@ -17,9 +17,9 @@ import net.minecraft.network.codec.PacketCodec
  *     -> Packet.Write(B)
  */
 fun <PacketType> MakeCodec(
-    Encoder: PacketType.(RegistryByteBuf) -> Unit,
-    Decoder: (RegistryByteBuf) -> PacketType
-): PacketCodec<RegistryByteBuf, PacketType> = PacketCodec.of(
-    { Packet: PacketType, B: RegistryByteBuf -> Packet.Encoder(B) },
-    { B: RegistryByteBuf -> Decoder(B) }
+    Encoder: PacketType.(RegistryFriendlyByteBuf) -> Unit,
+    Decoder: (RegistryFriendlyByteBuf) -> PacketType
+): StreamCodec<RegistryFriendlyByteBuf, PacketType> = StreamCodec.ofMember(
+    { Packet: PacketType, B: RegistryFriendlyByteBuf -> Packet.Encoder(B) },
+    { B: RegistryFriendlyByteBuf -> Decoder(B) }
 )

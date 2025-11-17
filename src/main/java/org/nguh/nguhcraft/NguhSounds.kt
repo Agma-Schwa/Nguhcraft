@@ -1,8 +1,8 @@
 package org.nguh.nguhcraft
 
-import net.minecraft.registry.Registries
-import net.minecraft.registry.Registry
-import net.minecraft.sound.SoundEvent
+import net.minecraft.core.registries.BuiltInRegistries
+import net.minecraft.core.Registry
+import net.minecraft.sounds.SoundEvent
 import org.nguh.nguhcraft.Nguhcraft.Companion.Id
 
 object NguhSounds {
@@ -11,7 +11,7 @@ object NguhSounds {
 
     fun Init() { }
 
-    private fun Register(S: String) = SoundEvent.of(Id(S)).also {
-        Registry.register(Registries.SOUND_EVENT, Id(S), it)
+    private fun Register(S: String) = SoundEvent.createVariableRangeEvent(Id(S)).also {
+        Registry.register(BuiltInRegistries.SOUND_EVENT, Id(S), it)
     }
 }

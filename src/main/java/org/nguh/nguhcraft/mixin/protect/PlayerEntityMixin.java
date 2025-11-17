@@ -1,12 +1,12 @@
 package org.nguh.nguhcraft.mixin.protect;
 
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.damage.DamageSource;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
 import org.nguh.nguhcraft.protect.ProtectionManager;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
@@ -15,13 +15,13 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-@Mixin(PlayerEntity.class)
+@Mixin(Player.class)
 public abstract class PlayerEntityMixin extends LivingEntity {
-    protected PlayerEntityMixin(EntityType<? extends LivingEntity> entityType, World world) {
+    protected PlayerEntityMixin(EntityType<? extends LivingEntity> entityType, Level world) {
         super(entityType, world);
     }
 
-    @Unique private PlayerEntity This() { return (PlayerEntity) (Object) this; }
+    @Unique private Player This() { return (Player) (Object) this; }
 
     /** Prevent players from attacking certain entities. */
     @Inject(method = "attack", at = @At("HEAD"), cancellable = true)
@@ -31,20 +31,20 @@ public abstract class PlayerEntityMixin extends LivingEntity {
     }
 
     /** Prevent interactions within a region. */
-    @Inject(method = "canInteractWithBlockAt", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "canInteractWithBlock", at = @At("HEAD"), cancellable = true)
     private void inject$canInteractWithBlockAt(
-        BlockPos Pos,
-        double Range,
-        CallbackInfoReturnable<Boolean> CIR
+            BlockPos Pos,
+            double Range,
+            CallbackInfoReturnable<Boolean> CIR
     ) {
         // This acts as a server-side gate to prevent block interactions. On
         // the client, they should have already been rewritten to item uses.
-        if (!ProtectionManager.HandleBlockInteract(This(), getWorld(), Pos, getMainHandStack()).isAccepted())
+        if (!ProtectionManager.HandleBlockInteract(This(), level(), Pos, getMainHandItem()).consumesAction())
             CIR.setReturnValue(false);
     }
 
     /** Prevent fall damage in certain regions. */
-    @Inject(method = "handleFallDamage", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "causeFallDamage", at = @At("HEAD"), cancellable = true)
     private void inject$handleFallDamage(double FD, float DM, DamageSource DS, CallbackInfoReturnable<Boolean> CIR) {
         if (!ProtectionManager.AllowFallDamage(This()))
             CIR.setReturnValue(false);

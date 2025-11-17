@@ -1,8 +1,8 @@
 package org.nguh.nguhcraft.mixin.server.command;
 
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.server.dedicated.command.WhitelistCommand;
-import net.minecraft.text.Text;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.server.commands.WhitelistCommand;
+import net.minecraft.network.chat.Component;
 import org.nguh.nguhcraft.server.Chat;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -14,15 +14,15 @@ import java.util.function.Supplier;
 public abstract class WhitelistCommandMixin {
     /** Forward 'on' message to discord. */
     @Redirect(
-        method = "executeOn",
+        method = "enableWhitelist",
         at = @At(
             value = "INVOKE",
-            target = "Lnet/minecraft/server/command/ServerCommandSource;sendFeedback(Ljava/util/function/Supplier;Z)V"
+            target = "Lnet/minecraft/commands/CommandSourceStack;sendSuccess(Ljava/util/function/Supplier;Z)V"
         )
     )
     private static void inject$executeOn$sendFeedback(
-            ServerCommandSource S,
-            Supplier<Text> Feedback,
+            CommandSourceStack S,
+            Supplier<Component> Feedback,
             boolean Broadcast
     ) {
         Chat.SendServerMessage(S.getServer(), Feedback.get().getString());
@@ -30,16 +30,16 @@ public abstract class WhitelistCommandMixin {
 
     /** Forward 'off' message to discord. */
     @Redirect(
-        method = "executeOff",
+        method = "disableWhitelist",
         at = @At(
             value = "INVOKE",
-            target = "Lnet/minecraft/server/command/ServerCommandSource;sendFeedback(Ljava/util/function/Supplier;Z)V"
+            target = "Lnet/minecraft/commands/CommandSourceStack;sendSuccess(Ljava/util/function/Supplier;Z)V"
         )
     )
     private static void inject$executeOff$sendFeedback(
-        ServerCommandSource S,
-        Supplier<Text> Feedback,
-        boolean Broadcast
+            CommandSourceStack S,
+            Supplier<Component> Feedback,
+            boolean Broadcast
     ) {
         Chat.SendServerMessage(S.getServer(), Feedback.get().getString());
     }

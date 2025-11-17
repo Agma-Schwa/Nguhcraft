@@ -30,22 +30,22 @@ import net.dv8tion.jda.api.utils.cache.CacheFlag
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking
-import net.minecraft.nbt.NbtCompound
+import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.NbtIo
-import net.minecraft.nbt.NbtSizeTracker
-import net.minecraft.screen.ScreenTexts
-import net.minecraft.server.BannedPlayerEntry
-import net.minecraft.server.command.ServerCommandSource
-import net.minecraft.server.dedicated.MinecraftDedicatedServer
-import net.minecraft.server.network.ServerPlayerEntity
-import net.minecraft.storage.NbtReadView
-import net.minecraft.text.ClickEvent
-import net.minecraft.text.MutableText
-import net.minecraft.text.Text
-import net.minecraft.util.ErrorReporter
-import net.minecraft.util.Formatting
-import net.minecraft.util.WorldSavePath
-import net.minecraft.world.GameMode
+import net.minecraft.nbt.NbtAccounter
+import net.minecraft.network.chat.CommonComponents
+import net.minecraft.server.players.UserBanListEntry
+import net.minecraft.commands.CommandSourceStack
+import net.minecraft.server.dedicated.DedicatedServer
+import net.minecraft.server.level.ServerPlayer
+import net.minecraft.world.level.storage.TagValueInput
+import net.minecraft.network.chat.ClickEvent
+import net.minecraft.network.chat.MutableComponent
+import net.minecraft.network.chat.Component
+import net.minecraft.util.ProblemReporter
+import net.minecraft.ChatFormatting
+import net.minecraft.world.level.storage.LevelResource
+import net.minecraft.world.level.GameType
 import org.jetbrains.annotations.Contract
 import org.nguh.nguhcraft.Constants
 import org.nguh.nguhcraft.NguhErrorReporter
@@ -74,11 +74,11 @@ import java.util.regex.PatternSyntaxException
 import kotlin.collections.set
 import kotlin.jvm.optionals.getOrNull
 
-private val ServerPlayerEntity.isLinked get() = this.Data.IsLinked
-private val ServerPlayerEntity.isOperator get() = hasPermissionLevel(4)
-private val ServerPlayerEntity.isLinkedOrOperator get() = isLinked || isOperator
+private val ServerPlayer.isLinked get() = this.Data.IsLinked
+private val ServerPlayer.isOperator get() = hasPermissions(4)
+private val ServerPlayer.isLinkedOrOperator get() = isLinked || isOperator
 
-private lateinit var Server: MinecraftDedicatedServer
+private lateinit var Server: DedicatedServer
 
 @Environment(EnvType.SERVER)
 internal class Discord : ListenerAdapter() {
@@ -190,7 +190,7 @@ internal class Discord : ListenerAdapter() {
         if (Interaction.name == "players") Server.execute {
             try {
                 val S = buildString {
-                    val PL = Server.playerManager.playerList.filter { !Vanish.IsVanished(it) }
+                    val PL = Server.playerList.players.filter { !Vanish.IsVanished(it) }
                     append(when (PL.size) {
                         0 -> "**There are currently no players online.**"
                         1 -> "**There is currently 1 player online:**"
@@ -199,7 +199,7 @@ internal class Discord : ListenerAdapter() {
 
                     for (SP in PL) {
                         append("\n- ")
-                        append(if (SP.isLinked) "<@${SP.Data.DiscordId}>" else SP.nameForScoreboard)
+                        append(if (SP.isLinked) "<@${SP.Data.DiscordId}>" else SP.scoreboardName)
                     }
                 }
 
@@ -219,12 +219,12 @@ internal class Discord : ListenerAdapter() {
     companion object {
         const val INVALID_ID: Long = 0
 
-        private val INTERNAL_ERROR_PLEASE_RELINK: Text = Text
+        private val INTERNAL_ERROR_PLEASE_RELINK: Component = Component
             .literal("Sorry, we couldn’t fetch your account info from Discord. Please relink your account")
-            .formatted(Formatting.RED)
+            .withStyle(ChatFormatting.RED)
 
         private val ROLE_REQUIREMENTS_NOT_MET = DynamicCommandExceptionType {
-            Text.literal("You need to have at least the @$it role on the Discord server to play on this server!")
+            Component.literal("You need to have at least the @$it role on the Discord server to play on this server!")
         }
 
         private val MUST_ENABLE_DMS : SimpleCommandExceptionType
@@ -268,7 +268,7 @@ internal class Discord : ListenerAdapter() {
         )
 
         @JvmStatic
-        fun Start(S: MinecraftDedicatedServer) {
+        fun Start(S: DedicatedServer) {
             Server = S
 
             // Load the bot config.
@@ -313,7 +313,7 @@ internal class Discord : ListenerAdapter() {
         }
 
         @JvmStatic
-        fun BroadcastAdvancement(SP: ServerPlayerEntity, AdvancementMessage: Text) {
+        fun BroadcastAdvancement(SP: ServerPlayer, AdvancementMessage: Component) {
             if (SP.Data.Vanished) return
             if (!Ready) return
             try {
@@ -327,7 +327,7 @@ internal class Discord : ListenerAdapter() {
 
         /** Sync state w/ the client. Called when a client (re)joins. */
         @JvmStatic
-        fun BroadcastClientStateOnJoin(SP: ServerPlayerEntity) {
+        fun BroadcastClientStateOnJoin(SP: ServerPlayer) {
             BroadcastJoinQuitMessage(SP, true)
 
             // Broadcast this player’s name to everyone. If this player is vanished,
@@ -336,13 +336,13 @@ internal class Discord : ListenerAdapter() {
             Vanish.BroadcastIfNotVanished(SP, ClientboundLinkUpdatePacket(SP))
 
             // Send all other players’ names to this player.
-            for (P in Server.playerManager.playerList)
+            for (P in Server.playerList.players)
                 if (P != SP && !P.Data.Vanished)
                     ServerPlayNetworking.send(SP, ClientboundLinkUpdatePacket(P))
         }
 
         @JvmStatic
-        fun BroadcastDeathMessage(SP: ServerPlayerEntity, DeathMessage: Text) {
+        fun BroadcastDeathMessage(SP: ServerPlayer, DeathMessage: Component) {
             if (SP.Data.Vanished) return
             if (!Ready) return
 
@@ -355,9 +355,9 @@ internal class Discord : ListenerAdapter() {
             } catch (E: Exception) {
                 if (E is IllegalArgumentException || E is ErrorResponseException) {
                     // Death message was too long.
-                    val S = DeathMessage.asTruncatedString(256)
-                    val Msg = Text.translatable("death.attack.even_more_magic", SP.Name)
-                    val Abbr = Text.translatable("death.attack.message_too_long", Text.literal(S))
+                    val S = DeathMessage.getString(256)
+                    val Msg = Component.translatable("death.attack.even_more_magic", SP.Name)
+                    val Abbr = Component.translatable("death.attack.message_too_long", Component.literal(S))
                     SendSimpleEmbed("$Msg\n\n$Abbr", Constants.Black, SP)
                     return
                 }
@@ -368,16 +368,16 @@ internal class Discord : ListenerAdapter() {
         }
 
         @JvmStatic
-        fun BroadcastJoinQuitMessage(SP: ServerPlayerEntity, Joined: Boolean) {
+        fun BroadcastJoinQuitMessage(SP: ServerPlayer, Joined: Boolean) {
             if (SP.Data.Vanished) return
             BroadcastJoinQuitMessageImpl(SP, Joined)
         }
 
-        fun BroadcastJoinQuitMessageImpl(SP: ServerPlayerEntity, Joined: Boolean) {
+        fun BroadcastJoinQuitMessageImpl(SP: ServerPlayer, Joined: Boolean) {
             if (!Ready) return
             try {
                 val Name = if (SP.isLinked) SP.Data.DiscordName
-                else SP.nameForScoreboard
+                else SP.scoreboardName
                 val Text = "$Name ${if (Joined) "joined" else "left"} the game"
                 SendSimpleEmbed(Text, if (Joined) Constants.Green else Constants.Red, SP)
             } catch (E: Exception) {
@@ -386,7 +386,7 @@ internal class Discord : ListenerAdapter() {
             }
         }
 
-        private fun BroadcastPlayerUpdate(SP: ServerPlayerEntity) {
+        private fun BroadcastPlayerUpdate(SP: ServerPlayer) {
             Vanish.BroadcastIfNotVanished(
                 SP,
                 ClientboundLinkUpdatePacket(
@@ -406,7 +406,7 @@ internal class Discord : ListenerAdapter() {
         * a message explaining why they can’t join.
         */
         @JvmStatic
-        fun CheckCanJoin(GP: GameProfile): Text? {
+        fun CheckCanJoin(GP: GameProfile): Component? {
             // If we have no record of that player, we can’t map them to
             // a Discord profile, so give up.
             val Entry = PlayerList.Player(GP) ?: return null
@@ -420,7 +420,7 @@ internal class Discord : ListenerAdapter() {
             val M = MemberByID(Entry.Data.DiscordId) ?: return null
 
             // Finally, check if they have the muted role.
-            if (M.roles.contains(MutedRole)) return Text.translatable("multiplayer.disconnect.muted")
+            if (M.roles.contains(MutedRole)) return Component.translatable("multiplayer.disconnect.muted")
             return null
         }
 
@@ -430,8 +430,8 @@ internal class Discord : ListenerAdapter() {
             ScoreboardName: String,
             DiscordName: String,
             DiscordColour: Int
-        ): Text = if (!IsLinked) Text.literal(ScoreboardName).formatted(Formatting.GRAY)
-                  else Text.literal(DiscordName).withColor(DiscordColour)
+        ): Component = if (!IsLinked) Component.literal(ScoreboardName).withStyle(ChatFormatting.GRAY)
+                  else Component.literal(DiscordName).withColor(DiscordColour)
 
         /**
          * Discord requires at least one non-combining non-whitespace character in
@@ -460,7 +460,7 @@ internal class Discord : ListenerAdapter() {
          * Force a member to link with a player, ignoring the
          * usual permission checks.
          */
-        fun ForceLink(S: ServerCommandSource, SP: ServerPlayerEntity, ID: Long) {
+        fun ForceLink(S: CommandSourceStack, SP: ServerPlayer, ID: Long) {
             if (!Ready) throw PLEASE_WAIT.create()
 
             // Fetch the member.
@@ -468,7 +468,7 @@ internal class Discord : ListenerAdapter() {
 
             // Warn if they’re already linked and unlink them.
             if (SP.isLinked) {
-                S.Reply("Warning: Member ${Member.effectiveName} is already linked to ${SP.nameForScoreboard}. Unlinking...")
+                S.Reply("Warning: Member ${Member.effectiveName} is already linked to ${SP.scoreboardName}. Unlinking...")
                 PerformUnlink(SP)
             }
 
@@ -484,7 +484,7 @@ internal class Discord : ListenerAdapter() {
          */
         private fun DefaultAvatarURL(Which: Int): String = DEFAULT_AVATARS[Which % DEFAULT_AVATARS.size]
 
-        fun ForwardChatMessage(SP: ServerPlayerEntity?, Message: String?) {
+        fun ForwardChatMessage(SP: ServerPlayer?, Message: String?) {
             try {
                 // Message sent by the server.
                 if (SP == null) {
@@ -517,9 +517,9 @@ internal class Discord : ListenerAdapter() {
                 // that means they were actually banned (instead of simply leaving or
                 // getting kicked); ban them from the Minecraft server as well.
                 AgmaSchwaGuild.retrieveBan(UserSnowflake.fromId(Id)).queue({
-                    if (Server.playerManager.userBanList.contains(GP)) return@queue
-                    Server.playerManager.userBanList.add(
-                        BannedPlayerEntry(
+                    if (Server.playerList.bans.isBanned(GP)) return@queue
+                    Server.playerList.bans.add(
+                        UserBanListEntry(
                             GP,
                             null,
                             "Discord Integration",
@@ -530,8 +530,8 @@ internal class Discord : ListenerAdapter() {
 
                     // Kick the player if they’re online.
                     LOGGER.info("Banned player ${GP.name} since they were banned from the Discord server.")
-                    val SP = Server.playerManager.getPlayer(GP.id)
-                    SP?.networkHandler?.disconnect(Text.translatable("multiplayer.disconnect.banned"))
+                    val SP = Server.playerList.getPlayer(GP.id)
+                    SP?.connection?.disconnect(Component.translatable("multiplayer.disconnect.banned"))
                 }) { e ->
                     // This is racy; the player may have been unbanned again.
                     if (e !is ErrorResponseException || e.errorResponse != ErrorResponse.UNKNOWN_BAN)
@@ -547,14 +547,14 @@ internal class Discord : ListenerAdapter() {
             M.roles.any { RequiredRoles.contains(it) }
 
         /** DO NOT USE. */
-        fun __IsLinkedOrOperatorImpl(SP: ServerPlayerEntity): Boolean = SP.isLinkedOrOperator
+        fun __IsLinkedOrOperatorImpl(SP: ServerPlayer): Boolean = SP.isLinkedOrOperator
 
         /** Check if a player is muted. */
-        fun IsMuted(SP: ServerPlayerEntity): Boolean = SP.Data.Muted
+        fun IsMuted(SP: ServerPlayer): Boolean = SP.Data.Muted
 
         /** Attempt to initiate a link of a player to a member w/ the given ID */
         @Throws(CommandSyntaxException::class)
-        fun Link(Source: ServerCommandSource, SP: ServerPlayerEntity, ID: Long) {
+        fun Link(Source: CommandSourceStack, SP: ServerPlayer, ID: Long) {
             if (!Ready) return
             val Member = MemberByID(Source, ID) ?: return
 
@@ -563,22 +563,22 @@ internal class Discord : ListenerAdapter() {
 
             // Some geniuses may have decided to make it so people can’t DM them;
             // display an error in that case instead of crashing.
-            val Name = SP.nameForScoreboard
+            val Name = SP.scoreboardName
             val Content = "Press the button below to link your Minecraft account '$Name' to your Discord account."
             try {
                 val Ch = Member.user.openPrivateChannel().complete()
                 val Mess = Ch.sendMessage(Content)
-                    .setActionRow(Button.success(BUTTON_ID_LINK + SP.uuidAsString, "Confirm"))
+                    .setActionRow(Button.success(BUTTON_ID_LINK + SP.stringUUID, "Confirm"))
                     .complete()
 
-                Source.sendMessage(
-                    Text.literal(
+                Source.sendSystemMessage(
+                    Component.literal(
                         "Follow this link and press the button to link your Minecraft account '"
                         + Name + "' to your Discord account '" + Member.effectiveName + "': "
                     )
                     .withColor(Constants.Green)
                     .append(Utils.LINK)
-                    .styled { style -> style.withClickEvent(ClickEvent.OpenUrl(URI(Mess.jumpUrl))) })
+                    .withStyle { style -> style.withClickEvent(ClickEvent.OpenUrl(URI(Mess.jumpUrl))) })
             } catch (E: ErrorResponseException) {
                 if (E.errorResponse == ErrorResponse.CANNOT_SEND_TO_USER) throw MUST_ENABLE_DMS.create()
 
@@ -587,8 +587,8 @@ internal class Discord : ListenerAdapter() {
             }
         }
 
-        private fun LinkedPlayerForMember(ID: Long): ServerPlayerEntity?
-            = Server.playerManager.playerList.find { it.Data.DiscordId == ID }
+        private fun LinkedPlayerForMember(ID: Long): ServerPlayer?
+            = Server.playerList.players.find { it.Data.DiscordId == ID }
 
         private fun MemberByID(ID: Long): Member? {
             return try {
@@ -598,15 +598,15 @@ internal class Discord : ListenerAdapter() {
             }
         }
 
-        private fun MemberByID(Source: ServerCommandSource, ID: Long): Member? {
+        private fun MemberByID(Source: CommandSourceStack, ID: Long): Member? {
             try {
                 return AgmaSchwaGuild.retrieveMemberById(ID).complete()
             } catch (E: ErrorResponseException) {
-                Source.sendError(
+                Source.sendFailure(
                     when (E.errorResponse) {
-                        ErrorResponse.UNKNOWN_USER -> Text.literal("Unknown user: $ID")
-                        ErrorResponse.UNKNOWN_MEMBER -> Text.literal("Unknown member: $ID")
-                        else -> Text.literal("Internal Error: " + E.message)
+                        ErrorResponse.UNKNOWN_USER -> Component.literal("Unknown user: $ID")
+                        ErrorResponse.UNKNOWN_MEMBER -> Component.literal("Unknown member: $ID")
+                        else -> Component.literal("Internal Error: " + E.message)
                     }
                 )
                 return null
@@ -619,7 +619,7 @@ internal class Discord : ListenerAdapter() {
          * @param SP the player
          * @return the linked member, or null if the player is not linked or there is an error.
          */
-        private fun MemberForPlayer(SP: ServerPlayerEntity): Member? {
+        private fun MemberForPlayer(SP: ServerPlayer): Member? {
             if (!SP.isLinked) return null
             return MemberByID(SP.Data.DiscordId)
         }
@@ -643,15 +643,15 @@ internal class Discord : ListenerAdapter() {
         /**
          * Send a message as a player.
          */
-        private fun Message(SP: ServerPlayerEntity, Content: String?) {
+        private fun Message(SP: ServerPlayer, Content: String?) {
             if (SP.isLinked) Message(SP.Data.DiscordName, SP.Data.DiscordAvatar, Content)
             else {
-                val N = SP.nameForScoreboard
+                val N = SP.scoreboardName
                 Message("$N (unlinked)", DefaultAvatarURL(N.length), Content)
             }
         }
 
-        private fun PerformUnlink(SP: ServerPlayerEntity) {
+        private fun PerformUnlink(SP: ServerPlayer) {
             val ID = SP.Data.DiscordId
             UpdatePlayer(SP, INVALID_ID, null, null, Constants.Grey)
 
@@ -665,23 +665,23 @@ internal class Discord : ListenerAdapter() {
             }
         }
 
-        private fun PerformLink(SP: ServerPlayerEntity, M: Member) {
-            val DiscordMsg = "${SP.nameForScoreboard} is now linked to ${M.user.name}"
+        private fun PerformLink(SP: ServerPlayer, M: Member) {
+            val DiscordMsg = "${SP.scoreboardName} is now linked to ${M.user.name}"
             UpdatePlayer(SP, M)
 
             // Move the player out of adventure mode.
-            if (SP.interactionManager.gameMode == GameMode.ADVENTURE) SP.changeGameMode(GameMode.SURVIVAL)
+            if (SP.gameMode.gameModeForPlayer == GameType.ADVENTURE) SP.setGameMode(GameType.SURVIVAL)
 
             // Give them the @ŋguhcrafter role.
             AgmaSchwaGuild.addRoleToMember(M, NguhcrafterRole).queue()
 
             // Broadcast the change to all players and send a message to Discord.
             SendSimpleEmbed(DiscordMsg, Constants.Green)
-            Server.playerManager.broadcast(
-                Text.empty()
-                    .append(Text.literal(SP.nameForScoreboard).formatted(Formatting.AQUA))
-                    .append(Text.literal(" is now linked to ").formatted(Formatting.GREEN))
-                    .append(Text.literal(M.effectiveName).withColor(M.colorRaw)),
+            Server.playerList.broadcastSystemMessage(
+                Component.empty()
+                    .append(Component.literal(SP.scoreboardName).withStyle(ChatFormatting.AQUA))
+                    .append(Component.literal(" is now linked to ").withStyle(ChatFormatting.GREEN))
+                    .append(Component.literal(M.effectiveName).withColor(M.colorRaw)),
                 false
             )
         }
@@ -733,7 +733,7 @@ internal class Discord : ListenerAdapter() {
          */
         @Contract(value = "null -> null; !null -> !null")
         fun SanitiseForMinecraft(S: String, IfEmpty: String = ""): String {
-            var Name = Formatting.strip(S) ?: ""
+            var Name = ChatFormatting.stripFormatting(S) ?: ""
             Name = Name.replace("§", "")
             return Name.ifBlank { IfEmpty }
         }
@@ -781,7 +781,7 @@ internal class Discord : ListenerAdapter() {
          * @param Text   the message content
          * @param Colour the colour of the embed
          */
-        private fun SendSimpleEmbed(Text: String?, Colour: Int = Constants.Lavender, Player: ServerPlayerEntity? = null) {
+        private fun SendSimpleEmbed(Text: String?, Colour: Int = Constants.Lavender, Player: ServerPlayer? = null) {
             SendEmbed(
                 "[Server]",
                 ServerAvatarURL,
@@ -792,20 +792,20 @@ internal class Discord : ListenerAdapter() {
         }
 
         @JvmStatic
-        fun TickPlayer(SP: ServerPlayerEntity) {
-            if (!ServerUtils.IsLinkedOrOperator(SP)) SP.changeGameMode(GameMode.ADVENTURE)
+        fun TickPlayer(SP: ServerPlayer) {
+            if (!ServerUtils.IsLinkedOrOperator(SP)) SP.setGameMode(GameType.ADVENTURE)
         }
 
-        fun Unlink(S: ServerCommandSource, SP: ServerPlayerEntity) {
+        fun Unlink(S: CommandSourceStack, SP: ServerPlayer) {
             if (!Ready) return
             PerformUnlink(SP)
-            S.sendMessage(Text.literal("Unlinked ")
+            S.sendSystemMessage(Component.literal("Unlinked ")
                 .append(SP.name)
                 .append(" from Discord.")
-                .formatted(Formatting.YELLOW)
+                .withStyle(ChatFormatting.YELLOW)
             )
 
-            val DiscordMsg = "${SP.nameForScoreboard} is no longer linked"
+            val DiscordMsg = "${SP.scoreboardName} is no longer linked"
             SendSimpleEmbed(DiscordMsg, Constants.Red, SP)
         }
 
@@ -813,7 +813,7 @@ internal class Discord : ListenerAdapter() {
          * Get the player linked to the Discord account with the given ID, and
          * if it exists, queue F to run in the main thread to update the player.
          */
-        fun UpdateLinkedPlayer(ID: Long, F: (ServerPlayerEntity) -> Unit) {
+        fun UpdateLinkedPlayer(ID: Long, F: (ServerPlayer) -> Unit) {
             Server.execute {
                 val SP = LinkedPlayerForMember(ID) ?: return@execute
                 F(SP)
@@ -826,14 +826,14 @@ internal class Discord : ListenerAdapter() {
          * This sets a player’s display name and refreshes their commands.
          */
         private fun UpdatePlayer(
-            SP: ServerPlayerEntity,
+            SP: ServerPlayer,
             ID: Long,
             DisplayName: String?,
             AvatarURL: String?,
             NameColour: Int
         ) {
             // Sanity check.
-            assert(Server.isOnThread) { "Must link on tick thread" }
+            assert(Server.isSameThread) { "Must link on tick thread" }
 
             // Only resend the command tree if this has changed, so compute
             // this before we update the id below.
@@ -847,16 +847,16 @@ internal class Discord : ListenerAdapter() {
             UpdatePlayerName(SP)
 
             // Broadcast this player’s info to everyone.
-            if (!SP.isDisconnected) {
+            if (!SP.hasDisconnected()) {
                 BroadcastPlayerUpdate(SP)
 
                 // The 'link'/'unlink' options are only available if the player is
                 // unlinked/linked, so we need to refresh the player’s commands.
-                if (LinkStatusChanged) Server.commandManager.sendCommandTree(SP)
+                if (LinkStatusChanged) Server.commands.sendCommands(SP)
             }
         }
 
-        private fun UpdatePlayer(SP: ServerPlayerEntity, M: Member) {
+        private fun UpdatePlayer(SP: ServerPlayer, M: Member) {
             // Compute whether they’re muted.
             SP.Data.Muted = M.roles.contains(MutedRole)
 
@@ -870,7 +870,7 @@ internal class Discord : ListenerAdapter() {
             )
 
             // Kick them if they are now muted.
-            if (SP.Data.Muted) SP.networkHandler.disconnect(Text.translatable("multiplayer.disconnect.muted"))
+            if (SP.Data.Muted) SP.connection.disconnect(Component.translatable("multiplayer.disconnect.muted"))
         }
 
         /**
@@ -878,7 +878,7 @@ internal class Discord : ListenerAdapter() {
          * first joins.
          */
         @JvmStatic
-        fun UpdatePlayerOnJoin(SP: ServerPlayerEntity) {
+        fun UpdatePlayerOnJoin(SP: ServerPlayer) {
             if (!SP.isLinked) {
                 BroadcastPlayerUpdate(SP)
                 return
@@ -897,8 +897,8 @@ internal class Discord : ListenerAdapter() {
 
                     // The call to HandleMemberRemoved() may have just banned this
                     // player, so do nothing here if that’s the case.
-                    if (!it.isDisconnected) {
-                        it.sendMessage(INTERNAL_ERROR_PLEASE_RELINK)
+                    if (!it.hasDisconnected()) {
+                        it.sendSystemMessage(INTERNAL_ERROR_PLEASE_RELINK)
                         failure.printStackTrace()
                         LOGGER.error("Failed to fetch Discord info for player '${it.name}': ${failure.message}")
                     }
@@ -908,7 +908,7 @@ internal class Discord : ListenerAdapter() {
 
         /** Recompute a player’s name after something has changed. */
         @JvmStatic
-        fun UpdatePlayerName(SP: ServerPlayerEntity) {
+        fun UpdatePlayerName(SP: ServerPlayer) {
             // Set by the old paper server; delete it here.
             SP.customName = null
             SP.isCustomNameVisible = false
@@ -916,7 +916,7 @@ internal class Discord : ListenerAdapter() {
             // Save this since we’ll be needing it constantly.
             SP.Data.NguhcraftDisplayName = ComputePlayerName(
                 SP.isLinked,
-                SP.nameForScoreboard,
+                SP.scoreboardName,
                 SP.Data.DiscordName,
                 SP.Data.DiscordColour
             )
@@ -932,9 +932,9 @@ internal class Discord : ListenerAdapter() {
          * by the time we get to the callback (the player may have died or
          * left the server in the meantime).
          */
-        private fun WithPlayer(Id: UUID, F: (ServerPlayerEntity) -> Unit) {
+        private fun WithPlayer(Id: UUID, F: (ServerPlayer) -> Unit) {
             Server.execute {
-                val SP = Server.playerManager.getPlayer(Id) ?: return@execute
+                val SP = Server.playerList.getPlayer(Id) ?: return@execute
                 F(SP)
             }
         }
@@ -986,7 +986,7 @@ class PlayerList private constructor(private val ByID: HashMap<UUID, Entry>) : I
 
         /** Player data directory */
         private val PlayerDataDir get() = (Server as MinecraftServerAccessor)
-            .session.getDirectory(WorldSavePath.PLAYERDATA).toFile()
+            .session.getLevelPath(LevelResource.PLAYER_DATA_DIR).toFile()
 
         /** Retrieve Nguhcraft-specific data for all players, even if they’re offline.  */
         fun AllPlayers(): PlayerList {
@@ -994,10 +994,10 @@ class PlayerList private constructor(private val ByID: HashMap<UUID, Entry>) : I
             val PlayerData = HashMap<UUID, Entry>()
 
             // For online players, prefer to get their data directly from the server.
-            for (P in Server.playerManager.playerList) {
+            for (P in Server.playerList.players) {
                 PlayerData[P.uuid] = Entry(
                     P.uuid,
-                    P.nameForScoreboard,
+                    P.scoreboardName,
                     P.Data,
                 )
             }
@@ -1019,7 +1019,7 @@ class PlayerList private constructor(private val ByID: HashMap<UUID, Entry>) : I
         }
 
         /** Retrieve Nguhcraft-specific data for a player that is online. */
-        fun Player(SP: ServerPlayerEntity): Entry {
+        fun Player(SP: ServerPlayer): Entry {
             // Should always be a cache hit if they’re online.
             val Data = CACHE[SP.uuid]
             if (Data != null && Data != NULL_ENTRY) return Data
@@ -1033,8 +1033,8 @@ class PlayerList private constructor(private val ByID: HashMap<UUID, Entry>) : I
 
         /** Override the cache entry for a player that is online. */
         @JvmStatic
-        fun UpdateCacheEntry(SP: ServerPlayerEntity): Entry {
-            val NewData = Entry(SP.uuid, SP.nameForScoreboard, SP.Data)
+        fun UpdateCacheEntry(SP: ServerPlayer): Entry {
+            val NewData = Entry(SP.uuid, SP.scoreboardName, SP.Data)
             CACHE[SP.uuid] = NewData
             return NewData
         }
@@ -1049,13 +1049,13 @@ class PlayerList private constructor(private val ByID: HashMap<UUID, Entry>) : I
             val Nbt = ReadPlayerNbtSaveFile(PlayerId) ?: return null
 
             // If the player data exists, load it.
-            ErrorReporter.Logging(NguhErrorReporter(), LOGGER).use {
-                val RV = NbtReadView.create(it, Server.registryManager, Nbt)
+            ProblemReporter.ScopedCollector(NguhErrorReporter(), LOGGER).use {
+                val RV = TagValueInput.create(it, Server.registryAccess(), Nbt)
 
                 // Once upon a time, this was a paper server; remnants of that should still be
                 // in the player data; don’t rely on them for the name, but use them if we don’t
                 // have anything else.
-                val PaperName = RV.getReadView("bukkit").getOptionalString("lastKnownName").getOrNull()
+                val PaperName = RV.childOrEmpty("bukkit").getString("lastKnownName").getOrNull()
 
                 // Extract our custom player data.
                 val Data = PlayerData.Load(RV).getOrNull() ?: PlayerData()
@@ -1069,11 +1069,11 @@ class PlayerList private constructor(private val ByID: HashMap<UUID, Entry>) : I
             return CACHE[PlayerId]
         }
 
-        private fun ReadPlayerNbtSaveFile(PlayerID: UUID): NbtCompound? {
+        private fun ReadPlayerNbtSaveFile(PlayerID: UUID): CompoundTag? {
             val file = File(PlayerDataDir, "$PlayerID.dat")
             if (file.exists() && file.isFile) {
                 try {
-                    return NbtIo.readCompressed(file.toPath(), NbtSizeTracker.ofUnlimitedBytes())
+                    return NbtIo.readCompressed(file.toPath(), NbtAccounter.unlimitedHeap())
                 } catch (_: Exception) {
                     LOGGER.warn("Failed to load player data for {}", PlayerID)
                 }
@@ -1087,13 +1087,13 @@ class PlayerList private constructor(private val ByID: HashMap<UUID, Entry>) : I
 object DiscordCommand {
     private val NOT_LINKED: SimpleCommandExceptionType = Exn("Player is not linked to a Discord account!")
     private val ALREADY_LINKED: SimpleCommandExceptionType = Exn("Player is already linked to a Discord account!")
-    private val LIST_ENTRY = Text.of("\n  - ")
-    private val IS_LINKED_TO = Text.of(" → ")
-    private val LPAREN = Text.of(" (")
-    private val RPAREN = Text.of(")")
-    private val IS_NOT_LINKED: Text = Text.literal("not linked").formatted(Formatting.GRAY)
-    private val ERR_EMPTY_FILTER = Text.of("Filter may not be empty!")
-    private val ERR_LIST_SYNTAX = Text.of("""
+    private val LIST_ENTRY = Component.nullToEmpty("\n  - ")
+    private val IS_LINKED_TO = Component.nullToEmpty(" → ")
+    private val LPAREN = Component.nullToEmpty(" (")
+    private val RPAREN = Component.nullToEmpty(")")
+    private val IS_NOT_LINKED: Component = Component.literal("not linked").withStyle(ChatFormatting.GRAY)
+    private val ERR_EMPTY_FILTER = Component.nullToEmpty("Filter may not be empty!")
+    private val ERR_LIST_SYNTAX = Component.nullToEmpty("""
         Syntax:
           (1) /discord list all
           (2) /discord list linked
@@ -1111,18 +1111,18 @@ object DiscordCommand {
           uuid, or discord id containing '123'.
     """.trimIndent())
 
-    private fun AddPlayer(List: MutableText, PD: PlayerList.Entry) {
+    private fun AddPlayer(List: MutableComponent, PD: PlayerList.Entry) {
         if (PD.Data.IsLinked) {
             List.append(LIST_ENTRY)
-                .append(Text.literal(PD.toString()).formatted(Formatting.AQUA))
+                .append(Component.literal(PD.toString()).withStyle(ChatFormatting.AQUA))
                 .append(IS_LINKED_TO)
-                .append(Text.literal(PD.Data.DiscordName).withColor(PD.Data.DiscordColour))
+                .append(Component.literal(PD.Data.DiscordName).withColor(PD.Data.DiscordColour))
                 .append(LPAREN)
-                .append(Text.literal(PD.Data.DiscordId.toString()).formatted(Formatting.GRAY))
+                .append(Component.literal(PD.Data.DiscordId.toString()).withStyle(ChatFormatting.GRAY))
                 .append(RPAREN)
         } else {
             List.append(LIST_ENTRY)
-                .append(Text.literal(PD.toString()).withColor(Constants.Lavender))
+                .append(Component.literal(PD.toString()).withColor(Constants.Lavender))
                 .append(LPAREN)
                 .append(IS_NOT_LINKED)
                 .append(RPAREN)
@@ -1130,18 +1130,18 @@ object DiscordCommand {
     }
 
     @Throws(CommandSyntaxException::class)
-    fun ForceLink(S: ServerCommandSource, SP: ServerPlayerEntity, ID: Long): Int {
+    fun ForceLink(S: CommandSourceStack, SP: ServerPlayer, ID: Long): Int {
         return Try(S) {
             Discord.ForceLink(S, SP, ID)
             1
         }
     }
 
-    fun ListAllOrLinked(S: ServerCommandSource, All: Boolean): Int {
+    fun ListAllOrLinked(S: CommandSourceStack, All: Boolean): Int {
         val Players = PlayerList.AllPlayers()
 
         // List all players that are linked.
-        val List = Text.literal("Linked players:")
+        val List = Component.literal("Linked players:")
         for (PD in Players) if (All || PD.Data.IsLinked) AddPlayer(List, PD)
 
         // Send the list to the player.
@@ -1149,10 +1149,10 @@ object DiscordCommand {
         return 1
     }
 
-    fun ListPlayers(S: ServerCommandSource, Filter: String): Int {
+    fun ListPlayers(S: CommandSourceStack, Filter: String): Int {
         try {
             if (Filter.isEmpty()) {
-                S.sendError(ERR_EMPTY_FILTER)
+                S.sendFailure(ERR_EMPTY_FILTER)
                 return 0
             }
 
@@ -1165,7 +1165,7 @@ object DiscordCommand {
             }
 
             // List all players that match the filter.
-            val List = Text.literal("Players: ")
+            val List = Component.literal("Players: ")
             for (PD in Players) AddPlayer(List, PD)
             S.Reply(List)
             return Players.size
@@ -1175,13 +1175,13 @@ object DiscordCommand {
         }
     }
 
-    fun ListSyntaxError(S: ServerCommandSource): Int {
-        S.sendError(ERR_LIST_SYNTAX)
+    fun ListSyntaxError(S: CommandSourceStack): Int {
+        S.sendFailure(ERR_LIST_SYNTAX)
         return 0
     }
 
     @Throws(CommandSyntaxException::class)
-    private fun Try(S: ServerCommandSource, R: () -> Int): Int {
+    private fun Try(S: CommandSourceStack, R: () -> Int): Int {
         try {
             return R()
         } catch (CE: CommandSyntaxException) {
@@ -1195,7 +1195,7 @@ object DiscordCommand {
     }
 
     @Throws(CommandSyntaxException::class)
-    fun TryLink(S: ServerCommandSource, SP: ServerPlayerEntity, ID: Long): Int {
+    fun TryLink(S: CommandSourceStack, SP: ServerPlayer, ID: Long): Int {
         return Try(S) {
             if (SP.isLinked) throw ALREADY_LINKED.create()
             Discord.Link(S, SP, ID)
@@ -1204,7 +1204,7 @@ object DiscordCommand {
     }
 
     @Throws(CommandSyntaxException::class)
-    fun TryUnlink(S: ServerCommandSource, SP: ServerPlayerEntity): Int {
+    fun TryUnlink(S: CommandSourceStack, SP: ServerPlayer): Int {
         return Try(S) {
             if (!SP.isLinked) throw NOT_LINKED.create()
             Discord.Unlink(S, SP)

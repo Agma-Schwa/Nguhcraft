@@ -2,13 +2,13 @@ package org.nguh.nguhcraft.server
 
 import com.mojang.serialization.Codec
 import com.mojang.serialization.codecs.RecordCodecBuilder
-import net.minecraft.nbt.NbtCompound
-import net.minecraft.registry.RegistryKey
-import net.minecraft.registry.RegistryKeys
-import net.minecraft.server.network.ServerPlayerEntity
-import net.minecraft.util.math.BlockPos
-import net.minecraft.world.TeleportTarget
-import net.minecraft.world.World
+import net.minecraft.nbt.CompoundTag
+import net.minecraft.resources.ResourceKey
+import net.minecraft.core.registries.Registries
+import net.minecraft.server.level.ServerPlayer
+import net.minecraft.core.BlockPos
+import net.minecraft.world.level.portal.TeleportTransition
+import net.minecraft.world.level.Level
 import org.nguh.nguhcraft.Decode
 import org.nguh.nguhcraft.Encode
 import org.nguh.nguhcraft.Nbt
@@ -24,7 +24,7 @@ import org.nguh.nguhcraft.set
 */
 data class Home(
     val Name: String,
-    val World: RegistryKey<World>,
+    val World: ResourceKey<Level>,
     val Pos: BlockPos,
 ) {
     fun Save() = CODEC.Encode(this)
@@ -36,20 +36,20 @@ data class Home(
         val CODEC = RecordCodecBuilder.create {
             it.group(
                 Codec.STRING.fieldOf("Name").forGetter(Home::Name),
-                RegistryKey.createCodec(RegistryKeys.WORLD).fieldOf("World").forGetter(Home::World),
+                ResourceKey.codec(Registries.DIMENSION).fieldOf("World").forGetter(Home::World),
                 Codec.INT.fieldOf("X").forGetter { it.Pos.x },
                 Codec.INT.fieldOf("Y").forGetter { it.Pos.y },
                 Codec.INT.fieldOf("Z").forGetter { it.Pos.z },
             ).apply(it) { Name, World, X, Y, Z -> Home(Name, World, BlockPos(X, Y, Z)) }
         }
 
-        fun Bed(SP: ServerPlayerEntity) = Home(
+        fun Bed(SP: ServerPlayer) = Home(
             BED_HOME,
-            SP.respawn?.dimension ?: World.OVERWORLD,
-            SP.respawn?.pos ?: SP.Server.overworld.spawnPos
+            SP.respawnConfig?.dimension ?: Level.OVERWORLD,
+            SP.respawnConfig?.pos ?: SP.Server.overworld().sharedSpawnPos
         )
 
         @JvmStatic
-        fun Load(Tag: NbtCompound) = CODEC.Decode(Tag)
+        fun Load(Tag: CompoundTag) = CODEC.Decode(Tag)
     }
 }

@@ -1,14 +1,9 @@
 {
-  "type": "minecraft:crafting_shaped",
-  "category": "misc",
-  "key": {
-    "#": "minecraft:pale_oak_planks",
-    "A": "minecraft:amethyst_shard"
-  },
-  "pattern": [
-    " # ",
-    "#A#",
-    " # "
+  "type": "minecraft:crafting_shapeless",
+  "category": "building",
+  "group": "planks",
+  "ingredients": [
+    "#nguhcraft:tinted_oak_logs"
   ],
   "result": {
     "count": 4,

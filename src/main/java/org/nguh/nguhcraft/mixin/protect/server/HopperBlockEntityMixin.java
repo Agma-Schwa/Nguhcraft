@@ -1,11 +1,11 @@
 package org.nguh.nguhcraft.mixin.protect.server;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.block.entity.Hopper;
-import net.minecraft.block.entity.HopperBlockEntity;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.world.World;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.entity.Hopper;
+import net.minecraft.world.level.block.entity.HopperBlockEntity;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.level.Level;
 import org.nguh.nguhcraft.protect.ProtectionManager;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -18,12 +18,12 @@ import java.util.function.BooleanSupplier;
 public abstract class HopperBlockEntityMixin {
     /** As below. Used by hopper minecarts. */
     @Inject(
-        method = "extract(Lnet/minecraft/world/World;Lnet/minecraft/block/entity/Hopper;)Z",
+        method = "suckInItems(Lnet/minecraft/world/level/Level;Lnet/minecraft/world/level/block/entity/Hopper;)Z",
         at = @At("HEAD"),
         cancellable = true
     )
-    private static void inject$extract(World W, Hopper H, CallbackInfoReturnable<Boolean> CIR) {
-        BlockPos Pos = BlockPos.ofFloored(H.getHopperX(), H.getHopperY() + 1.0, H.getHopperZ());
+    private static void inject$extract(Level W, Hopper H, CallbackInfoReturnable<Boolean> CIR) {
+        BlockPos Pos = BlockPos.containing(H.getLevelX(), H.getLevelY() + 1.0, H.getLevelZ());
         if (ProtectionManager.IsProtectedBlock(W, Pos))
             CIR.setReturnValue(false);
     }
@@ -42,12 +42,12 @@ public abstract class HopperBlockEntityMixin {
     *       access protected inventories with the same key.
     */
     @Inject(
-        method = "insertAndExtract",
+        method = "tryMoveItems",
         at = @At("HEAD"),
         cancellable = true
     )
     private static void inject$insertAndExtract(
-        World W,
+        Level W,
         BlockPos Pos,
         BlockState St,
         HopperBlockEntity BE,
@@ -59,8 +59,8 @@ public abstract class HopperBlockEntityMixin {
         // if a hopper is touching a protected block, then fuck you, nothing is going
         // to move anywhere.
         Direction Facing = ((HopperBlockEntityAccessor) BE).getFacing();
-        BlockPos ToPos = Pos.offset(Facing);
-        BlockPos FromPos = Pos.up();
+        BlockPos ToPos = Pos.relative(Facing);
+        BlockPos FromPos = Pos.above();
         if (ProtectionManager.IsProtectedBlock(W, FromPos) || ProtectionManager.IsProtectedBlock(W, ToPos))
             CIR.setReturnValue(false);
     }

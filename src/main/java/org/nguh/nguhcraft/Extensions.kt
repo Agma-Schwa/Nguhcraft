@@ -1,14 +1,14 @@
 package org.nguh.nguhcraft
 
-import net.minecraft.block.AbstractBlock
-import net.minecraft.block.Block
-import net.minecraft.block.BlockState
-import net.minecraft.item.Item
-import net.minecraft.item.ItemStack
-import net.minecraft.registry.entry.RegistryEntry
-import net.minecraft.registry.tag.TagKey
+import net.minecraft.world.level.block.state.BlockBehaviour
+import net.minecraft.world.level.block.Block
+import net.minecraft.world.level.block.state.BlockState
+import net.minecraft.world.item.Item
+import net.minecraft.world.item.ItemStack
+import net.minecraft.core.Holder
+import net.minecraft.tags.TagKey
 
-infix fun AbstractBlock.AbstractBlockState.isa(B: TagKey<Block>) = this.isIn(B)
-infix fun AbstractBlock.AbstractBlockState.isa(B: RegistryEntry<Block>) = this.isOf(B)
-infix fun BlockState.isa(B: Block) = this.isOf(B)
-infix fun ItemStack.isa(I: Item) = this.isOf(I)
+infix fun BlockBehaviour.BlockStateBase.isa(B: TagKey<Block>) = this.`is`(B)
+infix fun BlockBehaviour.BlockStateBase.isa(B: Holder<Block>) = this.`is`(B)
+infix fun BlockState.isa(B: Block) = this.`is`(B)
+infix fun ItemStack.isa(I: Item) = this.`is`(I)

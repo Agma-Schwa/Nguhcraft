@@ -1,6 +1,6 @@
 package org.nguh.nguhcraft.server.accessors;
 
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.core.BlockPos;
 
 public interface LecternScreenHandlerAccessor {
     void Nguhcraft$SetLecternPos(BlockPos Pos);

@@ -1,12 +1,11 @@
 package org.nguh.nguhcraft.mixin.protect;
 
 import com.llamalad7.mixinextras.sugar.Local;
-import kotlin.Unit;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.damage.DamageSource;
-import net.minecraft.util.math.Box;
-import net.minecraft.util.shape.VoxelShape;
-import net.minecraft.world.World;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.shapes.VoxelShape;
+import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 import org.nguh.nguhcraft.protect.ProtectionManager;
 import org.spongepowered.asm.mixin.Mixin;
@@ -23,13 +22,13 @@ import com.google.common.collect.ImmutableList.Builder;
 @Mixin(Entity.class)
 public abstract class EntityMixin {
     @Shadow public abstract boolean isOnFire();
-    @Shadow public abstract void extinguish();
+    @Shadow public abstract void clearFire();
 
     @Unique private Entity This() { return (Entity)(Object)this; }
 
     /** Handle collisions with regions. */
     @Inject(
-        method = "findCollisionsForMovement",
+        method = "collectColliders",
         at = @At(
             value = "INVOKE",
             remap = false,
@@ -39,9 +38,9 @@ public abstract class EntityMixin {
     )
     static private void inject$findCollisionsForMovement(
         @Nullable Entity E,
-        World W,
+        Level W,
         List<VoxelShape> Colls,
-        Box BB,
+        AABB BB,
         CallbackInfoReturnable<List<VoxelShape>> CIR,
         @Local Builder<VoxelShape> Builder
     ) {
@@ -50,7 +49,7 @@ public abstract class EntityMixin {
     }
 
     /** Prevent damage to protected entities. */
-    @Inject(method = "isAlwaysInvulnerableTo", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "isInvulnerableToBase", at = @At("HEAD"), cancellable = true)
     private void inject$isAlwaysInvulnerableTo(DamageSource DS, CallbackInfoReturnable<Boolean> CIR) {
         if (ProtectionManager.IsProtectedEntity(This(), DS))
             CIR.setReturnValue(true);
@@ -60,6 +59,6 @@ public abstract class EntityMixin {
     @Inject(method = "tick", at = @At("HEAD"))
     private void inject$tick(CallbackInfo CI) {
         if (isOnFire() && ProtectionManager.IsProtectedEntity(This()))
-            extinguish();
+            clearFire();
     }
 }

@@ -10,38 +10,39 @@ import net.fabricmc.fabric.api.datagen.v1.provider.FabricBlockLootTableProvider
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricDynamicRegistryProvider
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricRecipeProvider
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricTagProvider
-import net.minecraft.block.Block
-import net.minecraft.block.Blocks
-import net.minecraft.block.SlabBlock
-import net.minecraft.client.data.BlockStateModelGenerator
-import net.minecraft.client.data.ItemModelGenerator
-import net.minecraft.client.render.entity.equipment.EquipmentModel
-import net.minecraft.component.DataComponentTypes
-import net.minecraft.data.DataOutput
+import net.minecraft.world.level.block.Block
+import net.minecraft.world.level.block.Blocks
+import net.minecraft.world.level.block.SlabBlock
+import net.minecraft.client.data.models.BlockModelGenerators
+import net.minecraft.client.data.models.ItemModelGenerators
+import net.minecraft.client.resources.model.EquipmentClientInfo
+import net.minecraft.core.component.DataComponents
+import net.minecraft.data.PackOutput
 import net.minecraft.data.DataProvider
-import net.minecraft.data.DataWriter
-import net.minecraft.data.recipe.RecipeExporter
-import net.minecraft.entity.damage.DamageType
-import net.minecraft.entity.decoration.painting.PaintingVariant
-import net.minecraft.item.Items
-import net.minecraft.item.equipment.EquipmentAsset
-import net.minecraft.loot.LootPool
-import net.minecraft.loot.LootTable
-import net.minecraft.loot.condition.BlockStatePropertyLootCondition
-import net.minecraft.loot.entry.ItemEntry
-import net.minecraft.loot.function.CopyComponentsLootFunction
-import net.minecraft.loot.function.SetCountLootFunction
-import net.minecraft.loot.provider.number.ConstantLootNumberProvider
-import net.minecraft.predicate.StatePredicate
-import net.minecraft.registry.RegistryBuilder
-import net.minecraft.registry.RegistryKey
-import net.minecraft.registry.RegistryKeys
-import net.minecraft.registry.RegistryWrapper
-import net.minecraft.registry.tag.BlockTags
-import net.minecraft.registry.tag.DamageTypeTags
-import net.minecraft.registry.tag.ItemTags
-import net.minecraft.registry.tag.PaintingVariantTags
-import net.minecraft.registry.tag.TagKey
+import net.minecraft.data.CachedOutput
+import net.minecraft.data.recipes.RecipeOutput
+import net.minecraft.world.damagesource.DamageType
+import net.minecraft.world.entity.decoration.PaintingVariant
+import net.minecraft.world.item.Item
+import net.minecraft.world.item.Items
+import net.minecraft.world.item.equipment.EquipmentAsset
+import net.minecraft.world.level.storage.loot.LootPool
+import net.minecraft.world.level.storage.loot.LootTable
+import net.minecraft.world.level.storage.loot.predicates.LootItemBlockStatePropertyCondition
+import net.minecraft.world.level.storage.loot.entries.LootItem
+import net.minecraft.world.level.storage.loot.functions.CopyComponentsFunction
+import net.minecraft.world.level.storage.loot.functions.SetItemCountFunction
+import net.minecraft.world.level.storage.loot.providers.number.ConstantValue
+import net.minecraft.advancements.critereon.StatePropertiesPredicate
+import net.minecraft.core.RegistrySetBuilder
+import net.minecraft.resources.ResourceKey
+import net.minecraft.core.registries.Registries
+import net.minecraft.core.HolderLookup
+import net.minecraft.tags.BlockTags
+import net.minecraft.tags.DamageTypeTags
+import net.minecraft.tags.ItemTags
+import net.minecraft.tags.PaintingVariantTags
+import net.minecraft.tags.TagKey
 import org.nguh.nguhcraft.NguhDamageTypes
 import org.nguh.nguhcraft.NguhPaintings
 import org.nguh.nguhcraft.Nguhcraft.Companion.Id
@@ -61,10 +62,10 @@ import java.util.concurrent.CompletableFuture
 @Environment(EnvType.CLIENT)
 class NguhcraftBlockTagProvider(
     O: FabricDataOutput,
-    RF: CompletableFuture<RegistryWrapper.WrapperLookup>
+    RF: CompletableFuture<HolderLookup.Provider>
 ) : FabricTagProvider.BlockTagProvider(O, RF) {
-    override fun configure(WL: RegistryWrapper.WrapperLookup) {
-        valueLookupBuilder(BlockTags.PICKAXE_MINEABLE).let { T ->
+    override fun addTags(WL: HolderLookup.Provider) {
+        valueLookupBuilder(BlockTags.MINEABLE_WITH_PICKAXE).let { T ->
             for (B in NguhBlocks.PICKAXE_MINEABLE) T.add(B)
             for (B in NguhBlockModels.VERTICAL_SLABS.filter { !it.Wood }) T.add(B.VerticalSlab)
         }
@@ -90,6 +91,11 @@ class NguhcraftBlockTagProvider(
             .add(NguhBlocks.TINTED_OAK_WOOD)
             .add(NguhBlocks.STRIPPED_TINTED_OAK_LOG)
             .add(NguhBlocks.STRIPPED_TINTED_OAK_WOOD)
+        valueLookupBuilder(BlockTags.FENCE_GATES).add(NguhBlocks.TINTED_OAK_FENCE_GATE)
+        valueLookupBuilder(BlockTags.WOODEN_DOORS).add(NguhBlocks.TINTED_OAK_DOOR)
+        valueLookupBuilder(BlockTags.WOODEN_TRAPDOORS).add(NguhBlocks.TINTED_OAK_TRAPDOOR)
+        valueLookupBuilder(BlockTags.WOODEN_PRESSURE_PLATES).add(NguhBlocks.TINTED_OAK_PRESSURE_PLATE)
+        valueLookupBuilder(BlockTags.WOODEN_BUTTONS).add(NguhBlocks.TINTED_OAK_BUTTON)
 
         // Block tag for bonemealing flowers.
         valueLookupBuilder(NguhBlocks.CAN_DUPLICATE_WITH_BONEMEAL)
@@ -126,9 +132,9 @@ class NguhcraftBlockTagProvider(
 @Environment(EnvType.CLIENT)
 class NguhcraftDamageTypeTagProvider(
     O: FabricDataOutput,
-    RF: CompletableFuture<RegistryWrapper.WrapperLookup>
-) : FabricTagProvider<DamageType>(O, RegistryKeys.DAMAGE_TYPE, RF) {
-    override fun configure(WL: RegistryWrapper.WrapperLookup) {
+    RF: CompletableFuture<HolderLookup.Provider>
+) : FabricTagProvider<DamageType>(O, Registries.DAMAGE_TYPE, RF) {
+    override fun addTags(WL: HolderLookup.Provider) {
         // Damage types that bypass most resistances.
         AddBypassDamageTypesTo(DamageTypeTags.BYPASSES_ARMOR)
         AddBypassDamageTypesTo(DamageTypeTags.BYPASSES_ENCHANTMENTS)
@@ -158,21 +164,21 @@ class NguhcraftDamageTypeTagProvider(
 
 class NguhcraftEquipmentAssetProvider(
     O: FabricDataOutput,
-    RF: CompletableFuture<RegistryWrapper.WrapperLookup>
+    RF: CompletableFuture<HolderLookup.Provider>
 ) : DataProvider {
-    val Resolver = O.getResolver(DataOutput.OutputType.RESOURCE_PACK, "equipment")
+    val Resolver = O.createPathProvider(PackOutput.Target.RESOURCE_PACK, "equipment")
 
-    private fun Bootstrap(Add: (RegistryKey<EquipmentAsset>, EquipmentModel) -> Unit) {
+    private fun Bootstrap(Add: (ResourceKey<EquipmentAsset>, EquipmentClientInfo) -> Unit) {
         Add(
             NguhItems.AMETHYST_EQUIPMENT_ASSET_KEY,
-            EquipmentModel.builder().addHumanoidLayers(Id("amethyst")).build()
+            EquipmentClientInfo.builder().addHumanoidLayers(Id("amethyst")).build()
         )
     }
 
-    override fun run(W: DataWriter): CompletableFuture<*> {
-        val Map = mutableMapOf<RegistryKey<EquipmentAsset>, EquipmentModel>()
+    override fun run(W: CachedOutput): CompletableFuture<*> {
+        val Map = mutableMapOf<ResourceKey<EquipmentAsset>, EquipmentClientInfo>()
         Bootstrap { K, M -> if (Map.putIfAbsent(K, M) != null) throw IllegalStateException("Duplicate key: $K") }
-        return DataProvider.writeAllToPath(W, EquipmentModel.CODEC, Resolver::resolveJson, Map)
+        return DataProvider.saveAll(W, EquipmentClientInfo.CODEC, Resolver::json, Map)
     }
 
     override fun getName() = "Nguhcraft Equipment Asset Definitions"
@@ -180,9 +186,9 @@ class NguhcraftEquipmentAssetProvider(
 
 class NguhcraftItemTagProvider(
     O: FabricDataOutput,
-    RF: CompletableFuture<RegistryWrapper.WrapperLookup>
+    RF: CompletableFuture<HolderLookup.Provider>
 ) : FabricTagProvider.ItemTagProvider(O, RF) {
-    override fun configure(WL: RegistryWrapper.WrapperLookup) {
+    override fun addTags(WL: HolderLookup.Provider) {
         valueLookupBuilder(ItemTags.HEAD_ARMOR).add(NguhItems.AMETHYST_HELMET)
         valueLookupBuilder(ItemTags.CHEST_ARMOR).add(NguhItems.AMETHYST_CHESTPLATE)
         valueLookupBuilder(ItemTags.LEG_ARMOR).add(NguhItems.AMETHYST_LEGGINGS)
@@ -201,31 +207,47 @@ class NguhcraftItemTagProvider(
         valueLookupBuilder(ItemTags.PICKAXES).add(NguhItems.AMETHYST_PICKAXE)
         valueLookupBuilder(ItemTags.AXES).add(NguhItems.AMETHYST_AXE)
         valueLookupBuilder(ItemTags.HOES).add(NguhItems.AMETHYST_HOE)
+
+        valueLookupBuilder(ItemTags.LOGS_THAT_BURN)
+            .add(NguhBlocks.TINTED_OAK_LOG.asItem())
+            .add(NguhBlocks.TINTED_OAK_WOOD.asItem())
+            .add(NguhBlocks.STRIPPED_TINTED_OAK_LOG.asItem())
+            .add(NguhBlocks.STRIPPED_TINTED_OAK_WOOD.asItem())
+
+        valueLookupBuilder(ItemTags.PLANKS)
+            .add(NguhBlocks.TINTED_OAK_PLANKS.asItem())
+
+        valueLookupBuilder(NguhItems.TINTED_LOGS)
+            .add(NguhBlocks.TINTED_OAK_LOG.asItem())
+            .add(NguhBlocks.TINTED_OAK_WOOD.asItem())
+            .add(NguhBlocks.STRIPPED_TINTED_OAK_LOG.asItem())
+            .add(NguhBlocks.STRIPPED_TINTED_OAK_WOOD.asItem())
     }
 }
 
 @Environment(EnvType.CLIENT)
 class NguhcraftLootTableProvider(
     O: FabricDataOutput,
-    RL: CompletableFuture<RegistryWrapper.WrapperLookup>
+    RL: CompletableFuture<HolderLookup.Provider>
 ) : FabricBlockLootTableProvider(O, RL) {
     override fun generate() {
-        NguhBlocks.DROPS_SELF.forEach { addDrop(it) }
-        addDrop(NguhBlocks.LOCKED_DOOR) { B: Block -> doorDrops(B) }
+        NguhBlocks.DROPS_SELF.forEach { dropSelf(it) }
+        add(NguhBlocks.LOCKED_DOOR) { B: Block -> createDoorTable(B) }
+        add(NguhBlocks.TINTED_OAK_DOOR) { B: Block -> createDoorTable(B) }
         for (S in NguhBlocks.ALL_VARIANT_FAMILY_BLOCKS.filter { it is SlabBlock })
-            addDrop(S, ::slabDrops)
+            add(S, ::createSlabItemTable)
         for (V in NguhBlockModels.VERTICAL_SLABS)
-            addDrop(V.VerticalSlab, ::VerticalSlabDrops)
+            add(V.VerticalSlab, ::VerticalSlabDrops)
 
         // Copied from nameableContainerDrops(), but modified to also
         // copy the chest variant component.
-        addDrop(Blocks.CHEST) { B -> LootTable.builder()
-            .pool(addSurvivesExplosionCondition(
+        add(Blocks.CHEST) { B -> LootTable.lootTable()
+            .withPool(applyExplosionCondition(
                 B,
-                LootPool.builder().rolls(ConstantLootNumberProvider.create(1.0F))
-                    .with(ItemEntry.builder(B)
-                        .apply(CopyComponentsLootFunction.builder(CopyComponentsLootFunction.Source.BLOCK_ENTITY)
-                            .include(DataComponentTypes.CUSTOM_NAME)
+                LootPool.lootPool().setRolls(ConstantValue.exactly(1.0F))
+                    .add(LootItem.lootTableItem(B)
+                        .apply(CopyComponentsFunction.copyComponents(CopyComponentsFunction.Source.BLOCK_ENTITY)
+                            .include(DataComponents.CUSTOM_NAME)
                             .include(NguhBlocks.CHEST_VARIANT_COMPONENT)
                         )
                     )
@@ -234,17 +256,17 @@ class NguhcraftLootTableProvider(
         }
     }
 
-    fun VerticalSlabDrops(Drop: Block) = LootTable.builder().pool(
-        LootPool.builder()
-            .rolls(ConstantLootNumberProvider.create(1.0F))
-            .with(
+    fun VerticalSlabDrops(Drop: Block) = LootTable.lootTable().withPool(
+        LootPool.lootPool()
+            .setRolls(ConstantValue.exactly(1.0F))
+            .add(
                 applyExplosionDecay(
                     Drop,
-                    ItemEntry.builder(Drop)
+                    LootItem.lootTableItem(Drop)
                         .apply(
-                            SetCountLootFunction.builder(ConstantLootNumberProvider.create(2.0F))
-                                .conditionally(BlockStatePropertyLootCondition.builder(Drop)
-                                    .properties(StatePredicate.Builder.create().exactMatch(
+                            SetItemCountFunction.setCount(ConstantValue.exactly(2.0F))
+                                .`when`(LootItemBlockStatePropertyCondition.hasBlockStateProperties(Drop)
+                                    .setProperties(StatePropertiesPredicate.Builder.properties().hasProperty(
                                         VerticalSlabBlock.TYPE,
                                         VerticalSlabBlock.Type.DOUBLE))
                                 )
@@ -256,11 +278,11 @@ class NguhcraftLootTableProvider(
 
 @Environment(EnvType.CLIENT)
 class NguhcraftModelGenerator(O: FabricDataOutput) : FabricModelProvider(O) {
-    override fun generateBlockStateModels(G: BlockStateModelGenerator) {
+    override fun generateBlockStateModels(G: BlockModelGenerators) {
         NguhBlockModels.BootstrapModels(G)
     }
 
-    override fun generateItemModels(G: ItemModelGenerator) {
+    override fun generateItemModels(G: ItemModelGenerators) {
         NguhItems.BootstrapModels(G)
     }
 }
@@ -268,9 +290,9 @@ class NguhcraftModelGenerator(O: FabricDataOutput) : FabricModelProvider(O) {
 @Environment(EnvType.CLIENT)
 class NguhcraftPaintingVariantTagProvider(
     O: FabricDataOutput,
-    RF: CompletableFuture<RegistryWrapper.WrapperLookup>
-) : FabricTagProvider<PaintingVariant>(O, RegistryKeys.PAINTING_VARIANT, RF) {
-    override fun configure(WL: RegistryWrapper.WrapperLookup) {
+    RF: CompletableFuture<HolderLookup.Provider>
+) : FabricTagProvider<PaintingVariant>(O, Registries.PAINTING_VARIANT, RF) {
+    override fun addTags(WL: HolderLookup.Provider) {
         builder(PaintingVariantTags.PLACEABLE).let { for (P in NguhPaintings.PLACEABLE) it.add(P) }
     }
 }
@@ -278,11 +300,11 @@ class NguhcraftPaintingVariantTagProvider(
 @Environment(EnvType.CLIENT)
 class NguhcraftRecipeProvider(
     O: FabricDataOutput,
-    RL: CompletableFuture<RegistryWrapper.WrapperLookup>
+    RL: CompletableFuture<HolderLookup.Provider>
 ) : FabricRecipeProvider(O, RL) {
-    override fun getRecipeGenerator(
-        WL: RegistryWrapper.WrapperLookup,
-        E: RecipeExporter
+    override fun createRecipeProvider(
+        WL: HolderLookup.Provider,
+        E: RecipeOutput
     ) = NguhcraftRecipeGenerator(WL, E)
     override fun getName() = "Nguhcraft Recipe Provider"
 }
@@ -292,25 +314,25 @@ class NguhcraftRecipeProvider(
 // =========================================================================
 class NguhcraftDynamicRegistryProvider(
     O: FabricDataOutput,
-    RF: CompletableFuture<RegistryWrapper.WrapperLookup>
+    RF: CompletableFuture<HolderLookup.Provider>
 ) : FabricDynamicRegistryProvider(O, RF) {
     override fun configure(
-        WL: RegistryWrapper.WrapperLookup,
+        WL: HolderLookup.Provider,
         E: Entries
     ) {
-        E.addAll(WL.getOrThrow(RegistryKeys.DAMAGE_TYPE))
-        E.addAll(WL.getOrThrow(RegistryKeys.PAINTING_VARIANT))
-        E.addAll(WL.getOrThrow(RegistryKeys.TRIM_PATTERN))
+        E.addAll(WL.lookupOrThrow(Registries.DAMAGE_TYPE))
+        E.addAll(WL.lookupOrThrow(Registries.PAINTING_VARIANT))
+        E.addAll(WL.lookupOrThrow(Registries.TRIM_PATTERN))
     }
 
     override fun getName() = "Nguhcraft Dynamic Registries"
 }
 
 class NguhcraftDataGenerator : DataGeneratorEntrypoint {
-    override fun buildRegistry(RB: RegistryBuilder) {
-        RB.addRegistry(RegistryKeys.DAMAGE_TYPE, NguhDamageTypes::Bootstrap)
-        RB.addRegistry(RegistryKeys.PAINTING_VARIANT, NguhPaintings::Bootstrap)
-        RB.addRegistry(RegistryKeys.TRIM_PATTERN, NguhItems::BootstrapArmourTrims)
+    override fun buildRegistry(RB: RegistrySetBuilder) {
+        RB.add(Registries.DAMAGE_TYPE, NguhDamageTypes::Bootstrap)
+        RB.add(Registries.PAINTING_VARIANT, NguhPaintings::Bootstrap)
+        RB.add(Registries.TRIM_PATTERN, NguhItems::BootstrapArmourTrims)
     }
 
     override fun onInitializeDataGenerator(FDG: FabricDataGenerator) {

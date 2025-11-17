@@ -3,9 +3,9 @@ package org.nguh.nguhcraft
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
 import net.minecraft.server.MinecraftServer
-import net.minecraft.server.network.ServerPlayerEntity
-import net.minecraft.storage.ReadView
-import net.minecraft.storage.WriteView
+import net.minecraft.server.level.ServerPlayer
+import net.minecraft.world.level.storage.ValueInput
+import net.minecraft.world.level.storage.ValueOutput
 import org.nguh.nguhcraft.network.ClientboundSyncGameRulesPacket
 import org.nguh.nguhcraft.server.Manager
 
@@ -45,17 +45,17 @@ enum class SyncedGameRule(
     /** Manager to sync and persist the game rule state. */
     class ManagerImpl : Manager() {
         /** Encode the game rules into a packet. */
-        override fun ToPacket(SP: ServerPlayerEntity) = ClientboundSyncGameRulesPacket(entries.fold(0L) { Acc, R ->
+        override fun ToPacket(SP: ServerPlayer) = ClientboundSyncGameRulesPacket(entries.fold(0L) { Acc, R ->
             if (R.Value) Acc or R.Flag else Acc
         })
 
         /** Load the rules from disk. */
-        override fun ReadData(RV: ReadView) = RV.With(KEY) {
-            for (R in entries) R.Value = getBoolean(R.Name, R.Value)
+        override fun ReadData(RV: ValueInput) = RV.With(KEY) {
+            for (R in entries) R.Value = getBooleanOr(R.Name, R.Value)
         }
 
         /** Save the rules to disk. */
-        override fun WriteData(WV: WriteView) = WV.With(KEY) {
+        override fun WriteData(WV: ValueOutput) = WV.With(KEY) {
             for (R in entries) putBoolean(R.Name, R.Value)
         }
     }

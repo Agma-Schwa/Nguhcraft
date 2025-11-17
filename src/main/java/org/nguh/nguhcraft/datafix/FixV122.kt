@@ -2,7 +2,7 @@ package org.nguh.nguhcraft.datafix
 
 import com.mojang.datafixers.schemas.Schema
 import com.mojang.serialization.Dynamic
-import net.minecraft.datafixer.fix.ComponentFix
+import net.minecraft.util.datafix.fixes.DataComponentRemainderFix
 
 /**
  * This data fixer moves container lock components of key
@@ -11,7 +11,7 @@ import net.minecraft.datafixer.fix.ComponentFix
  * Runs before 'LockComponentPredicateFix()', at the start
  * of schema 4068.
  */
-class KeyLockItemComponentisationFix(S: Schema) : ComponentFix(
+class KeyLockItemComponentisationFix(S: Schema) : DataComponentRemainderFix(
     S,
     "NguhcraftKeyLockItemComponentisationFix",
     "minecraft:lock",

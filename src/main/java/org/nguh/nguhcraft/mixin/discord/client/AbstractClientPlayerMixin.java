@@ -1,24 +1,24 @@
 package org.nguh.nguhcraft.mixin.discord.client;
 
 import com.mojang.authlib.GameProfile;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.AbstractClientPlayerEntity;
-import net.minecraft.client.network.PlayerListEntry;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.text.Text;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.AbstractClientPlayer;
+import net.minecraft.client.multiplayer.PlayerInfo;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.network.chat.Component;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 import org.nguh.nguhcraft.client.accessors.AbstractClientPlayerEntityAccessor;
 import org.nguh.nguhcraft.client.accessors.ClientPlayerListEntryAccessor;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 
-@Mixin(AbstractClientPlayerEntity.class)
-public abstract class AbstractClientPlayerMixin extends PlayerEntity implements AbstractClientPlayerEntityAccessor {
-    @Shadow private @Nullable PlayerListEntry playerListEntry;
+@Mixin(AbstractClientPlayer.class)
+public abstract class AbstractClientPlayerMixin extends Player implements AbstractClientPlayerEntityAccessor {
+    @Shadow private @Nullable PlayerInfo playerInfo;
 
-    public AbstractClientPlayerMixin(World world, GameProfile profile) {
+    public AbstractClientPlayerMixin(Level world, GameProfile profile) {
         super(world, profile);
     }
 
@@ -28,10 +28,10 @@ public abstract class AbstractClientPlayerMixin extends PlayerEntity implements 
     * default value.
     */
     @Override
-    public Text getDisplayName() {
+    public Component getDisplayName() {
         // Overridden for linked players.
-        if (playerListEntry instanceof ClientPlayerListEntryAccessor PLE) {
-            Text name = PLE.getNameAboveHead();
+        if (playerInfo instanceof ClientPlayerListEntryAccessor PLE) {
+            Component name = PLE.getNameAboveHead();
             if (name != null) return name;
         }
 
@@ -41,7 +41,7 @@ public abstract class AbstractClientPlayerMixin extends PlayerEntity implements 
 
     @Override
     public boolean isLinked() {
-        if (MinecraftClient.getInstance().getServer() != null) return true;
-        return playerListEntry instanceof ClientPlayerListEntryAccessor PLE && PLE.isLinked();
+        if (Minecraft.getInstance().getSingleplayerServer() != null) return true;
+        return playerInfo instanceof ClientPlayerListEntryAccessor PLE && PLE.isLinked();
     }
 }

@@ -1,8 +1,8 @@
 package org.nguh.nguhcraft.mixin.protect;
 
-import net.minecraft.item.BlockItem;
-import net.minecraft.item.ItemPlacementContext;
-import net.minecraft.util.ActionResult;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.InteractionResult;
 import org.nguh.nguhcraft.protect.ProtectionManager;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -13,14 +13,14 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public abstract class BlockItemMixin {
     /** Prevent placing a block inside a region. */
     @Inject(
-        method = "place(Lnet/minecraft/item/ItemPlacementContext;)Lnet/minecraft/util/ActionResult;",
+        method = "place(Lnet/minecraft/world/item/context/BlockPlaceContext;)Lnet/minecraft/world/InteractionResult;",
         at = @At("HEAD"),
         cancellable = true
     )
-    private void inject$place(ItemPlacementContext Context, CallbackInfoReturnable<ActionResult> CIR) {
+    private void inject$place(BlockPlaceContext Context, CallbackInfoReturnable<InteractionResult> CIR) {
         var Player = Context.getPlayer();
         if (Player == null) return;
-        if (!ProtectionManager.AllowBlockModify(Context.getPlayer(), Context.getWorld(), Context.getBlockPos()))
-            CIR.setReturnValue(ActionResult.FAIL);
+        if (!ProtectionManager.AllowBlockModify(Context.getPlayer(), Context.getLevel(), Context.getClickedPos()))
+            CIR.setReturnValue(InteractionResult.FAIL);
     }
 }

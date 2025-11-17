@@ -2,14 +2,14 @@ package org.nguh.nguhcraft.mixin.server;
 
 import com.mojang.authlib.GameProfile;
 import com.mojang.logging.LogUtils;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.network.message.MessageType;
-import net.minecraft.network.message.SentMessage;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.storage.ReadView;
-import net.minecraft.storage.WriteView;
-import net.minecraft.text.Text;
-import net.minecraft.world.World;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.network.chat.ChatType;
+import net.minecraft.network.chat.OutgoingChatMessage;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 import org.nguh.nguhcraft.server.PlayerData;
 import org.slf4j.Logger;
@@ -20,9 +20,9 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(ServerPlayerEntity.class)
-public abstract class ServerPlayerMixin extends PlayerEntity implements PlayerData.Access {
-    public ServerPlayerMixin(World world, GameProfile profile) {
+@Mixin(ServerPlayer.class)
+public abstract class ServerPlayerMixin extends Player implements PlayerData.Access {
+    public ServerPlayerMixin(Level world, GameProfile profile) {
         super(world, profile);
     }
 
@@ -30,7 +30,7 @@ public abstract class ServerPlayerMixin extends PlayerEntity implements PlayerDa
     @Unique static private final Logger LOGGER = LogUtils.getLogger();
 
     @Override
-    public Text getDisplayName() {
+    public Component getDisplayName() {
         if (Data.NguhcraftDisplayName != null) return Data.NguhcraftDisplayName;
         return super.getDisplayName();
     }
@@ -50,22 +50,22 @@ public abstract class ServerPlayerMixin extends PlayerEntity implements PlayerDa
     * This function copies our custom data over to the new player entity.
     */
     @Inject(
-        method = "copyFrom(Lnet/minecraft/server/network/ServerPlayerEntity;Z)V",
+        method = "restoreFrom(Lnet/minecraft/server/level/ServerPlayer;Z)V",
         at = @At("TAIL")
     )
-    private void inject$copyFrom(ServerPlayerEntity Old, boolean Alive, CallbackInfo CI) {
+    private void inject$copyFrom(ServerPlayer Old, boolean Alive, CallbackInfo CI) {
         Data = ((ServerPlayerMixin)(Object)Old).Data;
     }
 
     /** Save Nbt data to the player file. */
-    @Inject(method = "writeCustomData", at = @At("TAIL"))
-    private void inject$saveData(WriteView WV, CallbackInfo CI) {
+    @Inject(method = "addAdditionalSaveData", at = @At("TAIL"))
+    private void inject$saveData(ValueOutput WV, CallbackInfo CI) {
         Data.Save(WV);
     }
 
     /** Read Nbt data from the player file. */
-    @Inject(method = "readCustomData", at = @At("TAIL"))
-    private void inject$saveData(ReadView RV, CallbackInfo CI) {
+    @Inject(method = "readAdditionalSaveData", at = @At("TAIL"))
+    private void inject$saveData(ValueInput RV, CallbackInfo CI) {
         PlayerData.Load(RV).ifPresent(D -> Data = D);
     }
 
@@ -77,7 +77,7 @@ public abstract class ServerPlayerMixin extends PlayerEntity implements PlayerDa
      *         it ever is, that means we forgot to override something else.
      */
      @Overwrite
-     public void sendChatMessage(@NotNull SentMessage message, boolean filterMaskEnabled, MessageType.Parameters params) {
-         LOGGER.error("Refusing to send signed message to '{}': {}", getNameForScoreboard(), message.content());
+     public void sendChatMessage(@NotNull OutgoingChatMessage message, boolean filterMaskEnabled, ChatType.Bound params) {
+         LOGGER.error("Refusing to send signed message to '{}': {}", getScoreboardName(), message.content());
      }
 }

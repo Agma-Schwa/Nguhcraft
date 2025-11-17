@@ -1,17 +1,17 @@
 package org.nguh.nguhcraft.server
 
-import net.minecraft.block.Block
-import net.minecraft.block.BlockState
-import net.minecraft.block.Blocks
-import net.minecraft.block.LeavesBlock
-import net.minecraft.entity.player.PlayerEntity
-import net.minecraft.item.ItemStack
-import net.minecraft.registry.tag.BlockTags
-import net.minecraft.registry.tag.ItemTags
-import net.minecraft.server.network.ServerPlayerEntity
-import net.minecraft.server.world.ServerWorld
-import net.minecraft.util.math.BlockPos
-import net.minecraft.world.World
+import net.minecraft.world.level.block.Block
+import net.minecraft.world.level.block.state.BlockState
+import net.minecraft.world.level.block.Blocks
+import net.minecraft.world.level.block.LeavesBlock
+import net.minecraft.world.entity.player.Player
+import net.minecraft.world.item.ItemStack
+import net.minecraft.tags.BlockTags
+import net.minecraft.tags.ItemTags
+import net.minecraft.server.level.ServerPlayer
+import net.minecraft.server.level.ServerLevel
+import net.minecraft.core.BlockPos
+import net.minecraft.world.level.Level
 import java.util.*
 
 
@@ -19,7 +19,7 @@ import java.util.*
  * This class handles chopping down an entire tree if a user breaks
  * part of it with an axe.
  */
-class TreeToChop private constructor(private val Owner: ServerPlayerEntity, private val WoodTypes: Array<Block>) {
+class TreeToChop private constructor(private val Owner: ServerPlayer, private val WoodTypes: Array<Block>) {
     interface Accessor {
         fun `Nguhcraft$StartChoppingTree`(Tree: TreeToChop?)
         fun `Nguhcraft$GetTrees`(): MutableList<TreeToChop>
@@ -27,7 +27,7 @@ class TreeToChop private constructor(private val Owner: ServerPlayerEntity, priv
 
     private val TreeBlocks: ArrayList<BlockPos> = ArrayList()
     private var Index: Int = 0
-    private val Axe: ItemStack = Owner.mainHandStack
+    private val Axe: ItemStack = Owner.mainHandItem
 
     private fun Add(pos: BlockPos) {
         TreeBlocks.add(pos)
@@ -37,7 +37,7 @@ class TreeToChop private constructor(private val Owner: ServerPlayerEntity, priv
         return TreeBlocks[Index]
     }
 
-    private fun Chop(SW: ServerWorld) {
+    private fun Chop(SW: ServerLevel) {
         if (Done()) return
 
         // Chop an entire level if this tree is multiple blocks wide.
@@ -52,8 +52,8 @@ class TreeToChop private constructor(private val Owner: ServerPlayerEntity, priv
 
             // Drop the stacks manually because we need to pass in the axe for
             // enchantments like smelting to work properly.
-            SW.breakBlock(B, false, Owner)
-            Block.dropStacks(State, SW, B, null, Owner, Axe)
+            SW.destroyBlock(B, false, Owner)
+            Block.dropResources(State, SW, B, null, Owner, Axe)
         } while (!Done() && Block().y == Y)
     }
 
@@ -61,7 +61,7 @@ class TreeToChop private constructor(private val Owner: ServerPlayerEntity, priv
         return Index >= TreeBlocks.size
     }
 
-    private fun Finish(SL: ServerWorld) {
+    private fun Finish(SL: ServerLevel) {
         TreeBlocks.sortWith(Comparator.comparingInt { obj: BlockPos -> obj.y })
         (SL as Accessor).`Nguhcraft$StartChoppingTree`(this)
     }
@@ -70,7 +70,7 @@ class TreeToChop private constructor(private val Owner: ServerPlayerEntity, priv
         return TreeBlocks[Index++]
     }
 
-    private fun Owner(): ServerPlayerEntity {
+    private fun Owner(): ServerPlayer {
         return Owner
     }
 
@@ -110,25 +110,25 @@ class TreeToChop private constructor(private val Owner: ServerPlayerEntity, priv
         /** A block was just broken. Check if we need to chop down a tree. */
         @JvmStatic
         fun ActOnBlockDestroyed(
-            Level: World,
+            Level: Level,
             Block: BlockPos,
             State: BlockState,
-            Player: PlayerEntity
+            Player: Player
         ) {
             if (
-                Player is ServerPlayerEntity &&
+                Player is ServerPlayer &&
                 !Chopping &&
-                Level is ServerWorld &&
+                Level is ServerLevel &&
                 (
-                    State.isIn(BlockTags.OVERWORLD_NATURAL_LOGS) ||
-                    State.isOf(Blocks.MANGROVE_ROOTS)
+                    State.`is`(BlockTags.OVERWORLD_NATURAL_LOGS) ||
+                    State.`is`(Blocks.MANGROVE_ROOTS)
                 ) &&
-                Player.mainHandStack.isIn(ItemTags.AXES)
+                Player.mainHandItem.`is`(ItemTags.AXES)
             ) ChopDownTree(Player, Level, Block, State)
         }
 
         @JvmStatic
-        fun Tick(SL: ServerWorld) {
+        fun Tick(SL: ServerLevel) {
             val Trees = (SL as Accessor).`Nguhcraft$GetTrees`()
             Chopping = true
             Trees.forEach { it.Chop(SL) }
@@ -137,8 +137,8 @@ class TreeToChop private constructor(private val Owner: ServerPlayerEntity, priv
         }
 
         private fun ChopDownTree(
-            SP: ServerPlayerEntity,
-            SL: ServerWorld,
+            SP: ServerPlayer,
+            SL: ServerLevel,
             Start: BlockPos,
             Wood: BlockState
         ) {
@@ -155,7 +155,7 @@ class TreeToChop private constructor(private val Owner: ServerPlayerEntity, priv
             // have the same block type as the starting block, as well as for
             // leaves of the same wood type; if we can find any leaves that are
             // non-persistent, chop down all logs above the starting position.
-            Q.add(Start.toImmutable())
+            Q.add(Start.immutable())
             while (!Q.isEmpty()) {
                 val Block = Q.remove()
 
@@ -171,7 +171,7 @@ class TreeToChop private constructor(private val Owner: ServerPlayerEntity, priv
                 val St = SL.getBlockState(Block)
                 val B = St.block
                 if (Leaves.contains(B)) {
-                    if (St.get(LeavesBlock.PERSISTENT)) return
+                    if (St.getValue(LeavesBlock.PERSISTENT)) return
                     SeenNonPersistentLeaves = true
                 } else if (WoodTypes.contains(B)) {
                     Tree.Add(Block)
@@ -183,7 +183,7 @@ class TreeToChop private constructor(private val Owner: ServerPlayerEntity, priv
                     // Even otherwise fairly normal trees (like oaks) generate in weird ways
                     // in jungles, so just visit everything as part of the flood fill every
                     // time.
-                    val Up = Block.up()
+                    val Up = Block.above()
                     VisitBlock(Q, Visited, Up)
                     VisitBlock(Q, Visited, Block.north())
                     VisitBlock(Q, Visited, Block.east())
@@ -205,7 +205,7 @@ class TreeToChop private constructor(private val Owner: ServerPlayerEntity, priv
                     // Do chop downwards if these are Mangrove roots because it looks stupid
                     // if only the roots are left (re ‘that is not how trees work’: they’re
                     // roots; they’d probably fall over or something).
-                    if (ChopDownwards && B == Blocks.MANGROVE_ROOTS) VisitBlock(Q, Visited, Block.down())
+                    if (ChopDownwards && B == Blocks.MANGROVE_ROOTS) VisitBlock(Q, Visited, Block.below())
                 }
             }
 

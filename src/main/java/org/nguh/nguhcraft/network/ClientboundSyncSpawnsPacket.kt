@@ -1,18 +1,18 @@
 package org.nguh.nguhcraft.network
 
-import net.minecraft.network.codec.PacketCodecs
-import net.minecraft.network.packet.CustomPayload
+import net.minecraft.network.codec.ByteBufCodecs
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload
 import org.nguh.nguhcraft.Utils
 import org.nguh.nguhcraft.entity.EntitySpawnManager
 
 class ClientboundSyncSpawnsPacket(
     val Spawns: List<EntitySpawnManager.Spawn>
-) : CustomPayload {
-    override fun getId() = ID
+) : CustomPacketPayload {
+    override fun type() = ID
     companion object {
         val ID = Utils.PacketId<ClientboundSyncSpawnsPacket>("clientbound/sync_spawns")
         val CODEC = EntitySpawnManager.Spawn.PACKET_CODEC
-            .collect(PacketCodecs.toList())
-            .xmap(::ClientboundSyncSpawnsPacket, ClientboundSyncSpawnsPacket::Spawns)
+            .apply(ByteBufCodecs.list())
+            .map(::ClientboundSyncSpawnsPacket, ClientboundSyncSpawnsPacket::Spawns)
     }
 }

@@ -1,7 +1,7 @@
 accessWidener v2 named
-accessible class net/minecraft/datafixer/fix/ItemStackComponentizationFix$StackData
-accessible class net/minecraft/network/packet/c2s/play/PlayerInteractEntityC2SPacket$InteractTypeHandler
-accessible method net/minecraft/network/packet/c2s/play/PlayerInteractEntityC2SPacket$InteractTypeHandler getType ()Lnet/minecraft/network/packet/c2s/play/PlayerInteractEntityC2SPacket$InteractType;
-accessible class net/minecraft/network/packet/c2s/play/PlayerInteractEntityC2SPacket$InteractType
-accessible class net/minecraft/entity/vehicle/ExperimentalMinecartController$MoveIteration
-accessible class net/minecraft/block/SculkVeinBlock$SculkVeinGrowChecker
+accessible class net/minecraft/util/datafix/fixes/ItemStackComponentizationFix$ItemStackData
+accessible class net/minecraft/network/protocol/game/ServerboundInteractPacket$Action
+accessible method net/minecraft/network/protocol/game/ServerboundInteractPacket$Action getType ()Lnet/minecraft/network/protocol/game/ServerboundInteractPacket$ActionType;
+accessible class net/minecraft/network/protocol/game/ServerboundInteractPacket$ActionType
+accessible class net/minecraft/world/entity/vehicle/NewMinecartBehavior$TrackIteration
+accessible class net/minecraft/world/level/block/SculkVeinBlock$SculkVeinSpreaderConfig

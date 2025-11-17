@@ -1,8 +1,8 @@
 package org.nguh.nguhcraft.network
 
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs
-import net.minecraft.network.PacketByteBuf
-import net.minecraft.util.Identifier
+import net.minecraft.network.FriendlyByteBuf
+import net.minecraft.resources.ResourceLocation
 import org.nguh.nguhcraft.Nguhcraft.Companion.Id
 
 object VersionCheck {
@@ -13,11 +13,11 @@ object VersionCheck {
      * whenever there are breaking changes to client/server communication,
      * static registries, etc.
      */
-    const val NGUHCRAFT_VERSION: Int = 38
+    const val NGUHCRAFT_VERSION: Int = 39
 
     /** Packet sent by the client to reply to the version handshake. */
-    val Packet: PacketByteBuf = PacketByteBufs.create().writeInt(NGUHCRAFT_VERSION)
+    val Packet: FriendlyByteBuf = PacketByteBufs.create().writeInt(NGUHCRAFT_VERSION)
 
     /** Identifier used for the version check. */
-    val ID: Identifier = Id("login/version_check")
+    val ID: ResourceLocation = Id("login/version_check")
 }

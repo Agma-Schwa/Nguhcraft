@@ -1,18 +1,23 @@
 package org.nguh.nguhcraft.client.render
 
 import com.mojang.blaze3d.pipeline.RenderPipeline
+import com.mojang.blaze3d.vertex.DefaultVertexFormat
+import com.mojang.blaze3d.vertex.Tesselator
+import com.mojang.blaze3d.vertex.VertexConsumer
 import com.mojang.blaze3d.vertex.VertexFormat
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext
-import net.minecraft.client.gl.RenderPipelines
-import net.minecraft.client.render.*
-import net.minecraft.client.render.RenderLayer.MultiPhaseParameters
-import net.minecraft.client.render.RenderLayer.of
-import net.minecraft.util.Colors
-import net.minecraft.util.Util
-import net.minecraft.util.math.ColorHelper
-import net.minecraft.util.profiler.Profilers
+import net.minecraft.client.renderer.RenderPipelines
+import net.minecraft.client.renderer.RenderType.CompositeState
+import net.minecraft.util.CommonColors
+import net.minecraft.Util
+import net.minecraft.client.renderer.RenderStateShard
+import net.minecraft.client.renderer.RenderType
+import net.minecraft.client.renderer.ShapeRenderer
+import net.minecraft.client.renderer.WorldBorderRenderer
+import net.minecraft.util.ARGB
+import net.minecraft.util.profiling.Profiler
 import org.joml.Matrix4f
 import org.joml.Vector4f
 import org.joml.Vector4fc
@@ -44,33 +49,33 @@ object WorldRendering {
     //  Pipelines and Layers
     // =========================================================================
     val POSITION_COLOR_LINES_PIPELINE: RenderPipeline = RenderPipelines.register(
-        RenderPipeline.builder(RenderPipelines.TRANSFORMS_AND_PROJECTION_SNIPPET)
+        RenderPipeline.builder(RenderPipelines.MATRICES_PROJECTION_SNIPPET)
             .withLocation("pipeline/debug_line_strip")
             .withVertexShader("core/position_color")
             .withFragmentShader("core/position_color")
             .withCull(false)
-            .withVertexFormat(VertexFormats.POSITION_COLOR, VertexFormat.DrawMode.DEBUG_LINES)
+            .withVertexFormat(DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.DEBUG_LINES)
             .build()
     )
 
-    val REGION_LINES: RenderLayer = of(
+    val REGION_LINES: RenderType = RenderType.create(
         "nguhcraft:region_lines",
         1536,
         POSITION_COLOR_LINES_PIPELINE,
-        MultiPhaseParameters.builder()
-            .lineWidth(RenderPhase.LineWidth(OptionalDouble.of(1.0)))
-            .build(false)
+        CompositeState.builder()
+            .setLineState(RenderStateShard.LineStateShard(OptionalDouble.of(1.0)))
+            .createCompositeState(false)
     )
 
-    val REGION_BARRIERS: RenderLayer = of(
+    val REGION_BARRIERS: RenderType = RenderType.create(
         "nguhcraft:barriers",
         1536,
-        RenderPipelines.RENDERTYPE_WORLD_BORDER,
-        MultiPhaseParameters.builder()
-            .texture(RenderPhase.Texture(WorldBorderRendering.FORCEFIELD, false))
-            .lightmap(RenderPhase.Lightmap.ENABLE_LIGHTMAP)
-            .target(RenderPhase.Target.WEATHER_TARGET)
-            .build(false)
+        RenderPipelines.WORLD_BORDER,
+        CompositeState.builder()
+            .setTextureState(RenderStateShard.TextureStateShard(WorldBorderRenderer.FORCEFIELD_LOCATION, false))
+            .setLightmapState(RenderStateShard.LightmapStateShard.LIGHTMAP)
+            .setOutputState(RenderStateShard.OutputStateShard.WEATHER_TARGET)
+            .createCompositeState(false)
     )
 
     // =========================================================================
@@ -87,14 +92,14 @@ object WorldRendering {
     }
 
     fun RenderWorld(Ctx: WorldRenderContext) {
-        Profilers.get().push("nguhcraft:world_rendering")
+        Profiler.get().push("nguhcraft:world_rendering")
         val MS = Ctx.matrixStack()!!
         MS.Push {
             // Transform all points relative to the camera position.
-            translate(-Ctx.camera().pos)
+            translate(-Ctx.camera().position)
 
             // Render barriers.
-            val DT = -(Util.getMeasuringTimeMs() % 3000L).toFloat() / 3000.0f
+            val DT = -(Util.getMillis() % 3000L).toFloat() / 3000.0f
             RenderBarriers(Ctx, DT)
 
             // Render regions.
@@ -103,7 +108,7 @@ object WorldRendering {
             // Render spawn positions.
             if (RenderSpawns) RenderSpawns(Ctx)
         }
-        Profilers.get().pop()
+        Profiler.get().pop()
     }
 
     // =========================================================================
@@ -112,18 +117,18 @@ object WorldRendering {
     private fun RenderBarriers(Ctx: WorldRenderContext, DT: Float) {
         val CW = Ctx.world()
         val WR = Ctx.worldRenderer()
-        val MinY = CW.bottomY
-        val MaxY = CW.topYInclusive + 1
-        val CameraPos = Ctx.camera().pos
-        val MTX = Ctx.matrixStack()!!.peek().positionMatrix
+        val MinY = CW.minY
+        val MaxY = CW.maxY + 1
+        val CameraPos = Ctx.camera().position
+        val MTX = Ctx.matrixStack()!!.last().pose()
 
         // Render barriers for each region.
         for (R in ProtectionManager.GetRegions(CW)) {
-            if (R.DistanceFrom(CameraPos) > WR.viewDistance * 16) continue
+            if (R.DistanceFrom(CameraPos) > WR.lastViewDistance * 16) continue
             val Colour = R.BarrierColor() ?: continue
-            val VC = Tessellator.getInstance().begin(REGION_BARRIERS.drawMode, REGION_BARRIERS.vertexFormat)
+            val VC = Tesselator.getInstance().begin(REGION_BARRIERS.mode(), REGION_BARRIERS.format())
             RenderBarrier(VC, MTX, R, Colour, MinY = MinY, MaxY = MaxY, DT)
-            REGION_BARRIERS.draw(VC.endNullable() ?: continue)
+            REGION_BARRIERS.draw(VC.build() ?: continue)
         }
     }
 
@@ -131,9 +136,9 @@ object WorldRendering {
         // Set shader colour. This is why we need to render each barrier separately.
         (REGION_BARRIERS as RenderLayerMultiPhaseShaderColourAccessor).`Nguhcraft$SetShaderColour`(
             Vector4f(
-                ColorHelper.getRedFloat(Colour),
-                ColorHelper.getGreenFloat(Colour),
-                ColorHelper.getBlueFloat(Colour),
+                ARGB.redFloat(Colour),
+                ARGB.greenFloat(Colour),
+                ARGB.blueFloat(Colour),
                 1.0f
             )
         )
@@ -153,10 +158,10 @@ object WorldRendering {
                 EndU = DT
             }
 
-            VC.vertex(MTX, X1.toFloat(), Y1.toFloat(), Z1.toFloat()).texture(U, DT)
-            VC.vertex(MTX, X2.toFloat(), Y1.toFloat(), Z2.toFloat()).texture(EndU, DT)
-            VC.vertex(MTX, X2.toFloat(), Y2.toFloat(), Z2.toFloat()).texture(EndU, DT + DY)
-            VC.vertex(MTX, X1.toFloat(), Y2.toFloat(), Z1.toFloat()).texture(U, DT + DY)
+            VC.addVertex(MTX, X1.toFloat(), Y1.toFloat(), Z1.toFloat()).setUv(U, DT)
+            VC.addVertex(MTX, X2.toFloat(), Y1.toFloat(), Z2.toFloat()).setUv(EndU, DT)
+            VC.addVertex(MTX, X2.toFloat(), Y2.toFloat(), Z2.toFloat()).setUv(EndU, DT + DY)
+            VC.addVertex(MTX, X1.toFloat(), Y2.toFloat(), Z1.toFloat()).setUv(U, DT + DY)
         }
 
         Quad(MinX, MinY, MaxX, MaxY, MinZ, MinZ, false)
@@ -172,14 +177,14 @@ object WorldRendering {
         val VC = Ctx.consumers()!!.getBuffer(REGION_LINES)
         val CW = Ctx.world()
         val WR = Ctx.worldRenderer()
-        val MTX = Ctx.matrixStack()!!.peek().positionMatrix
-        val MinY = CW.bottomY
-        val MaxY = CW.topYInclusive + 1
-        val CameraPos = Ctx.camera().pos
+        val MTX = Ctx.matrixStack()!!.last().pose()
+        val MinY = CW.minY
+        val MaxY = CW.maxY + 1
+        val CameraPos = Ctx.camera().position
         for (R in ProtectionManager.GetRegions(CW)) {
             if (R.ShouldRenderEntryExitBarrier()) continue
-            if (R.DistanceFrom(CameraPos) > WR.viewDistance * 16) continue
-            RenderRegion(VC, MTX, R, Colour = R.ColourOverride ?: Colors.LIGHT_YELLOW, MinY = MinY, MaxY = MaxY)
+            if (R.DistanceFrom(CameraPos) > WR.lastViewDistance * 16) continue
+            RenderRegion(VC, MTX, R, Colour = R.ColourOverride ?: CommonColors.SOFT_YELLOW, MinY = MinY, MaxY = MaxY)
         }
     }
 
@@ -190,12 +195,12 @@ object WorldRendering {
         val MaxZ = R.OutsideMaxZ
 
         // Helper to add a vertex.
-        fun Vertex(X: Int, Y: Int, Z: Int) = VC.vertex(
+        fun Vertex(X: Int, Y: Int, Z: Int) = VC.addVertex(
             MTX,
             X.toFloat(),
             Y.toFloat(),
             Z.toFloat()
-        ).color(Colour)
+        ).setColor(Colour)
 
         // Vertical lines along X axis.
         for (X in MinX..MaxX) {
@@ -227,9 +232,9 @@ object WorldRendering {
     }
 
     private fun RenderSpawns(Ctx: WorldRenderContext) {
-        val VC = Ctx.consumers()!!.getBuffer(RenderLayer.getLines())
-        for (S in Spawns) VertexRendering.drawBox(
-            Ctx.matrixStack(),
+        val VC = Ctx.consumers()!!.getBuffer(RenderType.lines())
+        for (S in Spawns) ShapeRenderer.renderLineBox(
+            Ctx.matrixStack()!!,
             VC,
             S.SpawnPos.x - .15,
             S.SpawnPos.y + .15,

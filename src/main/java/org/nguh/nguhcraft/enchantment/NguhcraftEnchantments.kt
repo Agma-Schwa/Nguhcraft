@@ -1,12 +1,12 @@
 package org.nguh.nguhcraft.enchantment
 
-import net.minecraft.enchantment.Enchantment
-import net.minecraft.registry.RegistryKey
-import net.minecraft.registry.RegistryKeys
+import net.minecraft.world.item.enchantment.Enchantment
+import net.minecraft.resources.ResourceKey
+import net.minecraft.core.registries.Registries
 import org.nguh.nguhcraft.Nguhcraft.Companion.Id
 
 object NguhcraftEnchantments {
-    private fun Key(S: String): RegistryKey<Enchantment> = RegistryKey.of(RegistryKeys.ENCHANTMENT, Id(S))
+    private fun Key(S: String): ResourceKey<Enchantment> = ResourceKey.create(Registries.ENCHANTMENT, Id(S))
 
     /**
      * The arcane enchantment causes an entity to deal ‘arcane’ damage, which

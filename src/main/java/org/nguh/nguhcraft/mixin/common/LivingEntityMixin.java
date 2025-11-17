@@ -1,9 +1,9 @@
 package org.nguh.nguhcraft.mixin.common;
 
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.attribute.EntityAttribute;
-import net.minecraft.entity.attribute.EntityAttributes;
-import net.minecraft.registry.entry.RegistryEntry;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.Attribute;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.core.Holder;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
@@ -19,14 +19,14 @@ public abstract class LivingEntityMixin {
         method = "travelInFluid",
         at = @At(
             value = "INVOKE",
-            target = "Lnet/minecraft/entity/LivingEntity;getAttributeValue(Lnet/minecraft/registry/entry/RegistryEntry;)D"
+            target = "Lnet/minecraft/world/entity/LivingEntity;getAttributeValue(Lnet/minecraft/core/Holder;)D"
         )
     )
     private double inject$travelInFluid(
-        LivingEntity I,
-        RegistryEntry<EntityAttribute> A
+            LivingEntity I,
+            Holder<Attribute> A
     ) {
-        if (I.isUsingRiptide() && A == EntityAttributes.WATER_MOVEMENT_EFFICIENCY) return 0;
+        if (I.isAutoSpinAttack() && A == Attributes.WATER_MOVEMENT_EFFICIENCY) return 0;
         return I.getAttributeValue(A);
     }
 }

@@ -1,21 +1,21 @@
 package org.nguh.nguhcraft.server
 
 import com.mojang.logging.LogUtils
-import net.minecraft.entity.player.PlayerEntity
-import net.minecraft.nbt.NbtCompound
-import net.minecraft.nbt.NbtElement
-import net.minecraft.registry.RegistryKey
+import net.minecraft.world.entity.player.Player
+import net.minecraft.nbt.CompoundTag
+import net.minecraft.nbt.Tag
+import net.minecraft.resources.ResourceKey
 import net.minecraft.server.MinecraftServer
-import net.minecraft.server.command.ServerCommandSource
-import net.minecraft.server.network.ServerPlayerEntity
-import net.minecraft.server.world.ServerWorld
-import net.minecraft.storage.ReadView
-import net.minecraft.storage.WriteView
-import net.minecraft.text.MutableText
-import net.minecraft.text.Text
-import net.minecraft.util.Formatting
-import net.minecraft.util.profiler.Profilers
-import net.minecraft.world.World
+import net.minecraft.commands.CommandSourceStack
+import net.minecraft.server.level.ServerPlayer
+import net.minecraft.server.level.ServerLevel
+import net.minecraft.world.level.storage.ValueInput
+import net.minecraft.world.level.storage.ValueOutput
+import net.minecraft.network.chat.MutableComponent
+import net.minecraft.network.chat.Component
+import net.minecraft.ChatFormatting
+import net.minecraft.util.profiling.Profiler
+import net.minecraft.world.level.Level
 import org.nguh.nguhcraft.*
 import org.nguh.nguhcraft.network.ClientboundSyncProtectionMgrPacket
 import org.nguh.nguhcraft.protect.ProtectionManager
@@ -23,14 +23,14 @@ import org.nguh.nguhcraft.protect.Region
 import java.util.*
 
 /** Used to signal that a region’s properties are invalid. */
-data class MalformedRegionException(val Msg: Text) : Exception()
+data class MalformedRegionException(val Msg: Component) : Exception()
 
 /** Server-side region. */
 class ServerRegion(
     S: MinecraftServer,
 
     /** The world that this region belongs to. */
-    val World: RegistryKey<World>,
+    val World: ResourceKey<Level>,
 
     RegionData: Region,
 ): Region(
@@ -45,7 +45,7 @@ class ServerRegion(
     /** Make sure that the name is valid . */
     init {
         if (Name.trim().isEmpty() || Name.contains("/") || Name.contains(".."))
-            throw MalformedRegionException(Text.of("Invalid region name '$Name'"))
+            throw MalformedRegionException(Component.nullToEmpty("Invalid region name '$Name'"))
     }
 
     /** Command that is run when a player enters the region. */
@@ -66,48 +66,48 @@ class ServerRegion(
     private var PlayersInRegion = mutableSetOf<UUID>()
 
     /** Display the region’s bounds. */
-    fun AppendBounds(MT: MutableText): MutableText = MT.append(Text.literal(" ["))
-        .append(Text.literal("$MinX").formatted(Formatting.GRAY))
+    fun AppendBounds(MT: MutableComponent): MutableComponent = MT.append(Component.literal(" ["))
+        .append(Component.literal("$MinX").withStyle(ChatFormatting.GRAY))
         .append(", ")
-        .append(Text.literal("$MinZ").formatted(Formatting.GRAY))
+        .append(Component.literal("$MinZ").withStyle(ChatFormatting.GRAY))
         .append("] → [")
-        .append(Text.literal("$MaxX").formatted(Formatting.GRAY))
+        .append(Component.literal("$MaxX").withStyle(ChatFormatting.GRAY))
         .append(", ")
-        .append(Text.literal("$MaxZ").formatted(Formatting.GRAY))
+        .append(Component.literal("$MaxZ").withStyle(ChatFormatting.GRAY))
         .append("]")
 
 
     /** Append the world and name of this region. */
-    fun AppendWorldAndName(MT: MutableText): MutableText = MT
-        .append(Text.literal(World.value.path.toString()).withColor(Constants.Lavender))
+    fun AppendWorldAndName(MT: MutableComponent): MutableComponent = MT
+        .append(Component.literal(World.location().path.toString()).withColor(Constants.Lavender))
         .append(":")
-        .append(Text.literal(Name).formatted(Formatting.AQUA))
+        .append(Component.literal(Name).withStyle(ChatFormatting.AQUA))
 
 
     /** Run a player trigger. */
-    fun InvokePlayerTrigger(SP: ServerPlayerEntity, T: RegionTrigger) {
+    fun InvokePlayerTrigger(SP: ServerPlayer, T: RegionTrigger) {
         if (T.Proc.IsEmpty()) return
-        val S = ServerCommandSource(
-            SP.server,
-            SP.pos,
-            SP.rotationClient,
-            SP.world,
+        val S = CommandSourceStack(
+            SP.server!!,
+            SP.position(),
+            SP.rotationVector,
+            SP.level(),
             RegionTrigger.PERMISSION_LEVEL,
             "Region Trigger",
             REGION_TRIGGER_TEXT,
-            SP.server,
+            SP.server!!,
             null
         )
 
         try {
             T.Proc.ExecuteAndThrow(S)
         } catch (E: Exception) {
-            val Path = Text.literal("Error\n    In trigger ")
+            val Path = Component.literal("Error\n    In trigger ")
             T.AppendName(AppendWorldAndName(Path).append(":"))
             Path.append("\n    Invoked by player '").append(SP.Name)
                 .append("':\n    ").append(E.message ?: "Unknown error")
-            S.sendError(Path)
-            S.server?.BroadcastToOperators(Path.formatted(Formatting.RED))
+            S.sendFailure(Path)
+            S.server?.BroadcastToOperators(Path.withStyle(ChatFormatting.RED))
         }
     }
 
@@ -128,13 +128,13 @@ class ServerRegion(
     }
 
     /** Display this region’s stats. */
-    val Stats: Text get() {
-        val S = Text.empty()
+    val Stats: Component get() {
+        val S = Component.empty()
         Flags.entries.forEach {
-            val Status = if (Test(it)) Text.literal("allow").formatted(Formatting.GREEN)
-            else Text.literal("deny").formatted(Formatting.RED)
+            val Status = if (Test(it)) Component.literal("allow").withStyle(ChatFormatting.GREEN)
+            else Component.literal("deny").withStyle(ChatFormatting.RED)
             S.append("\n - ")
-                .append(Text.literal(it.name.lowercase()).withColor(Constants.Orange))
+                .append(Component.literal(it.name.lowercase()).withColor(Constants.Orange))
                 .append(": ")
                 .append(Status)
         }
@@ -152,15 +152,15 @@ class ServerRegion(
     }
 
     /** Tick this region. */
-    fun TickPlayer(SP: ServerPlayerEntity) {
-        TickPlayer(SP, SP.blockPos in this)
+    fun TickPlayer(SP: ServerPlayer) {
+        TickPlayer(SP, SP.blockPosition() in this)
     }
 
     /**
      * Overload of TickPlayer() used when the position of a player cannot
      * be used to accurately determine whether they are in the region.
      */
-    fun TickPlayer(SP: ServerPlayerEntity, InRegion: Boolean) {
+    fun TickPlayer(SP: ServerPlayer, InRegion: Boolean) {
         if (InRegion) {
             if (PlayersInRegion.add(SP.uuid)) TickPlayerEntered(SP)
         } else {
@@ -168,16 +168,16 @@ class ServerRegion(
         }
     }
 
-    private fun TickPlayerEntered(SP: ServerPlayerEntity) {
+    private fun TickPlayerEntered(SP: ServerPlayer) {
         InvokePlayerTrigger(SP, PlayerEntryTrigger)
     }
 
-    private fun TickPlayerLeft(SP: ServerPlayerEntity) {
+    private fun TickPlayerLeft(SP: ServerPlayer) {
         InvokePlayerTrigger(SP, PlayerLeaveTrigger)
     }
 
     companion object {
-        private val REGION_TRIGGER_TEXT: Text = Text.of("Region trigger")
+        private val REGION_TRIGGER_TEXT: Component = Component.nullToEmpty("Region trigger")
     }
 }
 
@@ -196,14 +196,14 @@ class RegionTrigger(
     TriggerName: String,
 ) {
     /** The trigger’s procedure. */
-    val Proc = S.ProcedureManager.GetOrCreateManaged("regions/${Parent.World.value.path}/${Parent.Name}/$TriggerName")
+    val Proc = S.ProcedureManager.GetOrCreateManaged("regions/${Parent.World.location().path}/${Parent.Name}/$TriggerName")
 
     /** Append a region name to a text element. */
-    fun AppendName(MT: MutableText): MutableText
-            = MT.append(Text.literal("${Proc.Name}${Proc.DisplayIndicator()}").withColor(Constants.Orange))
+    fun AppendName(MT: MutableComponent): MutableComponent
+            = MT.append(Component.literal("${Proc.Name}${Proc.DisplayIndicator()}").withColor(Constants.Orange))
 
     /** Print this trigger. */
-    fun AppendCommands(MT: MutableText, Indent: Int): MutableText {
+    fun AppendCommands(MT: MutableComponent, Indent: Int): MutableComponent {
         return Proc.DisplaySource(MT, Indent)
     }
 
@@ -233,7 +233,7 @@ class RegionTrigger(
  */
 class ServerRegionList(
     /** The world that this region list belongs to. */
-    val World: RegistryKey<World>
+    val World: ResourceKey<Level>
 ) : Collection<ServerRegion> {
     /** The ordered list of regions. */
     val Data = mutableListOf<ServerRegion>()
@@ -257,13 +257,13 @@ class ServerRegionList(
             )
         }?.let {
             // Display which properties are the same.
-            val Msg = if (it.Name != R.Name) R.AppendBounds(Text.literal("Region with bounds "))
-            else Text.literal("Region with name ")
-                .append(Text.literal(R.Name).formatted(Formatting.AQUA))
+            val Msg = if (it.Name != R.Name) R.AppendBounds(Component.literal("Region with bounds "))
+            else Component.literal("Region with name ")
+                .append(Component.literal(R.Name).withStyle(ChatFormatting.AQUA))
 
             // And the world it’s in.
             Msg.append(" already exists in world ")
-                .append(Text.literal(R.World.value.path.toString())
+                .append(Component.literal(R.World.location().path.toString())
                     .withColor(Constants.Lavender))
             throw MalformedRegionException(Msg)
         }
@@ -308,10 +308,10 @@ class ServerRegionList(
         // Case 4: This is always invalid, since neither region can reasonably be
         // given priority over any blocks that are in contained by both since there
         // is no parent-child relationship here.
-        else throw MalformedRegionException(Text.literal("Region ")
-            .append(Text.literal(R.Name).formatted(Formatting.AQUA))
+        else throw MalformedRegionException(Component.literal("Region ")
+            .append(Component.literal(R.Name).withStyle(ChatFormatting.AQUA))
             .append(" intersects region ")
-            .append(Text.literal(Intersecting.Name).formatted(Formatting.AQUA))
+            .append(Component.literal(Intersecting.Name).withStyle(ChatFormatting.AQUA))
             .append(", but neither fully contains the other")
         )
     }
@@ -350,9 +350,9 @@ class ServerRegionList(
  */
 class ServerProtectionManager(private val S: MinecraftServer) : ProtectionManager(
     mapOf(
-        ServerWorld.OVERWORLD to ServerRegionList(ServerWorld.OVERWORLD),
-        ServerWorld.NETHER to ServerRegionList(ServerWorld.NETHER),
-        ServerWorld.END to ServerRegionList(ServerWorld.END),
+        ServerLevel.OVERWORLD to ServerRegionList(ServerLevel.OVERWORLD),
+        ServerLevel.NETHER to ServerRegionList(ServerLevel.NETHER),
+        ServerLevel.END to ServerRegionList(ServerLevel.END),
     )
 ) {
     /**
@@ -372,8 +372,8 @@ class ServerProtectionManager(private val S: MinecraftServer) : ProtectionManage
     }
 
     /** Check if this player bypasses region protection. */
-    override fun _BypassesRegionProtection(PE: PlayerEntity) =
-        (PE as ServerPlayerEntity).Data.BypassesRegionProtection
+    override fun _BypassesRegionProtection(PE: Player) =
+        (PE as ServerPlayer).Data.BypassesRegionProtection
 
     /**
      * This function is the intended way to delete a region from a world.
@@ -388,17 +388,17 @@ class ServerProtectionManager(private val S: MinecraftServer) : ProtectionManage
     }
 
     /** Check if a player is linked. */
-    override fun IsLinked(PE: PlayerEntity) =
-        ServerUtils.IsLinkedOrOperator(PE as ServerPlayerEntity)
+    override fun IsLinked(PE: Player) =
+        ServerUtils.IsLinkedOrOperator(PE as ServerPlayer)
 
     /**
      * Load regions from a tag.
      *
      * The existing list of regions is cleared.
      */
-    override fun ReadData(RV: ReadView) = RV.With(KEY) {
-        for (SW in S.worlds) {
-            val Key = SW.registryKey
+    override fun ReadData(RV: ValueInput) = RV.With(KEY) {
+        for (SW in S.allLevels) {
+            val Key = SW.dimension()
             val List = ServerRegionListFor(Key)
             read(Utils.SerialiseWorldToString(Key), LIST_CODEC).ifPresent { it.forEach {
                 List.Add(ServerRegion(S, Key, it))
@@ -407,25 +407,25 @@ class ServerProtectionManager(private val S: MinecraftServer) : ProtectionManage
     }
 
     /** Save regions to a tag. */
-    override fun WriteData(WV: WriteView) = WV.With(KEY) {
-        for (W in S.worlds) put(
-            Utils.SerialiseWorldToString(W.registryKey),
+    override fun WriteData(WV: ValueOutput) = WV.With(KEY) {
+        for (W in S.allLevels) store(
+            Utils.SerialiseWorldToString(W.dimension()),
             LIST_CODEC,
-            ServerRegionListFor(W.registryKey).Regions
+            ServerRegionListFor(W.dimension()).Regions
         )
     }
 
     /** Get the region list for a world. */
-    fun RegionListFor(SW: ServerWorld) = (super.RegionListFor(SW) as ServerRegionList)
-    fun ServerRegionListFor(SW: RegistryKey<World>) = (super.RegionListFor(SW) as ServerRegionList)
+    fun RegionListFor(SW: ServerLevel) = (super.RegionListFor(SW) as ServerRegionList)
+    fun ServerRegionListFor(SW: ResourceKey<Level>) = (super.RegionListFor(SW) as ServerRegionList)
 
     /** Write the manager state to a packet. */
-    override fun ToPacket(SP: ServerPlayerEntity) = ClientboundSyncProtectionMgrPacket(Regions)
+    override fun ToPacket(SP: ServerPlayer) = ClientboundSyncProtectionMgrPacket(Regions)
 
     /** Fire events that need to happen when a player leaves the server. */
-    fun TickPlayerQuit(SP: ServerPlayerEntity) {
-        Profilers.get().push("Nguhcraft: Region tick")
-        for (R in RegionListFor(SP.world)) R.TickPlayer(SP, InRegion = false)
+    fun TickPlayerQuit(SP: ServerPlayer) {
+        Profiler.get().push("Nguhcraft: Region tick")
+        for (R in RegionListFor(SP.level())) R.TickPlayer(SP, InRegion = false)
     }
 
     /**
@@ -435,13 +435,13 @@ class ServerProtectionManager(private val S: MinecraftServer) : ProtectionManage
      * so many regions that doing that would end up being slower than doing
      * entity lookups for each region.
      */
-    fun TickRegionsForPlayer(SP: ServerPlayerEntity) {
-        Profilers.get().push("Nguhcraft: Region tick")
+    fun TickRegionsForPlayer(SP: ServerPlayer) {
+        Profiler.get().push("Nguhcraft: Region tick")
 
         // Tick all regions.
-        for (R in RegionListFor(SP.world)) R.TickPlayer(SP)
+        for (R in RegionListFor(SP.level())) R.TickPlayer(SP)
 
-        Profilers.get().pop()
+        Profiler.get().pop()
     }
 
     companion object {

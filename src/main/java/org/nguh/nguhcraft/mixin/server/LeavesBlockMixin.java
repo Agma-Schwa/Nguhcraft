@@ -1,12 +1,12 @@
 package org.nguh.nguhcraft.mixin.server;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.block.LeavesBlock;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.state.property.BooleanProperty;
-import net.minecraft.state.property.IntProperty;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.random.Random;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.LeavesBlock;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.minecraft.world.level.block.state.properties.IntegerProperty;
+import net.minecraft.core.BlockPos;
+import net.minecraft.util.RandomSource;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -16,39 +16,39 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(LeavesBlock.class)
 public abstract class LeavesBlockMixin {
-    @Shadow @Final public static IntProperty DISTANCE;
-    @Shadow @Final public static int MAX_DISTANCE;
+    @Shadow @Final public static IntegerProperty DISTANCE;
+    @Shadow @Final public static int DECAY_DISTANCE;
     @Shadow @Final public static BooleanProperty PERSISTENT;
 
     @Shadow protected abstract void randomTick(
         BlockState St,
-        ServerWorld W,
+        ServerLevel W,
         BlockPos Pos,
-        Random R
+        RandomSource R
     );
 
     /** Fast leaf decay. */
-    @Inject(method = "scheduledTick", at = @At("TAIL"))
+    @Inject(method = "tick", at = @At("TAIL"))
     private void inject$scheduledTick(
         BlockState St,
-        ServerWorld W,
+        ServerLevel W,
         BlockPos Pos,
-        Random R,
+        RandomSource R,
         CallbackInfo CI
     ) {
-        if (St.get(PERSISTENT)) return;
+        if (St.getValue(PERSISTENT)) return;
 
         // If the distance before this function was called was already the maximum
         // distance, then this is the tick we scheduled below; remove it.
-        if (St.get(DISTANCE) == MAX_DISTANCE) randomTick(St, W, Pos, R);
+        if (St.getValue(DISTANCE) == DECAY_DISTANCE) randomTick(St, W, Pos, R);
 
         // Otherwise, schedule another tick to remove the block if this tick just
         // set the distance to 7. This is called from vanilla code during neighbour
         // updates.
-        else if (W.getBlockState(Pos).get(DISTANCE) == MAX_DISTANCE) W.scheduleBlockTick(
+        else if (W.getBlockState(Pos).getValue(DISTANCE) == DECAY_DISTANCE) W.scheduleTick(
             Pos,
             (LeavesBlock) (Object) this,
-            R.nextBetween(1, 15)
+            R.nextIntBetweenInclusive(1, 15)
         );
     }
 }

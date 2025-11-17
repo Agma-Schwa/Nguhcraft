@@ -2,10 +2,10 @@ package org.nguh.nguhcraft.event
 
 import com.mojang.serialization.Codec
 import net.minecraft.server.MinecraftServer
-import net.minecraft.server.network.ServerPlayerEntity
-import net.minecraft.storage.ReadView
-import net.minecraft.storage.WriteView
-import net.minecraft.util.Uuids
+import net.minecraft.server.level.ServerPlayer
+import net.minecraft.world.level.storage.ValueInput
+import net.minecraft.world.level.storage.ValueOutput
+import net.minecraft.core.UUIDUtil
 import org.nguh.nguhcraft.ClassSerialiser
 import org.nguh.nguhcraft.MakeEnumCodec
 import org.nguh.nguhcraft.server.Manager
@@ -40,20 +40,20 @@ class EventManager : Manager() {
     val Players get(): Set<UUID> = InvolvedPlayerUUIDs
 
     /** Add a player. */
-    fun Add(SP: ServerPlayerEntity) = InvolvedPlayerUUIDs.add(SP.uuid)
+    fun Add(SP: ServerPlayer) = InvolvedPlayerUUIDs.add(SP.uuid)
 
     /** Remove a player from the event. */
-    fun Remove(SP: ServerPlayerEntity) = InvolvedPlayerUUIDs.remove(SP.uuid)
+    fun Remove(SP: ServerPlayer) = InvolvedPlayerUUIDs.remove(SP.uuid)
 
     /** Serialisation. */
-    override fun ReadData(RV: ReadView) = SER.Read(this, RV.getReadView(EVENT_KEY))
-    override fun WriteData(WV: WriteView) = SER.Write(this, WV.get(EVENT_KEY))
+    override fun ReadData(RV: ValueInput) = SER.Read(this, RV.childOrEmpty(EVENT_KEY))
+    override fun WriteData(WV: ValueOutput) = SER.Write(this, WV.child(EVENT_KEY))
     companion object {
         const val EVENT_KEY = "Event"
         val SER = ClassSerialiser.Builder<EventManager>()
             .add(Codec.BOOL, "Running", EventManager::Running)
             .add(EventDifficulty.CODEC, "Difficulty", EventManager::Difficulty)
-            .add(Uuids.SET_CODEC, "InvolvedPlayers", EventManager::InvolvedPlayerUUIDs)
+            .add(UUIDUtil.CODEC_SET, "InvolvedPlayers", EventManager::InvolvedPlayerUUIDs)
             .build()
     }
 }

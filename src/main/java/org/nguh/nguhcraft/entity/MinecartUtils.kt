@@ -1,12 +1,12 @@
 package org.nguh.nguhcraft.entity
 
-import net.minecraft.entity.Entity
-import net.minecraft.entity.ItemEntity
-import net.minecraft.entity.vehicle.AbstractMinecartEntity
-import net.minecraft.particle.ParticleTypes
-import net.minecraft.server.network.ServerPlayerEntity
-import net.minecraft.server.world.ServerWorld
-import net.minecraft.sound.SoundEvents
+import net.minecraft.world.entity.Entity
+import net.minecraft.world.entity.item.ItemEntity
+import net.minecraft.world.entity.vehicle.AbstractMinecart
+import net.minecraft.core.particles.ParticleTypes
+import net.minecraft.server.level.ServerPlayer
+import net.minecraft.server.level.ServerLevel
+import net.minecraft.sounds.SoundEvents
 import org.nguh.nguhcraft.NguhDamageTypes
 import kotlin.math.abs
 
@@ -16,11 +16,11 @@ object MinecartUtils {
 
     /** Check if we can damage a player. */
     private fun Damage(
-        Level: ServerWorld,
-        SP: ServerPlayerEntity?,
+        Level: ServerLevel,
+        SP: ServerPlayer?,
         Dmg: Float,
         InCart: Boolean,
-        Attacker: ServerPlayerEntity?
+        Attacker: ServerPlayer?
     ): Boolean {
         if (
             SP == null ||
@@ -31,40 +31,40 @@ object MinecartUtils {
         ) return false
 
         val DS = GetDamageSource(Level, InCart, Attacker)
-        SP.damage(Level, DS, Dmg)
+        SP.hurtServer(Level, DS, Dmg)
         return true
     }
 
     /** Drop a minecart at a location. */
-    private fun DropMinecart(Level: ServerWorld, C: AbstractMinecartEntity) {
-        Level.spawnEntity(ItemEntity(
+    private fun DropMinecart(Level: ServerLevel, C: AbstractMinecart) {
+        Level.addFreshEntity(ItemEntity(
             Level,
             C.x + C.random.nextFloat(),
             C.y,
             C.z + C.random.nextFloat(),
-            C.pickBlockStack
+            C.pickResult!!
         ))
     }
 
     /** Predicate that tests whether an entity can collide with a minecart. */
     private fun CollisionCheckPredicate(E: Entity): Boolean {
         if (E.isRemoved) return false
-        if (E is AbstractMinecartEntity) return true
-        if (E !is ServerPlayerEntity) return false
+        if (E is AbstractMinecart) return true
+        if (E !is ServerPlayer) return false
         return !E.isSpectator && !E.isCreative
     }
 
     /** Get the damage source to use for a collision.  */
     private fun GetDamageSource(
-        W: ServerWorld,
+        W: ServerLevel,
         InCart: Boolean,
-        OtherPlayer: ServerPlayerEntity?
+        OtherPlayer: ServerPlayer?
     ) = if (InCart) NguhDamageTypes.MinecartCollision(W, OtherPlayer)
     else NguhDamageTypes.MinecartRunOverBy(W, OtherPlayer)
 
     /** Perform minecart collisions. Returns 'true' if we handled a collision. */
     @JvmStatic
-    fun HandleCollisions(C: AbstractMinecartEntity): Boolean {
+    fun HandleCollisions(C: AbstractMinecart): Boolean {
         // Don’t collide if we’re not on a track or too slow, or if
         // our controlling passenger is dead.
         //
@@ -72,37 +72,37 @@ object MinecartUtils {
         // too slowly for collisions anyway, so skip them; if another cart
         // that we are colliding with does have a player, but we don’t, we’ll
         // register the collision whenever the other cart is ticked.
-        val OurPlayer = C.firstPassenger as? ServerPlayerEntity
+        val OurPlayer = C.firstPassenger as? ServerPlayer
         val HasPlayer = OurPlayer != null && OurPlayer.isAlive
-        val OurSpeed = C.velocity.horizontalLength()
+        val OurSpeed = C.deltaMovement.horizontalDistance()
         if (
-            C.world.isClient ||
-           !C.isOnRail ||
+            C.level().isClientSide ||
+           !C.isOnRails ||
             OurSpeed < COLLISION_THRESHOLD ||
            !HasPlayer
         ) return HasPlayer
 
         // Calculate bounding box at the target position.
-        val BB = C.boundingBox.union(OurPlayer.boundingBox)
+        val BB = C.boundingBox.minmax(OurPlayer.boundingBox)
 
         // Check for colliding entities.
-        val Level = C.world as ServerWorld
-        val Entities = Level.getOtherEntities(C, BB, MinecartUtils::CollisionCheckPredicate)
+        val Level = C.level() as ServerLevel
+        val Entities = Level.getEntities(C, BB, MinecartUtils::CollisionCheckPredicate)
         for (E in Entities) {
             // Don’t collide with our own passenger.
             if (E == OurPlayer) continue
 
             // Extract the minecart and the player.
-            var OtherMC: AbstractMinecartEntity? = null
-            var OtherPlayer: ServerPlayerEntity? = null
-            if (E is ServerPlayerEntity) {
+            var OtherMC: AbstractMinecart? = null
+            var OtherPlayer: ServerPlayer? = null
+            if (E is ServerPlayer) {
                 OtherPlayer = E
                 val V = E.vehicle
-                if (V is AbstractMinecartEntity) OtherMC = V
-            } else if (E is AbstractMinecartEntity) {
+                if (V is AbstractMinecart) OtherMC = V
+            } else if (E is AbstractMinecart) {
                 OtherMC = E
                 val P = E.firstPassenger
-                if (P is ServerPlayerEntity) OtherPlayer = P
+                if (P is ServerPlayer) OtherPlayer = P
             }
 
             // Deal damage to the poor soul we just ran over. If they’re also in a
@@ -110,16 +110,16 @@ object MinecartUtils {
             // damage if they’re moving in opposing directions, and the difference
             // if they’re moving in the same direction.
             val CombinedSpeed = if (OtherMC != null) {
-                val OtherSpeed = OtherMC.velocity.horizontalLength().toFloat()
-                val OtherDir = OtherMC.velocity.normalize()
-                val OurDir = C.velocity.normalize()
-                if (OtherDir.dotProduct(OurDir) < 0) OurSpeed + OtherSpeed
+                val OtherSpeed = OtherMC.deltaMovement.horizontalDistance().toFloat()
+                val OtherDir = OtherMC.deltaMovement.normalize()
+                val OurDir = C.deltaMovement.normalize()
+                if (OtherDir.dot(OurDir) < 0) OurSpeed + OtherSpeed
                 else abs(OurSpeed - OtherSpeed)
             } else {
                 OurSpeed
             }
 
-            val Where = C.pos
+            val Where = C.position()
             val Dmg = CombinedSpeed.toFloat() * DAMAGE_PER_BLOCK_PER_SEC
             var DealtDamage = Damage(Level, OtherPlayer, Dmg, OtherMC != null, OurPlayer)
 
@@ -136,8 +136,8 @@ object MinecartUtils {
 
             // Play sound and particles.
             if (DealtDamage) {
-                C.playSound(SoundEvents.ITEM_TOTEM_USE, 2f, 1f)
-                Level.spawnParticles(
+                C.playSound(SoundEvents.TOTEM_USE, 2f, 1f)
+                Level.sendParticles(
                     ParticleTypes.EXPLOSION_EMITTER,
                     Where.x,
                     Where.y,

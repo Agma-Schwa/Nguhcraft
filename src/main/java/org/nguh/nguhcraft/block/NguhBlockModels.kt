@@ -5,41 +5,51 @@ import com.mojang.serialization.MapCodec
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
 import net.fabricmc.fabric.api.client.rendering.v1.BlockRenderLayerMap
-import net.minecraft.block.Block
-import net.minecraft.block.Blocks
-import net.minecraft.block.enums.ChestType
+import net.minecraft.world.level.block.Block
+import net.minecraft.world.level.block.Blocks
+import net.minecraft.world.level.block.state.properties.ChestType
 import net.minecraft.client.data.*
-import net.minecraft.client.data.BlockStateModelGenerator.createWeightedVariant
-import net.minecraft.client.data.ModelIds.getBlockModelId
-import net.minecraft.client.data.TextureKey.ALL
-import net.minecraft.client.render.BlockRenderLayer
-import net.minecraft.client.render.TexturedRenderLayers
-import net.minecraft.client.render.item.model.special.ChestModelRenderer
-import net.minecraft.client.render.item.property.select.SelectProperty
-import net.minecraft.client.util.SpriteIdentifier
-import net.minecraft.client.world.ClientWorld
-import net.minecraft.data.family.BlockFamily
-import net.minecraft.entity.LivingEntity
-import net.minecraft.item.ItemDisplayContext
-import net.minecraft.item.ItemStack
-import net.minecraft.item.Items
-import net.minecraft.state.property.Properties
-import net.minecraft.util.Identifier
+import net.minecraft.client.data.models.BlockModelGenerators
+import net.minecraft.client.data.models.BlockModelGenerators.plainVariant
+import net.minecraft.client.data.models.blockstates.MultiPartGenerator
+import net.minecraft.client.data.models.blockstates.MultiVariantGenerator
+import net.minecraft.client.data.models.blockstates.PropertyDispatch
+import net.minecraft.client.data.models.model.ItemModelUtils
+import net.minecraft.client.data.models.model.ModelLocationUtils
+import net.minecraft.client.data.models.model.ModelLocationUtils.getModelLocation
+import net.minecraft.client.data.models.model.ModelTemplate
+import net.minecraft.client.data.models.model.ModelTemplates
+import net.minecraft.client.data.models.model.TextureMapping
+import net.minecraft.client.data.models.model.TextureSlot.ALL
+import net.minecraft.client.data.models.model.TexturedModel
+import net.minecraft.client.renderer.chunk.ChunkSectionLayer
+import net.minecraft.client.renderer.Sheets
+import net.minecraft.client.renderer.special.ChestSpecialRenderer
+import net.minecraft.client.renderer.item.properties.select.SelectItemModelProperty
+import net.minecraft.client.resources.model.Material
+import net.minecraft.client.multiplayer.ClientLevel
+import net.minecraft.data.BlockFamily
+import net.minecraft.world.entity.LivingEntity
+import net.minecraft.world.item.ItemDisplayContext
+import net.minecraft.world.item.ItemStack
+import net.minecraft.world.item.Items
+import net.minecraft.world.level.block.state.properties.BlockStateProperties
+import net.minecraft.resources.ResourceLocation
 import org.nguh.nguhcraft.Nguhcraft.Companion.Id
 import org.nguh.nguhcraft.flatten
 import java.util.*
 import java.util.Optional.empty
 
 @Environment(EnvType.CLIENT)
-private fun MakeSprite(S: String) = SpriteIdentifier(
-    TexturedRenderLayers.CHEST_ATLAS_TEXTURE,
+private fun MakeSprite(S: String) = Material(
+    Sheets.CHEST_SHEET,
     Id("entity/chest/$S")
 )
 
 @Environment(EnvType.CLIENT)
 class LockedChestVariant(
-    val Locked: SpriteIdentifier,
-    val Unlocked: SpriteIdentifier
+    val Locked: Material,
+    val Unlocked: Material
 ) {
     constructor(S: String) : this(
         Locked = MakeSprite("${S}_locked"),
@@ -67,9 +77,9 @@ class ChestTextureOverride(
 
     companion object {
         internal val Normal = OverrideVanillaModel(
-            Single = TexturedRenderLayers.CHEST,
-            Left = TexturedRenderLayers.CHEST_LEFT,
-            Right = TexturedRenderLayers.CHEST_RIGHT,
+            Single = Sheets.CHEST_LOCATION,
+            Left = Sheets.CHEST_LOCATION_LEFT,
+            Right = Sheets.CHEST_LOCATION_RIGHT,
             Key = "chest"
         )
 
@@ -77,9 +87,9 @@ class ChestTextureOverride(
         @Environment(EnvType.CLIENT)
         private val OVERRIDES = mapOf(
             ChestVariant.CHRISTMAS to OverrideVanillaModel(
-                Single = TexturedRenderLayers.CHRISTMAS_CHEST,
-                Left = TexturedRenderLayers.CHRISTMAS_CHEST_LEFT,
-                Right = TexturedRenderLayers.CHRISTMAS_CHEST_RIGHT,
+                Single = Sheets.CHEST_XMAS_LOCATION,
+                Left = Sheets.CHEST_XMAS_LOCATION_LEFT,
+                Right = Sheets.CHEST_XMAS_LOCATION_RIGHT,
                 Key = "christmas"
             ),
 
@@ -92,9 +102,9 @@ class ChestTextureOverride(
             (CV?.let { OVERRIDES[CV] } ?: Normal).get(CT, Locked)
 
         internal fun OverrideVanillaModel(
-            Single: SpriteIdentifier,
-            Left: SpriteIdentifier,
-            Right: SpriteIdentifier,
+            Single: Material,
+            Left: Material,
+            Right: Material,
             Key: String,
         ) = ChestTextureOverride(
             Single = LockedChestVariant(MakeSprite("${Key}_locked"), Single),
@@ -105,19 +115,19 @@ class ChestTextureOverride(
 }
 
 @Environment(EnvType.CLIENT)
-class ChestVariantProperty : SelectProperty<ChestVariant> {
-    override fun getValue(
-        St: ItemStack?,
-        CW: ClientWorld?,
+class ChestVariantProperty : SelectItemModelProperty<ChestVariant> {
+    override fun get(
+        St: ItemStack,
+        CW: ClientLevel?,
         LE: LivingEntity?,
         Seed: Int,
-        Ctx: ItemDisplayContext?
-    ) = St?.get(NguhBlocks.CHEST_VARIANT_COMPONENT)
+        Ctx: ItemDisplayContext
+    ) = St.get(NguhBlocks.CHEST_VARIANT_COMPONENT)
 
     override fun valueCodec(): Codec<ChestVariant> = ChestVariant.CODEC
-    override fun getType() = TYPE
+    override fun type() = TYPE
     companion object {
-        val TYPE: SelectProperty.Type<ChestVariantProperty, ChestVariant> = SelectProperty.Type.create(
+        val TYPE: SelectItemModelProperty.Type<ChestVariantProperty, ChestVariant> = SelectItemModelProperty.Type.create(
             MapCodec.unit(ChestVariantProperty()),
             ChestVariant.CODEC
         )
@@ -127,13 +137,13 @@ class ChestVariantProperty : SelectProperty<ChestVariant> {
 @Environment(EnvType.CLIENT)
 object NguhBlockModels {
     @Environment(EnvType.CLIENT)
-    fun ChainModelTemplate(): TexturedModel.Factory = TexturedModel.makeFactory(
-        TextureMap::all,
-        Model(Optional.of(Id("block/template_chain")), empty(), ALL)
+    fun ChainModelTemplate(): TexturedModel.Provider = TexturedModel.createDefault(
+        TextureMapping::cube,
+        ModelTemplate(Optional.of(Id("block/template_chain")), empty(), ALL)
     )
 
     // This model happens to be facing south.
-    val VERTICAL_SLAB = Model(
+    val VERTICAL_SLAB = ModelTemplate(
         Optional.of(Id("block/vertical_slab")),
         empty(),
         ALL
@@ -144,7 +154,7 @@ object NguhBlockModels {
         val VerticalSlab: VerticalSlabBlock,
         val Base: Block,
         val Wood: Boolean = false,
-        val TextureId: Identifier = TextureMap.getId(Base)
+        val TextureId: ResourceLocation = TextureMapping.getBlockTexture(Base)
     )
 
     // Thank you, Minecraft, for doing weird nonsense with your block models
@@ -195,13 +205,13 @@ object NguhBlockModels {
         VSlab(NguhBlocks.PRISMARINE_BRICK_SLAB_VERTICAL, Blocks.PRISMARINE_BRICKS),
         VSlab(NguhBlocks.PRISMARINE_SLAB_VERTICAL, Blocks.PRISMARINE),
         VSlab(NguhBlocks.PURPUR_SLAB_VERTICAL, Blocks.PURPUR_BLOCK),
-        VSlab(NguhBlocks.QUARTZ_SLAB_VERTICAL, Blocks.QUARTZ_BLOCK, false , TextureMap.getSubId(Blocks.QUARTZ_BLOCK, "_top")),
+        VSlab(NguhBlocks.QUARTZ_SLAB_VERTICAL, Blocks.QUARTZ_BLOCK, false , TextureMapping.getBlockTexture(Blocks.QUARTZ_BLOCK, "_top")),
         VSlab(NguhBlocks.RED_NETHER_BRICK_SLAB_VERTICAL, Blocks.RED_NETHER_BRICKS),
         VSlab(NguhBlocks.RED_SANDSTONE_SLAB_VERTICAL, Blocks.RED_SANDSTONE),
         VSlab(NguhBlocks.SANDSTONE_SLAB_VERTICAL, Blocks.SANDSTONE),
-        VSlab(NguhBlocks.SMOOTH_QUARTZ_SLAB_VERTICAL, Blocks.SMOOTH_QUARTZ, false , TextureMap.getSubId(Blocks.QUARTZ_BLOCK, "_bottom")) ,
-        VSlab(NguhBlocks.SMOOTH_RED_SANDSTONE_SLAB_VERTICAL, Blocks.SMOOTH_RED_SANDSTONE, false , TextureMap.getSubId(Blocks.RED_SANDSTONE , "_top")),
-        VSlab(NguhBlocks.SMOOTH_SANDSTONE_SLAB_VERTICAL, Blocks.SMOOTH_SANDSTONE, false , TextureMap.getSubId(Blocks.SANDSTONE, "_top")),
+        VSlab(NguhBlocks.SMOOTH_QUARTZ_SLAB_VERTICAL, Blocks.SMOOTH_QUARTZ, false , TextureMapping.getBlockTexture(Blocks.QUARTZ_BLOCK, "_bottom")) ,
+        VSlab(NguhBlocks.SMOOTH_RED_SANDSTONE_SLAB_VERTICAL, Blocks.SMOOTH_RED_SANDSTONE, false , TextureMapping.getBlockTexture(Blocks.RED_SANDSTONE , "_top")),
+        VSlab(NguhBlocks.SMOOTH_SANDSTONE_SLAB_VERTICAL, Blocks.SMOOTH_SANDSTONE, false , TextureMapping.getBlockTexture(Blocks.SANDSTONE, "_top")),
         VSlab(NguhBlocks.SMOOTH_STONE_SLAB_VERTICAL, Blocks.SMOOTH_STONE),
         VSlab(NguhBlocks.SPRUCE_SLAB_VERTICAL, Blocks.SPRUCE_PLANKS, true) ,
         VSlab(NguhBlocks.STONE_BRICK_SLAB_VERTICAL, Blocks.STONE_BRICKS),
@@ -230,41 +240,41 @@ object NguhBlockModels {
     ).toTypedArray()
 
     @Environment(EnvType.CLIENT)
-    fun BootstrapModels(G: BlockStateModelGenerator) {
+    fun BootstrapModels(G: BlockModelGenerators) {
         // The door and hopper block state models are very complicated and not exposed
         // as helper functions (the door is actually exposed but our door has an extra
         // block state), so those are currently hard-coded as JSON files instead of being
         // generated here.
-        G.registerItemModel(NguhBlocks.DECORATIVE_HOPPER.asItem())
-        G.registerItemModel(NguhBlocks.LOCKED_DOOR.asItem())
+        G.registerSimpleFlatItemModel(NguhBlocks.DECORATIVE_HOPPER.asItem())
+        G.registerSimpleFlatItemModel(NguhBlocks.LOCKED_DOOR.asItem())
 
         // Simple blocks.
-        G.registerSimpleCubeAll(NguhBlocks.WROUGHT_IRON_BLOCK)
-        G.registerSimpleCubeAll(NguhBlocks.IRON_GRATE)
-        G.registerSimpleCubeAll(NguhBlocks.WROUGHT_IRON_GRATE)
-        G.registerSimpleCubeAll(NguhBlocks.COMPRESSED_STONE)
-        G.registerSimpleCubeAll(NguhBlocks.PYRITE)
-        G.registerSimpleCubeAll(NguhBlocks.CHARCOAL_BLOCK)
+        G.createTrivialCube(NguhBlocks.WROUGHT_IRON_BLOCK)
+        G.createTrivialCube(NguhBlocks.IRON_GRATE)
+        G.createTrivialCube(NguhBlocks.WROUGHT_IRON_GRATE)
+        G.createTrivialCube(NguhBlocks.COMPRESSED_STONE)
+        G.createTrivialCube(NguhBlocks.PYRITE)
+        G.createTrivialCube(NguhBlocks.CHARCOAL_BLOCK)
 
         // Chains and lanterns.
         for ((Chain, Lantern) in NguhBlocks.CHAINS_AND_LANTERNS) {
-            G.registerLantern(Lantern)
-            G.registerItemModel(Chain.asItem())
-            G.registerAxisRotated(Chain, createWeightedVariant(getBlockModelId(Chain)))
-            ChainModelTemplate().upload(Chain, G.modelCollector)
+            G.createLantern(Lantern)
+            G.registerSimpleFlatItemModel(Chain.asItem())
+            G.createAxisAlignedPillarBlockCustomModel(Chain, plainVariant(getModelLocation(Chain)))
+            ChainModelTemplate().create(Chain, G.modelOutput)
         }
 
         // Tinted oak logs.
-        G.createLogTexturePool(NguhBlocks.TINTED_OAK_LOG)
-            .log(NguhBlocks.TINTED_OAK_LOG)
+        G.woodProvider(NguhBlocks.TINTED_OAK_LOG)
+            .logWithHorizontal(NguhBlocks.TINTED_OAK_LOG)
             .wood(NguhBlocks.TINTED_OAK_WOOD)
 
-        G.createLogTexturePool(NguhBlocks.STRIPPED_TINTED_OAK_LOG)
-            .log(NguhBlocks.STRIPPED_TINTED_OAK_LOG)
+        G.woodProvider(NguhBlocks.STRIPPED_TINTED_OAK_LOG)
+            .logWithHorizontal(NguhBlocks.STRIPPED_TINTED_OAK_LOG)
             .wood(NguhBlocks.STRIPPED_TINTED_OAK_WOOD)
 
         // Brocade blocks.
-        for (B in NguhBlocks.ALL_BROCADE_BLOCKS) G.registerSimpleCubeAll(B)
+        for (B in NguhBlocks.ALL_BROCADE_BLOCKS) G.createTrivialCube(B)
 
         // Bars.
         RegisterBarsModel(G, NguhBlocks.WROUGHT_IRON_BARS)
@@ -272,36 +282,36 @@ object NguhBlockModels {
 
         // Block families.
         NguhBlocks.ALL_VARIANT_FAMILIES
-            .filter(BlockFamily::shouldGenerateModels)
-            .forEach { G.registerCubeAllModelTexturePool(it.baseBlock).family(it) }
+            .filter(BlockFamily::shouldGenerateModel)
+            .forEach { G.family(it.baseBlock).generateFor(it) }
 
         // Vertical slabs.
         for (V in VERTICAL_SLABS) RegisterVerticalSlab(G, V)
 
         // Chest variants. Copied from registerChest().
-        val Template = Models.TEMPLATE_CHEST.upload(Items.CHEST, TextureMap.particle(Blocks.OAK_PLANKS), G.modelCollector)
-        val Normal = ItemModels.special(Template, ChestModelRenderer.Unbaked(ChestModelRenderer.NORMAL_ID))
-        val Christmas = ItemModels.special(Template, ChestModelRenderer.Unbaked(ChestModelRenderer.CHRISTMAS_ID))
-        val ChristmasOrNormal = ItemModels.christmasSelect(Christmas, Normal)
-        val PaleOak = ItemModels.special(Template, ChestModelRenderer.Unbaked(Id("pale_oak")))
-        G.itemModelOutput.accept(Items.CHEST, ItemModels.select(
+        val Template = ModelTemplates.CHEST_INVENTORY.create(Items.CHEST, TextureMapping.particle(Blocks.OAK_PLANKS), G.modelOutput)
+        val Normal = ItemModelUtils.specialModel(Template, ChestSpecialRenderer.Unbaked(ChestSpecialRenderer.NORMAL_CHEST_TEXTURE))
+        val Christmas = ItemModelUtils.specialModel(Template, ChestSpecialRenderer.Unbaked(ChestSpecialRenderer.GIFT_CHEST_TEXTURE))
+        val ChristmasOrNormal = ItemModelUtils.isXmas(Christmas, Normal)
+        val PaleOak = ItemModelUtils.specialModel(Template, ChestSpecialRenderer.Unbaked(Id("pale_oak")))
+        G.itemModelOutput.accept(Items.CHEST, ItemModelUtils.select(
             ChestVariantProperty(),
             ChristmasOrNormal,
-            ItemModels.switchCase(ChestVariant.CHRISTMAS, Christmas),
-            ItemModels.switchCase(ChestVariant.PALE_OAK, PaleOak),
+            ItemModelUtils.`when`(ChestVariant.CHRISTMAS, Christmas),
+            ItemModelUtils.`when`(ChestVariant.PALE_OAK, PaleOak),
         ))
     }
 
     @Environment(EnvType.CLIENT)
     fun InitRenderLayers() {
-        BlockRenderLayer.CUTOUT.let {
+        ChunkSectionLayer.CUTOUT.let {
             BlockRenderLayerMap.putBlock(NguhBlocks.LOCKED_DOOR, it)
             BlockRenderLayerMap.putBlock(NguhBlocks.IRON_GRATE, it)
             BlockRenderLayerMap.putBlock(NguhBlocks.WROUGHT_IRON_GRATE, it)
             for (B in NguhBlocks.CHAINS_AND_LANTERNS.flatten()) BlockRenderLayerMap.putBlock(B, it)
         }
 
-        BlockRenderLayer.CUTOUT_MIPPED.let {
+        ChunkSectionLayer.CUTOUT_MIPPED.let {
             BlockRenderLayerMap.putBlock(NguhBlocks.WROUGHT_IRON_BARS, it)
             BlockRenderLayerMap.putBlock(NguhBlocks.GOLD_BARS, it)
         }
@@ -309,96 +319,96 @@ object NguhBlockModels {
 
     // Copied from ::registerIronBars()
     @Environment(EnvType.CLIENT)
-    fun RegisterBarsModel(G: BlockStateModelGenerator, B: Block) {
-        val weightedVariant = createWeightedVariant(ModelIds.getBlockSubModelId(B, "_post_ends"))
-        val weightedVariant2 = createWeightedVariant(ModelIds.getBlockSubModelId(B, "_post"))
-        val weightedVariant3 = createWeightedVariant(ModelIds.getBlockSubModelId(B, "_cap"))
-        val weightedVariant4 = createWeightedVariant(ModelIds.getBlockSubModelId(B, "_cap_alt"))
-        val weightedVariant5 = createWeightedVariant(ModelIds.getBlockSubModelId(B, "_side"))
-        val weightedVariant6 = createWeightedVariant(ModelIds.getBlockSubModelId(B, "_side_alt"))
-        G.blockStateCollector
+    fun RegisterBarsModel(G: BlockModelGenerators, B: Block) {
+        val plainVariant = plainVariant(getModelLocation(B, "_post_ends"))
+        val plainVariant2 = plainVariant(getModelLocation(B, "_post"))
+        val plainVariant3 = plainVariant(getModelLocation(B, "_cap"))
+        val plainVariant4 = plainVariant(getModelLocation(B, "_cap_alt"))
+        val plainVariant5 = plainVariant(getModelLocation(B, "_side"))
+        val plainVariant6 = plainVariant(getModelLocation(B, "_side_alt"))
+        G.blockStateOutput
             .accept(
-                MultipartBlockModelDefinitionCreator.create(B)
-                    .with(weightedVariant)
+                MultiPartGenerator.multiPart(B)
+                    .with(plainVariant)
                     .with(
-                        BlockStateModelGenerator.createMultipartConditionBuilder().put(Properties.NORTH, false)
-                            .put(Properties.EAST, false).put(Properties.SOUTH, false)
-                            .put(Properties.WEST, false),
-                        weightedVariant2
+                        BlockModelGenerators.condition().term(BlockStateProperties.NORTH, false)
+                            .term(BlockStateProperties.EAST, false).term(BlockStateProperties.SOUTH, false)
+                            .term(BlockStateProperties.WEST, false),
+                        plainVariant2
                     )
                     .with(
-                        BlockStateModelGenerator.createMultipartConditionBuilder().put(Properties.NORTH, true)
-                            .put(Properties.EAST, false).put(Properties.SOUTH, false)
-                            .put(Properties.WEST, false),
-                        weightedVariant3
+                        BlockModelGenerators.condition().term(BlockStateProperties.NORTH, true)
+                            .term(BlockStateProperties.EAST, false).term(BlockStateProperties.SOUTH, false)
+                            .term(BlockStateProperties.WEST, false),
+                        plainVariant3
                     )
                     .with(
-                        BlockStateModelGenerator.createMultipartConditionBuilder().put(Properties.NORTH, false)
-                            .put(Properties.EAST, true).put(Properties.SOUTH, false)
-                            .put(Properties.WEST, false),
-                        weightedVariant3.apply(BlockStateModelGenerator.ROTATE_Y_90)
+                        BlockModelGenerators.condition().term(BlockStateProperties.NORTH, false)
+                            .term(BlockStateProperties.EAST, true).term(BlockStateProperties.SOUTH, false)
+                            .term(BlockStateProperties.WEST, false),
+                        plainVariant3.with(BlockModelGenerators.Y_ROT_90)
                     )
                     .with(
-                        BlockStateModelGenerator.createMultipartConditionBuilder().put(Properties.NORTH, false)
-                            .put(Properties.EAST, false).put(Properties.SOUTH, true)
-                            .put(Properties.WEST, false),
-                        weightedVariant4
+                        BlockModelGenerators.condition().term(BlockStateProperties.NORTH, false)
+                            .term(BlockStateProperties.EAST, false).term(BlockStateProperties.SOUTH, true)
+                            .term(BlockStateProperties.WEST, false),
+                        plainVariant4
                     )
                     .with(
-                        BlockStateModelGenerator.createMultipartConditionBuilder().put(Properties.NORTH, false)
-                            .put(Properties.EAST, false).put(Properties.SOUTH, false)
-                            .put(Properties.WEST, true),
-                        weightedVariant4.apply(BlockStateModelGenerator.ROTATE_Y_90)
+                        BlockModelGenerators.condition().term(BlockStateProperties.NORTH, false)
+                            .term(BlockStateProperties.EAST, false).term(BlockStateProperties.SOUTH, false)
+                            .term(BlockStateProperties.WEST, true),
+                        plainVariant4.with(BlockModelGenerators.Y_ROT_90)
                     )
                     .with(
-                        BlockStateModelGenerator.createMultipartConditionBuilder().put(Properties.NORTH, true),
-                        weightedVariant5
+                        BlockModelGenerators.condition().term(BlockStateProperties.NORTH, true),
+                        plainVariant5
                     )
                     .with(
-                        BlockStateModelGenerator.createMultipartConditionBuilder().put(Properties.EAST, true),
-                        weightedVariant5.apply(BlockStateModelGenerator.ROTATE_Y_90)
+                        BlockModelGenerators.condition().term(BlockStateProperties.EAST, true),
+                        plainVariant5.with(BlockModelGenerators.Y_ROT_90)
                     )
                     .with(
-                        BlockStateModelGenerator.createMultipartConditionBuilder().put(Properties.SOUTH, true),
-                        weightedVariant6
+                        BlockModelGenerators.condition().term(BlockStateProperties.SOUTH, true),
+                        plainVariant6
                     )
                     .with(
-                        BlockStateModelGenerator.createMultipartConditionBuilder().put(Properties.WEST, true),
-                        weightedVariant6.apply(BlockStateModelGenerator.ROTATE_Y_90)
+                        BlockModelGenerators.condition().term(BlockStateProperties.WEST, true),
+                        plainVariant6.with(BlockModelGenerators.Y_ROT_90)
                     )
             )
-        G.registerItemModel(B)
+        G.registerSimpleFlatItemModel(B)
     }
 
     @Environment(EnvType.CLIENT)
-    fun RegisterVerticalSlab(G: BlockStateModelGenerator, S: VSlab) {
-        val Model = VERTICAL_SLAB.upload(S.VerticalSlab, TextureMap.all(S.TextureId), G.modelCollector)
-        val South = createWeightedVariant(Model)
-        G.blockStateCollector.accept(VariantsBlockModelDefinitionCreator.of(S.VerticalSlab)
-            .with(BlockStateVariantMap.models(VerticalSlabBlock.TYPE)
-                .register(
+    fun RegisterVerticalSlab(G: BlockModelGenerators, S: VSlab) {
+        val Model = VERTICAL_SLAB.create(S.VerticalSlab, TextureMapping.cube(S.TextureId), G.modelOutput)
+        val South = plainVariant(Model)
+        G.blockStateOutput.accept(MultiVariantGenerator.dispatch(S.VerticalSlab)
+            .with(PropertyDispatch.initial(VerticalSlabBlock.TYPE)
+                .select(
                     VerticalSlabBlock.Type.DOUBLE,
-                    createWeightedVariant(getBlockModelId(S.Base))
+                    plainVariant(getModelLocation(S.Base))
                 )
-                .register(
+                .select(
                     VerticalSlabBlock.Type.NORTH,
-                    South.apply(BlockStateModelGenerator.ROTATE_Y_180).apply(BlockStateModelGenerator.UV_LOCK)
+                    South.with(BlockModelGenerators.Y_ROT_180).with(BlockModelGenerators.UV_LOCK)
                 )
-                .register(
+                .select(
                     VerticalSlabBlock.Type.SOUTH,
                     South
                 )
-                .register(
+                .select(
                     VerticalSlabBlock.Type.WEST,
-                    South.apply(BlockStateModelGenerator.ROTATE_Y_90).apply(BlockStateModelGenerator.UV_LOCK)
+                    South.with(BlockModelGenerators.Y_ROT_90).with(BlockModelGenerators.UV_LOCK)
                 )
-                .register(
+                .select(
                     VerticalSlabBlock.Type.EAST,
-                    South.apply(BlockStateModelGenerator.ROTATE_Y_270).apply(BlockStateModelGenerator.UV_LOCK)
+                    South.with(BlockModelGenerators.Y_ROT_270).with(BlockModelGenerators.UV_LOCK)
                 )
             )
         )
 
-        G.registerParentedItemModel(S.VerticalSlab, Model)
+        G.registerSimpleItemModel(S.VerticalSlab, Model)
     }
 }

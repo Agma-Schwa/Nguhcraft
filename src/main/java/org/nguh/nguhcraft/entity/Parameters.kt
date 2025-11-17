@@ -1,33 +1,31 @@
 package org.nguh.nguhcraft.entity
 
-import com.mojang.serialization.Codec
-import net.minecraft.component.DataComponentTypes
-import net.minecraft.component.type.PotionContentsComponent
-import net.minecraft.enchantment.Enchantment
-import net.minecraft.enchantment.Enchantments
-import net.minecraft.entity.EntityType
-import net.minecraft.entity.EquipmentSlot
-import net.minecraft.entity.LivingEntity
-import net.minecraft.entity.attribute.EntityAttribute
-import net.minecraft.entity.attribute.EntityAttributes
-import net.minecraft.entity.effect.StatusEffectInstance
-import net.minecraft.entity.effect.StatusEffects
-import net.minecraft.entity.mob.CreeperEntity
-import net.minecraft.entity.mob.MobEntity
-import net.minecraft.item.Item
-import net.minecraft.item.ItemStack
-import net.minecraft.item.Items
-import net.minecraft.registry.DynamicRegistryManager
-import net.minecraft.registry.RegistryKey
-import net.minecraft.registry.entry.RegistryEntry
-import net.minecraft.world.explosion.ExplosionBehavior
+import net.minecraft.core.component.DataComponents
+import net.minecraft.world.item.alchemy.PotionContents
+import net.minecraft.world.item.enchantment.Enchantment
+import net.minecraft.world.item.enchantment.Enchantments
+import net.minecraft.world.entity.EntityType
+import net.minecraft.world.entity.EquipmentSlot
+import net.minecraft.world.entity.LivingEntity
+import net.minecraft.world.entity.ai.attributes.Attribute
+import net.minecraft.world.entity.ai.attributes.Attributes
+import net.minecraft.world.effect.MobEffectInstance
+import net.minecraft.world.effect.MobEffects
+import net.minecraft.world.entity.monster.Creeper
+import net.minecraft.world.entity.Mob
+import net.minecraft.world.item.Item
+import net.minecraft.world.item.ItemStack
+import net.minecraft.world.item.Items
+import net.minecraft.core.RegistryAccess
+import net.minecraft.resources.ResourceKey
+import net.minecraft.core.Holder
 import org.nguh.nguhcraft.MakeEnumCodec
 import org.nguh.nguhcraft.event.EventDifficulty
-import org.nguh.nguhcraft.mixin.entity.CreeperEntityAccessor
+import org.nguh.nguhcraft.mixin.entity.CreeperAccessor
 import java.util.Optional
 
 // Hack so we don’t have to pass the stupid registry manager around everywhere.
-private lateinit var _RegistryManager: DynamicRegistryManager
+private lateinit var _RegistryManager: RegistryAccess
 
 interface GhastModeAccessor {
     fun `Nguhcraft$GetGhastMode`(): MachineGunGhastMode
@@ -56,7 +54,7 @@ data class Equipment(
     private val MainHand: ItemStack? = null,
     private val OffHand: ItemStack? = null,
 ) {
-    fun Equip(ME: MobEntity) {
+    fun Equip(ME: Mob) {
         Equip(ME, EquipmentSlot.HEAD, Head)
         Equip(ME, EquipmentSlot.CHEST, Chest)
         Equip(ME, EquipmentSlot.LEGS, Legs)
@@ -66,8 +64,8 @@ data class Equipment(
     }
 
     companion object {
-        private fun Equip(ME: MobEntity, Slot: EquipmentSlot, S: ItemStack?) {
-            if (S != null) ME.equipStack(Slot, S.copy())
+        private fun Equip(ME: Mob, Slot: EquipmentSlot, S: ItemStack?) {
+            if (S != null) ME.setItemSlot(Slot, S.copy())
         }
 
         val IRON_ARMOUR = Equipment(
@@ -104,52 +102,52 @@ data class MobParameters(
 ) {
     fun Apply(LE: LivingEntity) {
         // Save the current registry manager.
-        _RegistryManager = LE.registryManager
+        _RegistryManager = LE.registryAccess()
 
         // Set default attributes.
         ApplyDefaults(LE)
 
         // Set health.
         if (Health != null) {
-            LE.SetAttributeValue(EntityAttributes.MAX_HEALTH, Health)
+            LE.SetAttributeValue(Attributes.MAX_HEALTH, Health)
             LE.health = Health.toFloat()
         }
 
         // Set attributes.
-        if (Armour != null) LE.SetAttributeValue(EntityAttributes.ARMOR, Armour)
-        if (ArmourToughness != null) LE.SetAttributeValue(EntityAttributes.ARMOR_TOUGHNESS, ArmourToughness)
-        if (AttackDamage != null) LE.SetAttributeValue(EntityAttributes.ATTACK_DAMAGE, AttackDamage)
-        if (MovementSpeed != null) LE.SetAttributeValue(EntityAttributes.MOVEMENT_SPEED, MovementSpeed)
+        if (Armour != null) LE.SetAttributeValue(Attributes.ARMOR, Armour)
+        if (ArmourToughness != null) LE.SetAttributeValue(Attributes.ARMOR_TOUGHNESS, ArmourToughness)
+        if (AttackDamage != null) LE.SetAttributeValue(Attributes.ATTACK_DAMAGE, AttackDamage)
+        if (MovementSpeed != null) LE.SetAttributeValue(Attributes.MOVEMENT_SPEED, MovementSpeed)
 
         // Apply equipment before Special() since the latter may override it.
-        if (LE is MobEntity) Equipment?.Equip(LE)
+        if (LE is Mob) Equipment?.Equip(LE)
 
         // Apply special effects.
         if (Special != null) Special(LE)
 
         // Prevent equipment drops. Do this last as equipping things might
         // mess with these parameters.
-        if (LE is MobEntity) {
+        if (LE is Mob) {
             LE.setCanPickUpLoot(false)
-            LE.setEquipmentDropChance(EquipmentSlot.MAINHAND, 0.0f)
-            LE.setEquipmentDropChance(EquipmentSlot.OFFHAND, 0.0f)
-            LE.setEquipmentDropChance(EquipmentSlot.HEAD, 0.0f)
-            LE.setEquipmentDropChance(EquipmentSlot.CHEST, 0.0f)
-            LE.setEquipmentDropChance(EquipmentSlot.LEGS, 0.0f)
-            LE.setEquipmentDropChance(EquipmentSlot.FEET, 0.0f)
-            LE.setEquipmentDropChance(EquipmentSlot.BODY, 0.0f)
+            LE.setDropChance(EquipmentSlot.MAINHAND, 0.0f)
+            LE.setDropChance(EquipmentSlot.OFFHAND, 0.0f)
+            LE.setDropChance(EquipmentSlot.HEAD, 0.0f)
+            LE.setDropChance(EquipmentSlot.CHEST, 0.0f)
+            LE.setDropChance(EquipmentSlot.LEGS, 0.0f)
+            LE.setDropChance(EquipmentSlot.FEET, 0.0f)
+            LE.setDropChance(EquipmentSlot.BODY, 0.0f)
         }
     }
 
     companion object {
         private fun ApplyDefaults(LE: LivingEntity) {
-            LE.SetAttributeValue(EntityAttributes.MOVEMENT_EFFICIENCY, 1.0)
-            LE.SetAttributeValue(EntityAttributes.WATER_MOVEMENT_EFFICIENCY, 1.0)
+            LE.SetAttributeValue(Attributes.MOVEMENT_EFFICIENCY, 1.0)
+            LE.SetAttributeValue(Attributes.WATER_MOVEMENT_EFFICIENCY, 1.0)
         }
 
         /** Override the base value of an attribute; does nothing if the attribute doesn’t exist. */
-        private fun LivingEntity.SetAttributeValue(Attr: RegistryEntry<EntityAttribute>, V: Double) {
-            getAttributeInstance(Attr)?.baseValue = V
+        private fun LivingEntity.SetAttributeValue(Attr: Holder<Attribute>, V: Double) {
+            getAttribute(Attr)?.baseValue = V
         }
     }
 }
@@ -187,11 +185,11 @@ data class DifficultyBasedParameters(
 }
 
 object Parameters {
-    private fun ItemStack.Enchant(E: RegistryKey<Enchantment>, Level: Int = 1) =
-        also { _RegistryManager.getOptionalEntry(E).ifPresent { this.addEnchantment(it, Level) } }
+    private fun ItemStack.Enchant(E: ResourceKey<Enchantment>, Level: Int = 1) =
+        also { _RegistryManager.get(E).ifPresent { this.enchant(it, Level) } }
 
     private fun EquipMainHand(I: Item, Consumer: (ItemStack) -> Unit) = { LE: LivingEntity ->
-        LE.equipStack(EquipmentSlot.MAINHAND, ItemStack(I).also(Consumer))
+        LE.setItemSlot(EquipmentSlot.MAINHAND, ItemStack(I).also(Consumer))
     }
 
     private fun MakeBowAndArrows(Difficulty: Int) = { LE: LivingEntity ->
@@ -199,23 +197,23 @@ object Parameters {
             .Enchant(Enchantments.FLAME, 1)
             .Enchant(Enchantments.POWER, 1 + Difficulty)
 
-        val Arrows = ItemStack(Items.TIPPED_ARROW).also { it.set(DataComponentTypes.POTION_CONTENTS, PotionContentsComponent(
+        val Arrows = ItemStack(Items.TIPPED_ARROW).also { it.set(DataComponents.POTION_CONTENTS, PotionContents(
             Optional.empty(),
-            Optional.of(StatusEffects.INSTANT_DAMAGE.value().color),
+            Optional.of(MobEffects.INSTANT_DAMAGE.value().color),
             listOf(
-                StatusEffectInstance(StatusEffects.INSTANT_DAMAGE, 1, Difficulty / 2)
+                MobEffectInstance(MobEffects.INSTANT_DAMAGE, 1, Difficulty / 2)
             ),
             Optional.empty(),
         )) }
 
-        LE.equipStack(EquipmentSlot.MAINHAND, Bow)
-        LE.equipStack(EquipmentSlot.OFFHAND, Arrows)
+        LE.setItemSlot(EquipmentSlot.MAINHAND, Bow)
+        LE.setItemSlot(EquipmentSlot.OFFHAND, Arrows)
     }
 
     private fun MakeCreeper(FuseTime: Int, Charged: Boolean = false) = { LE: LivingEntity ->
-        val C = LE as CreeperEntity
-        (C as CreeperEntityAccessor).setFuseTime(FuseTime)
-        if (Charged) C.dataTracker.set(CreeperEntityAccessor.getCharged(), true)
+        val C = LE as Creeper
+        (C as CreeperAccessor).setFuseTime(FuseTime)
+        if (Charged) C.entityData.set(CreeperAccessor.getCharged(), true)
     }
 
     private val Creeper = DifficultyBasedParameters(

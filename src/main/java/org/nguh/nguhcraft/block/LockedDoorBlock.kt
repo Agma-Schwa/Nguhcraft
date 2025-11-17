@@ -1,35 +1,37 @@
 package org.nguh.nguhcraft.block
 
 import com.mojang.serialization.MapCodec
-import net.minecraft.block.*
-import net.minecraft.entity.player.PlayerEntity
-import net.minecraft.item.ItemPlacementContext
-import net.minecraft.item.ItemStack
-import net.minecraft.server.world.ServerWorld
-import net.minecraft.sound.SoundCategory
-import net.minecraft.state.StateManager
-import net.minecraft.state.property.BooleanProperty
-import net.minecraft.util.ActionResult
-import net.minecraft.util.hit.BlockHitResult
-import net.minecraft.util.math.BlockPos
-import net.minecraft.world.World
-import net.minecraft.world.block.WireOrientation
-import net.minecraft.world.event.GameEvent
-import net.minecraft.world.explosion.Explosion
+import net.minecraft.world.level.block.*
+import net.minecraft.world.entity.player.Player
+import net.minecraft.world.item.context.BlockPlaceContext
+import net.minecraft.world.item.ItemStack
+import net.minecraft.server.level.ServerLevel
+import net.minecraft.sounds.SoundSource
+import net.minecraft.world.level.block.state.StateDefinition
+import net.minecraft.world.level.block.state.properties.BooleanProperty
+import net.minecraft.world.InteractionResult
+import net.minecraft.world.phys.BlockHitResult
+import net.minecraft.core.BlockPos
+import net.minecraft.world.level.Level
+import net.minecraft.world.level.redstone.Orientation
+import net.minecraft.world.level.gameevent.GameEvent
+import net.minecraft.world.level.Explosion
+import net.minecraft.world.level.block.state.BlockState
+import net.minecraft.world.level.block.state.properties.BlockSetType
 import org.nguh.nguhcraft.item.CheckCanOpen
 import org.nguh.nguhcraft.item.KeyItem
 import java.util.function.BiConsumer
 
-class LockedDoorBlock(S: Settings) : DoorBlock(BlockSetType.IRON, S), BlockEntityProvider {
-    init { defaultState = stateManager.defaultState.with(LOCKED, false) }
+class LockedDoorBlock(S: Properties) : DoorBlock(BlockSetType.IRON, S), EntityBlock {
+    init { registerDefaultState(stateDefinition.any().setValue(LOCKED, false)) }
 
-    override fun appendProperties(B: StateManager.Builder<Block, BlockState>) {
-        super.appendProperties(B)
+    override fun createBlockStateDefinition(B: StateDefinition.Builder<Block, BlockState>) {
+        super.createBlockStateDefinition(B)
         B.add(LOCKED)
     }
 
     /** Create a block entity to hold the lock. */
-    override fun createBlockEntity(Pos: BlockPos, St: BlockState) = LockedDoorBlockEntity(Pos, St)
+    override fun newBlockEntity(Pos: BlockPos, St: BlockState) = LockedDoorBlockEntity(Pos, St)
 
     /**
     * Skip default door interactions w/ explosions.
@@ -38,44 +40,44 @@ class LockedDoorBlock(S: Settings) : DoorBlock(BlockSetType.IRON, S), BlockEntit
     * nothing since this should never explode anyway because of infinite
     * blast resistance.
     */
-    override fun onExploded(
+    override fun onExplosionHit(
         St: BlockState,
-        W: ServerWorld,
+        W: ServerLevel,
         Pos: BlockPos,
         E: Explosion,
         SM: BiConsumer<ItemStack, BlockPos>
     ) {}
 
     /** Keep the door closed even if it receives a redstone signal. */
-    override fun getPlacementState(Ctx: ItemPlacementContext) = super.getPlacementState(Ctx)
-        ?.with(POWERED, false)
-        ?.with(OPEN, false)
+    override fun getStateForPlacement(Ctx: BlockPlaceContext) = super.getStateForPlacement(Ctx)
+        ?.setValue(POWERED, false)
+        ?.setValue(OPEN, false)
 
     /** This ignores redstone. */
-    override fun neighborUpdate(
-        state: BlockState?,
-        world: World?,
-        pos: BlockPos?,
-        sourceBlock: Block?,
-        sourcePos: WireOrientation?,
+    override fun neighborChanged(
+        state: BlockState,
+        world: Level,
+        pos: BlockPos,
+        sourceBlock: Block,
+        sourcePos: Orientation?,
         notify: Boolean
     ) {}
 
     /** It also can’t be opened w/o an item if locked. */
-    override fun onUse(
+    override fun useWithoutItem(
         OldState: BlockState,
-        W: World,
+        W: Level,
         Pos: BlockPos,
-        PE: PlayerEntity,
+        PE: Player,
         Hit: BlockHitResult
-    ): ActionResult {
+    ): InteractionResult {
         val BE = KeyItem.GetLockableEntity(W, Pos)
 
         // Somehow, this is not a locked door. Ignore.
-        if (BE !is LockedDoorBlockEntity) return ActionResult.PASS
+        if (BE !is LockedDoorBlockEntity) return InteractionResult.PASS
 
         // Check if this block can be opened.
-        if (!BE.CheckCanOpen(PE, PE.mainHandStack)) return ActionResult.SUCCESS
+        if (!BE.CheckCanOpen(PE, PE.mainHandItem)) return InteractionResult.SUCCESS
 
         // Actually open the door.
         //
@@ -83,23 +85,23 @@ class LockedDoorBlock(S: Settings) : DoorBlock(BlockSetType.IRON, S), BlockEntit
         // is really messing w/ how these work here, so we have no choice but
         // to duplicate the section we actually want to use here.
         val St = OldState.cycle(OPEN)
-        W.setBlockState(Pos, St, NOTIFY_LISTENERS or REDRAW_ON_MAIN_THREAD)
+        W.setBlock(Pos, St, UPDATE_CLIENTS or UPDATE_IMMEDIATE)
         W.playSound(
             PE,
             Pos,
-            if (isOpen(St)) blockSetType.doorOpen() else blockSetType.doorClose(),
-            SoundCategory.BLOCKS,
+            if (isOpen(St)) type().doorOpen() else type().doorClose(),
+            SoundSource.BLOCKS,
             1.0f,
             W.random.nextFloat() * 0.1f + 0.9f
         )
 
-        W.emitGameEvent(PE, if (isOpen(St)) GameEvent.BLOCK_OPEN else GameEvent.BLOCK_CLOSE, Pos)
-        return ActionResult.SUCCESS
+        W.gameEvent(PE, if (isOpen(St)) GameEvent.BLOCK_OPEN else GameEvent.BLOCK_CLOSE, Pos)
+        return InteractionResult.SUCCESS
     }
 
-    override fun getCodec() = CODEC
+    override fun codec() = CODEC
     companion object {
-        val CODEC: MapCodec<LockedDoorBlock> = createCodec(::LockedDoorBlock)
-        val LOCKED: BooleanProperty = BooleanProperty.of("nguhcraft_locked") // Property to render a locked door.
+        val CODEC: MapCodec<LockedDoorBlock> = simpleCodec(::LockedDoorBlock)
+        val LOCKED: BooleanProperty = BooleanProperty.create("nguhcraft_locked") // Property to render a locked door.
     }
 }
