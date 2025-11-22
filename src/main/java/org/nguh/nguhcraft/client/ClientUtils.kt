@@ -53,6 +53,7 @@ object ClientUtils {
     val EMOJI_REPLACEMENTS = buildMap {
         putAll(LoadEmojiReplacements("/assets/nguhcraft/emoji/twemoji.json"))
         putAll(LoadEmojiReplacements("/assets/nguhcraft/emoji/nguhmoji.json"))
+        putAll(LoadEmojiReplacements("/assets/nguhcraft/emoji/nguhflags.json"))
     }
 
     /**
