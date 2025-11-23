@@ -83,6 +83,7 @@
 	"flag_yys": "\udb86\uddd1",
 	"flag_hed": "\udb86\uddd2",
 	"flag_kil": "\udb86\uddd3",
+	"flag_tsn": "\udb86\uddd4",
 	"flag_amu": "\udb86\udde9",
 	"flag_cfd": "\udb86\uddea",
 	"flag_hen": "\udb86\uddeb",
@@ -114,4 +115,5 @@
 	"flag_mat": "\udb86\ude05",
 	"flag_soc": "\udb86\ude06",
 	"flag_mad": "\udb86\ude07",
+	"flag_hole": "\udb86\ude08",
 }
