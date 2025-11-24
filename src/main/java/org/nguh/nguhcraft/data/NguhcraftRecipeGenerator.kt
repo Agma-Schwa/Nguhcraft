@@ -378,6 +378,12 @@ class NguhcraftRecipeGenerator(
         }
 
         // =========================================================================
+        //  Crop Stuff
+        // =========================================================================
+        offerShapelessRecipe(NguhItems.GRAPE_SEEDS, 1, NguhItems.GRAPES to 1)
+        offerShapelessRecipe(NguhItems.GRAPE_JUICE, 1, NguhItems.GRAPES to 1, Items.GLASS_BOTTLE to 1, Items.SUGAR to 1)
+
+        // =========================================================================
         //  Brocade Blocks
         // =========================================================================
         offerBrocade(NguhBlocks.BROCADE_BLACK, Blocks.BLACK_WOOL)

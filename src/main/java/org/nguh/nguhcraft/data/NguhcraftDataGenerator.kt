@@ -10,49 +10,40 @@ import net.fabricmc.fabric.api.datagen.v1.provider.FabricBlockLootTableProvider
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricDynamicRegistryProvider
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricRecipeProvider
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricTagProvider
-import net.minecraft.world.level.block.Block
-import net.minecraft.world.level.block.Blocks
-import net.minecraft.world.level.block.SlabBlock
+import net.minecraft.advancements.critereon.StatePropertiesPredicate
 import net.minecraft.client.data.models.BlockModelGenerators
 import net.minecraft.client.data.models.ItemModelGenerators
 import net.minecraft.client.resources.model.EquipmentClientInfo
+import net.minecraft.core.HolderLookup
+import net.minecraft.core.RegistrySetBuilder
 import net.minecraft.core.component.DataComponents
-import net.minecraft.data.PackOutput
-import net.minecraft.data.DataProvider
+import net.minecraft.core.registries.Registries
 import net.minecraft.data.CachedOutput
+import net.minecraft.data.DataProvider
+import net.minecraft.data.PackOutput
 import net.minecraft.data.recipes.RecipeOutput
+import net.minecraft.resources.ResourceKey
+import net.minecraft.tags.*
 import net.minecraft.world.damagesource.DamageType
 import net.minecraft.world.entity.decoration.PaintingVariant
-import net.minecraft.world.item.Item
 import net.minecraft.world.item.Items
 import net.minecraft.world.item.equipment.EquipmentAsset
+import net.minecraft.world.level.block.Block
+import net.minecraft.world.level.block.Blocks
+import net.minecraft.world.level.block.CropBlock
+import net.minecraft.world.level.block.SlabBlock
 import net.minecraft.world.level.storage.loot.LootPool
 import net.minecraft.world.level.storage.loot.LootTable
-import net.minecraft.world.level.storage.loot.predicates.LootItemBlockStatePropertyCondition
 import net.minecraft.world.level.storage.loot.entries.LootItem
 import net.minecraft.world.level.storage.loot.functions.CopyComponentsFunction
 import net.minecraft.world.level.storage.loot.functions.SetItemCountFunction
+import net.minecraft.world.level.storage.loot.predicates.LootItemBlockStatePropertyCondition
 import net.minecraft.world.level.storage.loot.providers.number.ConstantValue
-import net.minecraft.advancements.critereon.StatePropertiesPredicate
-import net.minecraft.core.RegistrySetBuilder
-import net.minecraft.resources.ResourceKey
-import net.minecraft.core.registries.Registries
-import net.minecraft.core.HolderLookup
-import net.minecraft.tags.BlockTags
-import net.minecraft.tags.DamageTypeTags
-import net.minecraft.tags.ItemTags
-import net.minecraft.tags.PaintingVariantTags
-import net.minecraft.tags.TagKey
+import net.minecraft.world.level.storage.loot.providers.number.UniformGenerator
 import org.nguh.nguhcraft.NguhDamageTypes
 import org.nguh.nguhcraft.NguhPaintings
 import org.nguh.nguhcraft.Nguhcraft.Companion.Id
-import org.nguh.nguhcraft.block.Fence
-import org.nguh.nguhcraft.block.NguhBlockModels
-import org.nguh.nguhcraft.block.NguhBlocks
-import org.nguh.nguhcraft.block.Slab
-import org.nguh.nguhcraft.block.Stairs
-import org.nguh.nguhcraft.block.VerticalSlabBlock
-import org.nguh.nguhcraft.block.Wall
+import org.nguh.nguhcraft.block.*
 import org.nguh.nguhcraft.item.NguhItems
 import java.util.concurrent.CompletableFuture
 
@@ -96,6 +87,10 @@ class NguhcraftBlockTagProvider(
         valueLookupBuilder(BlockTags.WOODEN_TRAPDOORS).add(NguhBlocks.TINTED_OAK_TRAPDOOR)
         valueLookupBuilder(BlockTags.WOODEN_PRESSURE_PLATES).add(NguhBlocks.TINTED_OAK_PRESSURE_PLATE)
         valueLookupBuilder(BlockTags.WOODEN_BUTTONS).add(NguhBlocks.TINTED_OAK_BUTTON)
+
+        // Block tags for crops
+        valueLookupBuilder(BlockTags.CROPS).add(NguhBlocks.GRAPE_CROP).add(NguhBlocks.PEANUT_CROP)
+        valueLookupBuilder(BlockTags.MAINTAINS_FARMLAND).add(NguhBlocks.GRAPE_CROP).add(NguhBlocks.PEANUT_CROP)
 
         // Block tag for bonemealing flowers.
         valueLookupBuilder(NguhBlocks.CAN_DUPLICATE_WITH_BONEMEAL)
@@ -222,6 +217,10 @@ class NguhcraftItemTagProvider(
             .add(NguhBlocks.TINTED_OAK_WOOD.asItem())
             .add(NguhBlocks.STRIPPED_TINTED_OAK_LOG.asItem())
             .add(NguhBlocks.STRIPPED_TINTED_OAK_WOOD.asItem())
+
+        valueLookupBuilder(ItemTags.CHICKEN_FOOD).add(NguhItems.GRAPE_SEEDS)
+        valueLookupBuilder(ItemTags.FOX_FOOD).add(NguhItems.GRAPES)
+        valueLookupBuilder(ItemTags.PARROT_FOOD).add(NguhItems.GRAPE_SEEDS).add(NguhItems.PEANUTS)
     }
 }
 
@@ -238,6 +237,35 @@ class NguhcraftLootTableProvider(
             add(S, ::createSlabItemTable)
         for (V in NguhBlockModels.VERTICAL_SLABS)
             add(V.VerticalSlab, ::VerticalSlabDrops)
+
+        // Crop Drops
+        add(NguhBlocks.GRAPE_CROP, createCropDrops(
+            NguhBlocks.GRAPE_CROP,
+            NguhItems.GRAPES,
+            NguhItems.GRAPE_SEEDS,
+            LootItemBlockStatePropertyCondition.hasBlockStateProperties(NguhBlocks.GRAPE_CROP).setProperties(StatePropertiesPredicate.Builder.properties().hasProperty(
+                GrapeCropBlock.AGE, GrapeCropBlock.MAX_AGE))
+        ).withPool(LootPool.lootPool().setRolls(
+            UniformGenerator.between(0.0F, 1.0F)).add(
+            LootItem.lootTableItem(NguhItems.GRAPE_LEAF))
+            .`when`(LootItemBlockStatePropertyCondition.hasBlockStateProperties(NguhBlocks.GRAPE_CROP).setProperties(StatePropertiesPredicate.Builder.properties().hasProperty(
+                GrapeCropBlock.AGE, GrapeCropBlock.MAX_AGE
+            )))
+        ).withPool(LootPool.lootPool().setRolls(
+            ConstantValue.exactly(1.0F)).add(
+            LootItem.lootTableItem(Items.STICK))
+            .`when`(LootItemBlockStatePropertyCondition.hasBlockStateProperties(NguhBlocks.GRAPE_CROP).setProperties(
+                StatePropertiesPredicate.Builder.properties().hasProperty(GrapeCropBlock.STICK_LOGGED, true
+            )))
+        ))
+        add(NguhBlocks.PEANUT_CROP, createCropDrops(
+            NguhBlocks.PEANUT_CROP,
+            NguhItems.PEANUTS,
+            NguhItems.PEANUTS,
+            LootItemBlockStatePropertyCondition.hasBlockStateProperties(NguhBlocks.PEANUT_CROP).setProperties(StatePropertiesPredicate.Builder.properties().hasProperty(
+                CropBlock.AGE, CropBlock.MAX_AGE
+            ))
+        ))
 
         // Copied from nameableContainerDrops(), but modified to also
         // copy the chest variant component.

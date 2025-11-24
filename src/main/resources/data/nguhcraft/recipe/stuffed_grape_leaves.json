@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "L": "nguhcraft:grape_leaf",
+    "R": "farmersdelight:rice"
+  },
+  "pattern": [
+    "RRR",
+    "LLL"
+  ],
+  "result": {
+    "count": 1,
+    "id": "nguhcraft:stuffed_grape_leaves"
+  }
+}

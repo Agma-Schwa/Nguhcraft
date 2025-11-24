@@ -1,6 +1,7 @@
 package org.nguh.nguhcraft.item
 
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents
+import net.fabricmc.fabric.api.registry.CompostingChanceRegistry
 import net.minecraft.Util
 import net.minecraft.client.data.models.ItemModelGenerators
 import net.minecraft.client.data.models.model.ModelTemplate
@@ -17,7 +18,9 @@ import net.minecraft.resources.ResourceLocation
 import net.minecraft.sounds.SoundEvent
 import net.minecraft.sounds.SoundEvents
 import net.minecraft.tags.TagKey
+import net.minecraft.world.food.FoodProperties
 import net.minecraft.world.item.*
+import net.minecraft.world.item.component.Consumable
 import net.minecraft.world.item.crafting.CustomRecipe.Serializer
 import net.minecraft.world.item.equipment.ArmorMaterial
 import net.minecraft.world.item.equipment.ArmorType
@@ -193,6 +196,43 @@ object NguhItems {
     )
 
     // =========================================================================
+    //  farming
+    // =========================================================================
+    var GRAPE_SEEDS = CreateItem(
+        Id("grape_seeds"),
+        { BlockItem(NguhBlocks.GRAPE_CROP, it) },
+        Item.Properties().useItemDescriptionPrefix()
+    )
+    var GRAPES = CreateItem(
+        Id("grapes"),
+        Item.Properties().food(FoodProperties(1, 0.1F, false))
+    )
+    var GRAPE_LEAF = CreateItem(
+        Id("grape_leaf"),
+        Item.Properties()
+    )
+    var GRAPE_JUICE = CreateItem(
+        Id("grape_juice"),
+        Item.Properties()
+            .food(FoodProperties(4, 0.1F, false), Consumable.builder().sound(SoundEvents.GENERIC_DRINK).hasConsumeParticles(false).build())
+            .craftRemainder(Items.GLASS_BOTTLE)
+            .usingConvertsTo(Items.GLASS_BOTTLE)
+            .stacksTo(16)
+    )
+    var STUFFED_GRAPE_LEAVES = CreateItem(
+        Id("stuffed_grape_leaves"),
+        Item.Properties()
+            .food(FoodProperties(5, 0.5F, false))
+    )
+    var PEANUTS = CreateItem(
+        Id("peanuts"),
+        { settings: Item.Properties -> BlockItem(NguhBlocks.PEANUT_CROP, settings) },
+        Item.Properties()
+            .food(FoodProperties(3, 0.3F, false))
+            .stacksTo(16)
+    )
+
+    // =========================================================================
     //  Initialisation
     // =========================================================================
     fun BootstrapArmourTrims(R: BootstrapContext<TrimPattern>) {
@@ -234,6 +274,11 @@ object NguhItems {
         G.generateTrimmableItem(AMETHYST_CHESTPLATE, AMETHYST_EQUIPMENT_ASSET_KEY, ItemModelGenerators.TRIM_PREFIX_CHESTPLATE, false)
         G.generateTrimmableItem(AMETHYST_LEGGINGS, AMETHYST_EQUIPMENT_ASSET_KEY, ItemModelGenerators.TRIM_PREFIX_LEGGINGS, false)
         G.generateTrimmableItem(AMETHYST_BOOTS, AMETHYST_EQUIPMENT_ASSET_KEY, ItemModelGenerators.TRIM_PREFIX_BOOTS, false)
+
+        Register(GRAPES)
+        Register(GRAPE_LEAF)
+        Register(GRAPE_JUICE)
+        Register(STUFFED_GRAPE_LEAVES)
     }
 
     fun Init() {
@@ -264,6 +309,18 @@ object NguhItems {
 
         ItemGroupEvents.modifyEntriesEvent(CreativeModeTabs.INGREDIENTS).register {
             for (T in ALL_NGUHCRAFT_ARMOUR_TRIMS) it.accept(T)
+            it.accept(GRAPE_LEAF)
+        }
+
+        ItemGroupEvents.modifyEntriesEvent(CreativeModeTabs.NATURAL_BLOCKS).register {
+            it.accept(GRAPE_SEEDS)
+        }
+
+        ItemGroupEvents.modifyEntriesEvent(CreativeModeTabs.FOOD_AND_DRINKS).register {
+            it.accept(GRAPES)
+            it.accept(GRAPE_JUICE)
+            it.accept(STUFFED_GRAPE_LEAVES)
+            it.accept(PEANUTS)
         }
 
         KeyLockPairingRecipe.SERIALISER = Registry.register(
@@ -277,6 +334,11 @@ object NguhItems {
             Id("crafting_special_key_duplication"),
             Serializer(::KeyDuplicationRecipe)
         )
+
+        CompostingChanceRegistry.INSTANCE.add(GRAPES, 0.5F)
+        CompostingChanceRegistry.INSTANCE.add(GRAPE_SEEDS, 0.3F)
+        CompostingChanceRegistry.INSTANCE.add(GRAPE_LEAF, 0.3F)
+        CompostingChanceRegistry.INSTANCE.add(PEANUTS, 0.5F)
     }
 
     private fun CreateItem(Id: ResourceLocation, I: Item): Item =

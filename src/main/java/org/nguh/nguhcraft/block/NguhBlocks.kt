@@ -574,6 +574,26 @@ object NguhBlocks {
     )
 
     // =========================================================================
+    //  farming stuff
+    // =========================================================================
+    val GRAPE_CROP = RegisterWithoutItem(
+        "grape_crop",
+        ::GrapeCropBlock,
+        BlockBehaviour.Properties.of()
+            .mapColor(MapColor.PLANT)
+            .noCollission()
+            .randomTicks()
+            .instabreak()
+            .pushReaction(PushReaction.PUSH_ONLY)
+            .sound(SoundType.CROP)
+    )
+    val PEANUT_CROP = RegisterWithoutItem(
+        "peanut_crop",
+        ::PeanutCropBlock,
+        BlockBehaviour.Properties.ofFullCopy(Blocks.POTATOES)
+    )
+
+    // =========================================================================
     //  Block entities
     // =========================================================================
     val LOCKED_DOOR_BLOCK_ENTITY = RegisterEntity(
@@ -975,6 +995,21 @@ object NguhBlocks {
         { StairBlock(Parent.defaultBlockState(), it) },
         BlockBehaviour.Properties.ofLegacyCopy(Parent)
     )
+
+    // Registry for crops without registering the item
+    private fun <T : Block> RegisterWithoutItem(
+        Key: String,
+        Ctor: (S: BlockBehaviour.Properties) -> T,
+        S: BlockBehaviour.Properties
+    ): T {
+        val BlockKey = ResourceKey.create(Registries.BLOCK, Id(Key))
+
+        S.setId(BlockKey)
+
+        val B = Ctor(S)
+        Registry.register(BuiltInRegistries.BLOCK, BlockKey, B)
+        return B
+    }
 
     private fun <T : Block> Register(
         Key: String,
