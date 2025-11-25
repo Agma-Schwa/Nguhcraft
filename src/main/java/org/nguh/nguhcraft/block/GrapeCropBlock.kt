@@ -25,7 +25,7 @@ import org.nguh.nguhcraft.item.NguhItems
 
 class GrapeCropBlock(settings: Properties) : CropBlock(settings) {
     init {
-        this.registerDefaultState(super.defaultBlockState().setValue(this.getStickLoggedProperty(), true))
+        registerDefaultState(defaultBlockState().setValue(getStickLoggedProperty(), true))
     }
 
     override fun getBaseSeedId(): ItemLike {
