@@ -24,7 +24,7 @@ import net.minecraft.world.phys.shapes.VoxelShape
 import org.nguh.nguhcraft.item.NguhItems
 
 class GrapeCropBlock(settings: Properties) : CropBlock(settings) {
-    fun init() {
+    init {
         this.registerDefaultState(super.defaultBlockState().setValue(this.getStickLoggedProperty(), true))
     }
 
