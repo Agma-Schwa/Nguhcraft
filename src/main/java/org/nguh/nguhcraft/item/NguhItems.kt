@@ -221,8 +221,7 @@ object NguhItems {
     )
     var STUFFED_GRAPE_LEAVES = CreateItem(
         Id("stuffed_grape_leaves"),
-        Item.Properties()
-            .food(FoodProperties(5, 0.5F, false))
+        Item.Properties().food(FoodProperties(5, 0.5F, false))
     )
     var PEANUTS = CreateItem(
         Id("peanuts"),

@@ -996,16 +996,18 @@ object NguhBlocks {
         BlockBehaviour.Properties.ofLegacyCopy(Parent)
     )
 
-    // Registry for crops without registering the item
     private fun <T : Block> RegisterWithoutItem(
         Key: String,
         Ctor: (S: BlockBehaviour.Properties) -> T,
         S: BlockBehaviour.Properties
     ): T {
+        // Create registry key.
         val BlockKey = ResourceKey.create(Registries.BLOCK, Id(Key))
 
+        // Set the registry key for the block settings.
         S.setId(BlockKey)
 
+        // Create and register
         val B = Ctor(S)
         Registry.register(BuiltInRegistries.BLOCK, BlockKey, B)
         return B
@@ -1017,16 +1019,11 @@ object NguhBlocks {
         S: BlockBehaviour.Properties,
         ItemCtor: (B: Block, S: Item.Properties) -> Item = ::BlockItem
     ): T {
-        // Create registry keys.
+        // Create registry key.
         val ItemKey = ResourceKey.create(Registries.ITEM, Id(Key))
-        val BlockKey = ResourceKey.create(Registries.BLOCK, Id(Key))
-
-        // Set the registry key for the block settings.
-        S.setId(BlockKey)
 
         // Create and register the block.
-        val B = Ctor(S)
-        Registry.register(BuiltInRegistries.BLOCK, BlockKey, B)
+        val B = RegisterWithoutItem(Key, Ctor, S)
 
         // Create and register the item.
         val ItemSettings = Item.Properties()

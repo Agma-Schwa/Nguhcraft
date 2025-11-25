@@ -426,7 +426,6 @@ object NguhBlockModels {
         G.registerSimpleItemModel(S.VerticalSlab, Model)
     }
 
-    @Suppress("NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
     @Environment(EnvType.CLIENT)
     fun RegisterCropWithStick(G: BlockModelGenerators, crop: Block, stickLoggedProperty: Property<Boolean>, ageProperty: Property<Int>, vararg ageTextureIndices: Int) {
         val STICK_SIDE_KEY = TextureSlot.create("stick_side")
@@ -434,65 +433,61 @@ object NguhBlockModels {
 
         G.registerSimpleFlatItemModel(crop.asItem())
         require(ageProperty.possibleValues.size == ageTextureIndices.size)
-        val int2ObjectMap: Int2ObjectMap<ResourceLocation?> = Int2ObjectOpenHashMap<ResourceLocation?>()
-        val int2ObjectMap2: Int2ObjectMap<ResourceLocation?> = Int2ObjectOpenHashMap<ResourceLocation?>()
+        val int2ObjectMap = Int2ObjectOpenHashMap<ResourceLocation>()
+        val int2ObjectMap2 = Int2ObjectOpenHashMap<ResourceLocation>()
         G.blockStateOutput
             .accept(
                 MultiVariantGenerator.dispatch(crop)
                     .with(
                         PropertyDispatch.initial(stickLoggedProperty, ageProperty)
-                            .generate(
+                            .generate()
                                 { logged: Boolean, age: Int ->
-                                    val i: Int = ageTextureIndices[age]
+                                    val i = ageTextureIndices[age]
                                     if (logged) {
                                         plainVariant(
-                                            int2ObjectMap.computeIfAbsent(
-                                                i,
-                                                (Int2ObjectFunction { stage: Int ->
-                                                    ModelTemplate(
-                                                        Optional.of(ResourceLocation.parse("nguhcraft:block/crop_with_stick")),
-                                                        empty(),
-                                                        TextureSlot.CROP,
-                                                        STICK_SIDE_KEY,
-                                                        STICK_TOP_KEY
-                                                    ).createWithSuffix(
-                                                        crop,
-                                                        "_stage$stage",
-                                                        TextureMapping()
-                                                            .put(
-                                                                TextureSlot.CROP,
-                                                                TextureMapping.getBlockTexture(crop, "_stage$stage")
+                                            int2ObjectMap.computeIfAbsent(i) {
+                                                ModelTemplate(
+                                                    Optional.of(ResourceLocation.parse("nguhcraft:block/crop_with_stick")),
+                                                    empty(),
+                                                    TextureSlot.CROP,
+                                                    STICK_SIDE_KEY,
+                                                    STICK_TOP_KEY
+                                                ).createWithSuffix(
+                                                    crop,
+                                                    "_stage$it",
+                                                    TextureMapping()
+                                                        .put(
+                                                            TextureSlot.CROP,
+                                                            TextureMapping.getBlockTexture(crop, "_stage$it")
+                                                        )
+                                                        .put(
+                                                            STICK_SIDE_KEY,
+                                                            TextureMapping.getBlockTexture(
+                                                                crop,
+                                                                "_coiled_stick_stage$it"
                                                             )
-                                                            .put(
-                                                                STICK_SIDE_KEY,
-                                                                TextureMapping.getBlockTexture(
-                                                                    crop,
-                                                                    "_coiled_stick_stage$stage"
-                                                                )
-                                                            )
-                                                            .put(
-                                                                STICK_TOP_KEY,
-                                                                ResourceLocation.parse("nguhcraft:block/stick_top")
-                                                            ),
-                                                        G.modelOutput
-                                                    )
-                                                }) as Int2ObjectFunction<out ResourceLocation?>?
-                                            )
+                                                        )
+                                                        .put(
+                                                            STICK_TOP_KEY,
+                                                            ResourceLocation.parse("nguhcraft:block/stick_top")
+                                                        ),
+                                                    G.modelOutput
+                                                )
+                                            }
                                         )
                                     } else {
                                         plainVariant(
-                                            int2ObjectMap2.computeIfAbsent(i, (Int2ObjectFunction { stage: Int ->
-                                                if (stage == 0) {
+                                            int2ObjectMap2.computeIfAbsent(i) {
+                                                if (it == 0) {
                                                     ModelTemplates.CROP.create(crop, TextureMapping().put(TextureSlot.CROP, TextureMapping.getBlockTexture(crop)), G.modelOutput)
                                                 }
                                                 else {
                                                     ModelTemplates.CROP.getDefaultModelLocation(crop)
                                                 }
-                                            }) as Int2ObjectFunction<out ResourceLocation?>?)
+                                            }
                                         )
                                     }
                                 }
-                            )
                     )
             )
     }
