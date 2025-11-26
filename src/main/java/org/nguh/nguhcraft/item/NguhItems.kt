@@ -228,7 +228,7 @@ object NguhItems {
         { settings: Item.Properties -> BlockItem(NguhBlocks.PEANUT_CROP, settings) },
         Item.Properties()
             .food(FoodProperties(3, 0.3F, false))
-            .stacksTo(16)
+            .stacksTo(64)
     )
 
     // =========================================================================
