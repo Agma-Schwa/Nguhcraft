@@ -88,7 +88,7 @@ class NguhcraftBlockTagProvider(
         valueLookupBuilder(BlockTags.WOODEN_PRESSURE_PLATES).add(NguhBlocks.TINTED_OAK_PRESSURE_PLATE)
         valueLookupBuilder(BlockTags.WOODEN_BUTTONS).add(NguhBlocks.TINTED_OAK_BUTTON)
 
-        // Block tags for crops
+        // Block tags for crops.
         valueLookupBuilder(BlockTags.CROPS).add(NguhBlocks.GRAPE_CROP).add(NguhBlocks.PEANUT_CROP)
         valueLookupBuilder(BlockTags.MAINTAINS_FARMLAND).add(NguhBlocks.GRAPE_CROP).add(NguhBlocks.PEANUT_CROP)
 
@@ -238,33 +238,42 @@ class NguhcraftLootTableProvider(
         for (V in NguhBlockModels.VERTICAL_SLABS)
             add(V.VerticalSlab, ::VerticalSlabDrops)
 
-        // Crop Drops
+        val GrapeCropHasMaxAge = LootItemBlockStatePropertyCondition
+            .hasBlockStateProperties(NguhBlocks.GRAPE_CROP)
+            .setProperties(StatePropertiesPredicate.Builder.properties()
+                .hasProperty(GrapeCropBlock.AGE, GrapeCropBlock.MAX_AGE)
+            )
+
+        // Crop drops.
         add(NguhBlocks.GRAPE_CROP, createCropDrops(
             NguhBlocks.GRAPE_CROP,
             NguhItems.GRAPES,
             NguhItems.GRAPE_SEEDS,
-            LootItemBlockStatePropertyCondition.hasBlockStateProperties(NguhBlocks.GRAPE_CROP).setProperties(StatePropertiesPredicate.Builder.properties().hasProperty(
-                GrapeCropBlock.AGE, GrapeCropBlock.MAX_AGE))
+            GrapeCropHasMaxAge
         ).withPool(LootPool.lootPool().setRolls(
             UniformGenerator.between(0.0F, 1.0F)).add(
             LootItem.lootTableItem(NguhItems.GRAPE_LEAF))
-            .`when`(LootItemBlockStatePropertyCondition.hasBlockStateProperties(NguhBlocks.GRAPE_CROP).setProperties(StatePropertiesPredicate.Builder.properties().hasProperty(
-                GrapeCropBlock.AGE, GrapeCropBlock.MAX_AGE
-            )))
+            .`when`(GrapeCropHasMaxAge)
         ).withPool(LootPool.lootPool().setRolls(
             ConstantValue.exactly(1.0F)).add(
             LootItem.lootTableItem(Items.STICK))
-            .`when`(LootItemBlockStatePropertyCondition.hasBlockStateProperties(NguhBlocks.GRAPE_CROP).setProperties(
-                StatePropertiesPredicate.Builder.properties().hasProperty(GrapeCropBlock.STICK_LOGGED, true
-            )))
+            .`when`(LootItemBlockStatePropertyCondition
+                .hasBlockStateProperties(NguhBlocks.GRAPE_CROP)
+                .setProperties(StatePropertiesPredicate.Builder.properties()
+                    .hasProperty(GrapeCropBlock.STICK_LOGGED, true)
+                )
+            )
         ))
+
         add(NguhBlocks.PEANUT_CROP, createCropDrops(
             NguhBlocks.PEANUT_CROP,
             NguhItems.PEANUTS,
             NguhItems.PEANUTS,
-            LootItemBlockStatePropertyCondition.hasBlockStateProperties(NguhBlocks.PEANUT_CROP).setProperties(StatePropertiesPredicate.Builder.properties().hasProperty(
-                CropBlock.AGE, CropBlock.MAX_AGE
-            ))
+            LootItemBlockStatePropertyCondition
+                .hasBlockStateProperties(NguhBlocks.PEANUT_CROP)
+                .setProperties(StatePropertiesPredicate.Builder.properties()
+                    .hasProperty(CropBlock.AGE, CropBlock.MAX_AGE)
+                )
         ))
 
         // Copied from nameableContainerDrops(), but modified to also

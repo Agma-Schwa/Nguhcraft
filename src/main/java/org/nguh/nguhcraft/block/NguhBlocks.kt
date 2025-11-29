@@ -574,7 +574,7 @@ object NguhBlocks {
     )
 
     // =========================================================================
-    //  farming stuff
+    //  New Crops
     // =========================================================================
     val GRAPE_CROP = RegisterWithoutItem(
         "grape_crop",
@@ -587,6 +587,7 @@ object NguhBlocks {
             .pushReaction(PushReaction.PUSH_ONLY)
             .sound(SoundType.CROP)
     )
+
     val PEANUT_CROP = RegisterWithoutItem(
         "peanut_crop",
         ::PeanutCropBlock,
@@ -1007,7 +1008,7 @@ object NguhBlocks {
         // Set the registry key for the block settings.
         S.setId(BlockKey)
 
-        // Create and register
+        // Create and register the block.
         val B = Ctor(S)
         Registry.register(BuiltInRegistries.BLOCK, BlockKey, B)
         return B

@@ -196,36 +196,47 @@ object NguhItems {
     )
 
     // =========================================================================
-    //  farming
+    //  Farming and Crops
     // =========================================================================
     var GRAPE_SEEDS = CreateItem(
         Id("grape_seeds"),
         { BlockItem(NguhBlocks.GRAPE_CROP, it) },
         Item.Properties().useItemDescriptionPrefix()
     )
+
     var GRAPES = CreateItem(
         Id("grapes"),
         Item.Properties().food(FoodProperties(1, 0.1F, false))
     )
+
     var GRAPE_LEAF = CreateItem(
         Id("grape_leaf"),
         Item.Properties()
     )
+
     var GRAPE_JUICE = CreateItem(
         Id("grape_juice"),
         Item.Properties()
-            .food(FoodProperties(4, 0.1F, false), Consumable.builder().sound(SoundEvents.GENERIC_DRINK).hasConsumeParticles(false).build())
             .craftRemainder(Items.GLASS_BOTTLE)
             .usingConvertsTo(Items.GLASS_BOTTLE)
             .stacksTo(16)
+            .food(
+                FoodProperties(4, 0.1F, false),
+                Consumable.builder()
+                    .sound(SoundEvents.GENERIC_DRINK)
+                    .hasConsumeParticles(false)
+                    .build()
+            )
     )
+
     var STUFFED_GRAPE_LEAVES = CreateItem(
         Id("stuffed_grape_leaves"),
         Item.Properties().food(FoodProperties(5, 0.5F, false))
     )
+
     var PEANUTS = CreateItem(
         Id("peanuts"),
-        { settings: Item.Properties -> BlockItem(NguhBlocks.PEANUT_CROP, settings) },
+        { BlockItem(NguhBlocks.PEANUT_CROP, it) },
         Item.Properties()
             .food(FoodProperties(3, 0.3F, false))
             .stacksTo(64)

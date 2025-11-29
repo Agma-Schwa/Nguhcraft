@@ -13,7 +13,6 @@ import net.minecraft.world.item.context.BlockPlaceContext
 import net.minecraft.world.level.*
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.CropBlock
-import net.minecraft.world.level.block.PotatoBlock
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.StateDefinition
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
@@ -26,137 +25,111 @@ import net.minecraft.world.phys.shapes.VoxelShape
 import org.nguh.nguhcraft.item.NguhItems
 
 class GrapeCropBlock(Settings: Properties) : CropBlock(Settings) {
-    init {
-        registerDefaultState(defaultBlockState().setValue(STICK_LOGGED, true))
+    init { registerDefaultState(defaultBlockState().setValue(STICK_LOGGED, true)) }
+
+    override fun codec() = CODEC
+    override fun getBaseSeedId() = NguhItems.GRAPE_SEEDS
+    override fun getAgeProperty() = AGE
+    override fun getMaxAge() = MAX_AGE
+
+    override fun getShape(St: BlockState, L: BlockGetter, Pos: BlockPos, Ctx: CollisionContext) = when {
+        !IsStickLogged(St) -> FLAT_SHAPE
+        getAge(St) == 0 -> SMALL_SHAPE
+        else -> BIG_SHAPE
     }
 
-    override fun codec(): MapCodec<GrapeCropBlock> {
-        return CODEC
-    }
+    override fun isRandomlyTicking(St: BlockState) =
+        super.isRandomlyTicking(St) && IsStickLogged(St)
 
-    override fun getBaseSeedId(): ItemLike {
-        return NguhItems.GRAPE_SEEDS
-    }
-
-    override fun getAgeProperty(): IntegerProperty {
-        return AGE
-    }
-
-    override fun getMaxAge(): Int {
-        return MAX_AGE
-    }
-
-    override fun getShape(BlockState: BlockState, World: BlockGetter, BlockPos: BlockPos, Context: CollisionContext): VoxelShape {
-        return when {
-            !IsStickLogged(BlockState) -> FLAT_SHAPE!!
-            getAge(BlockState) == 0 -> SMALL_SHAPE!!
-            else -> BIG_SHAPE!!
-        }
-    }
-
-    override fun isRandomlyTicking(BlockState: BlockState): Boolean {
-        return super.isRandomlyTicking(BlockState) && IsStickLogged(BlockState)
-    }
-
-    override fun isValidBonemealTarget(LevelReader: LevelReader, BlockPos: BlockPos, BlockState: BlockState): Boolean {
-        return super.isValidBonemealTarget(LevelReader, BlockPos, BlockState) && IsStickLogged(BlockState)
-    }
+    override fun isValidBonemealTarget(L: LevelReader, Pos: BlockPos, St: BlockState) =
+        super.isValidBonemealTarget(L, Pos, St) && IsStickLogged(St)
 
     override fun useItemOn(
-        ItemStack: ItemStack,
-        BlockState: BlockState,
-        Level: Level,
-        BlockPos: BlockPos,
-        Player: Player,
-        InteractionHand: InteractionHand,
-        BlockHitResult: BlockHitResult
+        S: ItemStack,
+        St: BlockState,
+        L: Level,
+        Pos: BlockPos,
+        PE: Player,
+        Hand: InteractionHand,
+        BHR: BlockHitResult
     ): InteractionResult? {
-        if (ItemStack.`is`(Items.STICK) && !IsStickLogged(BlockState)) {
-            Level.setBlockAndUpdate(BlockPos, BlockState.setValue(STICK_LOGGED, true))
-            Level.playSound(
+        if (S.`is`(Items.STICK) && !IsStickLogged(St)) {
+            L.setBlockAndUpdate(Pos, St.setValue(STICK_LOGGED, true))
+            L.playSound(
                 null,
-                BlockPos,
+                Pos,
                 SoundEvents.CROP_PLANTED,
                 SoundSource.BLOCKS,
                 1f,
-                0.8f + Level.random.nextFloat() * 0.4f
+                0.8f + L.random.nextFloat() * 0.4f
             )
-            ItemStack.consume(1, Player)
-            Level.gameEvent(Player, GameEvent.BLOCK_CHANGE, BlockPos)
+            S.consume(1, PE)
+            L.gameEvent(PE, GameEvent.BLOCK_CHANGE, Pos)
             return InteractionResult.SUCCESS
         }
-        return super.useItemOn(ItemStack, BlockState, Level, BlockPos, Player, InteractionHand, BlockHitResult)
+        return super.useItemOn(S, St, L, Pos, PE, Hand, BHR)
     }
 
     override fun useWithoutItem(
-        BlockState: BlockState,
-        World: Level,
-        BlockPos: BlockPos,
-        Player: Player,
-        BlockHitResult: BlockHitResult
+        St: BlockState,
+        L: Level,
+        Pos: BlockPos,
+        PE: Player,
+        BHR: BlockHitResult
     ): InteractionResult {
-        val age = getAge(BlockState)
-        if (age != getMaxAge()) {
-            return super.useWithoutItem(BlockState, World, BlockPos, Player, BlockHitResult)
-        }
-        val amount_grapes = 1 + World.random.nextInt(2)
-        val amount_seeds = World.random.nextInt(2)
-        val amount_leaves = World.random.nextInt(2)
+        val age = getAge(St)
+        if (age != getMaxAge()) return super.useWithoutItem(St, L, Pos, PE, BHR)
 
-        popResource(World, BlockPos, ItemStack(NguhItems.GRAPES, amount_grapes))
-        if (amount_seeds > 0) popResource(World, BlockPos, ItemStack(NguhItems.GRAPE_SEEDS, amount_seeds))
-        if (amount_leaves > 0) popResource(World, BlockPos, ItemStack(NguhItems.GRAPE_LEAF, amount_leaves))
-        World.playSound(
+        val amount_grapes = 1 + L.random.nextInt(2)
+        val amount_seeds = L.random.nextInt(2)
+        val amount_leaves = L.random.nextInt(2)
+        popResource(L, Pos, ItemStack(NguhItems.GRAPES, amount_grapes))
+        if (amount_seeds > 0) popResource(L, Pos, ItemStack(NguhItems.GRAPE_SEEDS, amount_seeds))
+        if (amount_leaves > 0) popResource(L, Pos, ItemStack(NguhItems.GRAPE_LEAF, amount_leaves))
+
+        L.playSound(
             null,
-            BlockPos,
+            Pos,
             SoundEvents.SWEET_BERRY_BUSH_PICK_BERRIES,
             SoundSource.BLOCKS,
             1f,
-            0.8f + World.random.nextFloat() * 0.4f
+            0.8f + L.random.nextFloat() * 0.4f
         )
-        World.setBlock(BlockPos, BlockState.setValue(AGE, 1), UPDATE_CLIENTS)
-        World.gameEvent(Player, GameEvent.BLOCK_CHANGE, BlockPos)
+
+        L.setBlock(Pos, St.setValue(AGE, 1), UPDATE_CLIENTS)
+        L.gameEvent(PE, GameEvent.BLOCK_CHANGE, Pos)
         return InteractionResult.SUCCESS
     }
 
-    override fun createBlockStateDefinition(Builder: StateDefinition.Builder<Block?, BlockState?>) {
-        Builder.add(AGE, STICK_LOGGED)
+    override fun createBlockStateDefinition(B: StateDefinition.Builder<Block, BlockState>) {
+        B.add(AGE, STICK_LOGGED)
     }
 
-    override fun getStateForPlacement(BlockPlaceContext: BlockPlaceContext): BlockState? {
-        return super.getStateForPlacement(BlockPlaceContext)?.setValue(STICK_LOGGED, false)
-    }
+    override fun getStateForPlacement(Ctx: BlockPlaceContext) =
+        super.getStateForPlacement(Ctx)?.setValue(STICK_LOGGED, false)
 
     companion object {
-        val CODEC = simpleCodec(::GrapeCropBlock)
         const val MAX_AGE: Int = 4
+        val CODEC: MapCodec<GrapeCropBlock> = simpleCodec(::GrapeCropBlock)
         val AGE: IntegerProperty = BlockStateProperties.AGE_4
         val STICK_LOGGED: BooleanProperty = BooleanProperty.create("sticklogged")
         private val FLAT_SHAPE: VoxelShape? = column(16.0, 0.0, 2.0)
         private val SMALL_SHAPE: VoxelShape? = cube(9.5, 16.0, 9.5)
         private val BIG_SHAPE: VoxelShape? = cube(16.0)
 
-        fun IsStickLogged(BlockState: BlockState) = BlockState.getValue(STICK_LOGGED)
+        fun IsStickLogged(St: BlockState): Boolean = St.getValue(STICK_LOGGED)
     }
 }
 
 class PeanutCropBlock(settings: Properties) : CropBlock(settings) {
-    override fun codec(): MapCodec<PeanutCropBlock> {
-        return CODEC
-    }
-
-    override fun getBaseSeedId(): ItemLike {
-        return NguhItems.PEANUTS
-    }
-
-    override fun getShape(BlockState: BlockState, World: BlockGetter, BlockPos: BlockPos, Context: CollisionContext): VoxelShape {
-        return SHAPES_BY_AGE[this.getAge(BlockState)]
-    }
+    override fun codec() = CODEC
+    override fun getBaseSeedId() = NguhItems.PEANUTS
+    override fun getShape(St: BlockState, L: BlockGetter, Pos: BlockPos, Ctx: CollisionContext) =
+        SHAPES_BY_AGE[this.getAge(St)]
 
     companion object {
-        val CODEC = simpleCodec(::PeanutCropBlock)
+        val CODEC: MapCodec<PeanutCropBlock> = simpleCodec(::PeanutCropBlock)
         private val SHAPE_HEIGHTS = arrayOf(2, 4, 5, 9, 11, 14, 14, 14)
-        private val SHAPES_BY_AGE =
-            boxes(7) { column(16.0, 0.0, SHAPE_HEIGHTS[it].toDouble()) }
+        private val SHAPES_BY_AGE = boxes(7) { column(16.0, 0.0, SHAPE_HEIGHTS[it].toDouble()) }
     }
 }

@@ -2,8 +2,6 @@ package org.nguh.nguhcraft.block
 
 import com.mojang.serialization.Codec
 import com.mojang.serialization.MapCodec
-import it.unimi.dsi.fastutil.ints.Int2ObjectFunction
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
@@ -11,14 +9,12 @@ import net.fabricmc.fabric.api.client.rendering.v1.BlockRenderLayerMap
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.state.properties.ChestType
-import net.minecraft.client.data.*
 import net.minecraft.client.data.models.BlockModelGenerators
 import net.minecraft.client.data.models.BlockModelGenerators.plainVariant
 import net.minecraft.client.data.models.blockstates.MultiPartGenerator
 import net.minecraft.client.data.models.blockstates.MultiVariantGenerator
 import net.minecraft.client.data.models.blockstates.PropertyDispatch
 import net.minecraft.client.data.models.model.ItemModelUtils
-import net.minecraft.client.data.models.model.ModelLocationUtils
 import net.minecraft.client.data.models.model.ModelLocationUtils.getModelLocation
 import net.minecraft.client.data.models.model.ModelTemplate
 import net.minecraft.client.data.models.model.ModelTemplates
@@ -40,13 +36,12 @@ import net.minecraft.world.item.Items
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.level.block.CropBlock
-import net.minecraft.world.level.block.state.properties.Property
+import net.minecraft.world.level.block.state.properties.BooleanProperty
+import net.minecraft.world.level.block.state.properties.IntegerProperty
 import org.nguh.nguhcraft.Nguhcraft.Companion.Id
 import org.nguh.nguhcraft.flatten
 import java.util.*
 import java.util.Optional.empty
-import java.util.function.BiFunction
-import java.util.function.Function
 
 @Environment(EnvType.CLIENT)
 private fun MakeSprite(S: String) = Material(
@@ -427,68 +422,71 @@ object NguhBlockModels {
     }
 
     @Environment(EnvType.CLIENT)
-    fun RegisterCropWithStick(G: BlockModelGenerators, crop: Block, stickLoggedProperty: Property<Boolean>, ageProperty: Property<Int>, vararg ageTextureIndices: Int) {
-        val STICK_SIDE_KEY = TextureSlot.create("stick_side")
-        val STICK_TOP_KEY = TextureSlot.create("stick_top")
+    fun RegisterCropWithStick(
+        G: BlockModelGenerators,
+        Crop: Block,
+        StickLoggedProperty: BooleanProperty,
+        AgeProperty: IntegerProperty,
+        vararg AgeIndices: Int
+    ) {
+        val StickSide = TextureSlot.create("stick_side")
+        val StickTop = TextureSlot.create("stick_top")
 
-        G.registerSimpleFlatItemModel(crop.asItem())
-        require(ageProperty.possibleValues.size == ageTextureIndices.size)
-        val int2ObjectMap = Int2ObjectOpenHashMap<ResourceLocation>()
-        val int2ObjectMap2 = Int2ObjectOpenHashMap<ResourceLocation>()
-        G.blockStateOutput
-            .accept(
-                MultiVariantGenerator.dispatch(crop)
-                    .with(
-                        PropertyDispatch.initial(stickLoggedProperty, ageProperty)
-                            .generate()
-                                { logged: Boolean, age: Int ->
-                                    val i = ageTextureIndices[age]
-                                    if (logged) {
-                                        plainVariant(
-                                            int2ObjectMap.computeIfAbsent(i) {
-                                                ModelTemplate(
-                                                    Optional.of(ResourceLocation.parse("nguhcraft:block/crop_with_stick")),
-                                                    empty(),
-                                                    TextureSlot.CROP,
-                                                    STICK_SIDE_KEY,
-                                                    STICK_TOP_KEY
-                                                ).createWithSuffix(
-                                                    crop,
-                                                    "_stage$it",
-                                                    TextureMapping()
-                                                        .put(
-                                                            TextureSlot.CROP,
-                                                            TextureMapping.getBlockTexture(crop, "_stage$it")
-                                                        )
-                                                        .put(
-                                                            STICK_SIDE_KEY,
-                                                            TextureMapping.getBlockTexture(
-                                                                crop,
-                                                                "_coiled_stick_stage$it"
-                                                            )
-                                                        )
-                                                        .put(
-                                                            STICK_TOP_KEY,
-                                                            ResourceLocation.parse("nguhcraft:block/stick_top")
-                                                        ),
-                                                    G.modelOutput
-                                                )
-                                            }
+        G.registerSimpleFlatItemModel(Crop.asItem())
+        require(AgeProperty.possibleValues.size == AgeIndices.size)
+        val Map1 = Int2ObjectOpenHashMap<ResourceLocation>()
+        val Map2 = Int2ObjectOpenHashMap<ResourceLocation>()
+        G.blockStateOutput.accept(MultiVariantGenerator.dispatch(Crop)
+            .with(PropertyDispatch.initial(StickLoggedProperty, AgeProperty).generate { StickLogged: Boolean, Age: Int ->
+                val I = AgeIndices[Age]
+                if (StickLogged) {
+                    plainVariant(
+                        Map1.computeIfAbsent(I) {
+                            ModelTemplate(
+                                Optional.of(ResourceLocation.parse("nguhcraft:block/crop_with_stick")),
+                                empty(),
+                                TextureSlot.CROP,
+                                StickSide,
+                                StickTop
+                            ).createWithSuffix(
+                                Crop,
+                                "_stage$it",
+                                TextureMapping()
+                                    .put(
+                                        TextureSlot.CROP,
+                                        TextureMapping.getBlockTexture(Crop, "_stage$it")
+                                    )
+                                    .put(
+                                        StickSide,
+                                        TextureMapping.getBlockTexture(
+                                            Crop,
+                                            "_coiled_stick_stage$it"
                                         )
-                                    } else {
-                                        plainVariant(
-                                            int2ObjectMap2.computeIfAbsent(i) {
-                                                if (it == 0) {
-                                                    ModelTemplates.CROP.create(crop, TextureMapping().put(TextureSlot.CROP, TextureMapping.getBlockTexture(crop)), G.modelOutput)
-                                                }
-                                                else {
-                                                    ModelTemplates.CROP.getDefaultModelLocation(crop)
-                                                }
-                                            }
-                                        )
-                                    }
-                                }
+                                    )
+                                    .put(
+                                        StickTop,
+                                        ResourceLocation.parse("nguhcraft:block/stick_top")
+                                    ),
+                                G.modelOutput
+                            )
+                        }
                     )
-            )
+                } else {
+                    plainVariant(
+                        Map2.computeIfAbsent(I) {
+                            if (it == 0) {
+                                ModelTemplates.CROP.create(
+                                    Crop,
+                                    TextureMapping().put(TextureSlot.CROP, TextureMapping.getBlockTexture(Crop)),
+                                    G.modelOutput
+                                )
+                            } else {
+                                ModelTemplates.CROP.getDefaultModelLocation(Crop)
+                            }
+                        }
+                    )
+                }
+            })
+        )
     }
 }
