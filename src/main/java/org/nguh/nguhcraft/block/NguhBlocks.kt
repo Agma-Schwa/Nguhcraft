@@ -574,6 +574,27 @@ object NguhBlocks {
     )
 
     // =========================================================================
+    //  New Crops
+    // =========================================================================
+    val GRAPE_CROP = RegisterWithoutItem(
+        "grape_crop",
+        ::GrapeCropBlock,
+        BlockBehaviour.Properties.of()
+            .mapColor(MapColor.PLANT)
+            .noCollission()
+            .randomTicks()
+            .instabreak()
+            .pushReaction(PushReaction.PUSH_ONLY)
+            .sound(SoundType.CROP)
+    )
+
+    val PEANUT_CROP = RegisterWithoutItem(
+        "peanut_crop",
+        ::PeanutCropBlock,
+        BlockBehaviour.Properties.ofFullCopy(Blocks.POTATOES)
+    )
+
+    // =========================================================================
     //  Block entities
     // =========================================================================
     val LOCKED_DOOR_BLOCK_ENTITY = RegisterEntity(
@@ -976,14 +997,12 @@ object NguhBlocks {
         BlockBehaviour.Properties.ofLegacyCopy(Parent)
     )
 
-    private fun <T : Block> Register(
+    private fun <T : Block> RegisterWithoutItem(
         Key: String,
         Ctor: (S: BlockBehaviour.Properties) -> T,
-        S: BlockBehaviour.Properties,
-        ItemCtor: (B: Block, S: Item.Properties) -> Item = ::BlockItem
+        S: BlockBehaviour.Properties
     ): T {
-        // Create registry keys.
-        val ItemKey = ResourceKey.create(Registries.ITEM, Id(Key))
+        // Create registry key.
         val BlockKey = ResourceKey.create(Registries.BLOCK, Id(Key))
 
         // Set the registry key for the block settings.
@@ -992,6 +1011,20 @@ object NguhBlocks {
         // Create and register the block.
         val B = Ctor(S)
         Registry.register(BuiltInRegistries.BLOCK, BlockKey, B)
+        return B
+    }
+
+    private fun <T : Block> Register(
+        Key: String,
+        Ctor: (S: BlockBehaviour.Properties) -> T,
+        S: BlockBehaviour.Properties,
+        ItemCtor: (B: Block, S: Item.Properties) -> Item = ::BlockItem
+    ): T {
+        // Create registry key.
+        val ItemKey = ResourceKey.create(Registries.ITEM, Id(Key))
+
+        // Create and register the block.
+        val B = RegisterWithoutItem(Key, Ctor, S)
 
         // Create and register the item.
         val ItemSettings = Item.Properties()

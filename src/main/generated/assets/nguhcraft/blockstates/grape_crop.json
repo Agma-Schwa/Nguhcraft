@@ -1,0 +1,34 @@
+{
+  "variants": {
+    "age=0,sticklogged=false": {
+      "model": "nguhcraft:block/grape_crop"
+    },
+    "age=0,sticklogged=true": {
+      "model": "nguhcraft:block/grape_crop_stage0"
+    },
+    "age=1,sticklogged=false": {
+      "model": "nguhcraft:block/grape_crop"
+    },
+    "age=1,sticklogged=true": {
+      "model": "nguhcraft:block/grape_crop_stage1"
+    },
+    "age=2,sticklogged=false": {
+      "model": "nguhcraft:block/grape_crop"
+    },
+    "age=2,sticklogged=true": {
+      "model": "nguhcraft:block/grape_crop_stage2"
+    },
+    "age=3,sticklogged=false": {
+      "model": "nguhcraft:block/grape_crop"
+    },
+    "age=3,sticklogged=true": {
+      "model": "nguhcraft:block/grape_crop_stage3"
+    },
+    "age=4,sticklogged=false": {
+      "model": "nguhcraft:block/grape_crop"
+    },
+    "age=4,sticklogged=true": {
+      "model": "nguhcraft:block/grape_crop_stage4"
+    }
+  }
+}

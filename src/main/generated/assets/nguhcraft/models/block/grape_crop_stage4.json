@@ -1,0 +1,8 @@
+{
+  "parent": "nguhcraft:block/crop_with_stick",
+  "textures": {
+    "crop": "nguhcraft:block/grape_crop_stage4",
+    "stick_side": "nguhcraft:block/grape_crop_coiled_stick_stage4",
+    "stick_top": "nguhcraft:block/stick_top"
+  }
+}
