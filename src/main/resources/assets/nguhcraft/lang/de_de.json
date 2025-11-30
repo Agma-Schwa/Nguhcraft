@@ -166,8 +166,8 @@
   "chest_variant.nguhcraft.christmas": "Weihnachtstruhe",
   "chest_variant.nguhcraft.pale_oak": "Blasseichentruhe",
 
-  "death.attack.arcane": "%1$s wurde von %2$s widerrufen",
-  "death.attack.arcane.item": "%1$s wurde von %2$s mit %3$s widerrufen",
+  "death.attack.arcane": "%1$s wurde von %2$s vernichted",
+  "death.attack.arcane.item": "%1$s wurde von %2$s mit %3$s vernichted",
   "death.attack.minecart_collision": "%1$s stieß mit einer verlassener Güterlore zusammen",
   "death.attack.minecart_collision.item": "%1$s stieß auf einer Güterlore mit %2$s zusammen",
   "death.attack.minecart_collision.player": "%1$s stieß auf einer Güterlore mit %2$s zusammen",
@@ -237,7 +237,7 @@
 
   "jukebox_song.nguhcraft.nguhrovision_2024": "Marcy Schiekah – Spiegelung",
 
-  "lore.nguhcraft.ancient_drop_of_cherry": "\u0001Ein Schluck der Schnitzel der Wände\nder Plattenbörse.\n\nAls Rabo die Antiken unterirdisch verbannte,\nweinte er, und seine Tränen spränkelten\nden Kirschbaum.\nObwohl das heutige Kirschholz nicht länger\nseine Kraft trägt, verbleibt jedoch\nein Hauch davon in den Amaranthwänden\nder Börse.",
+  "lore.nguhcraft.ancient_drop_of_cherry": "\u0001Ein Schluck der Schnitzel der Wände\nder Plattenbörse.\n\nAls Rabo die Antiken unterirdisch verbannte,\nweinte er, und seine Tränen schufen\nden Kirschbaum.\nObwohl das heutige Kirschholz nicht länger\nseine Kraft trägt, verbleibt jedoch\nein Hauch davon in den Amaranthwänden\nder Börse.",
 
   "multiplayer.disconnect.muted": "Du bist derzeit auf dem Discordserver von Agma Schwa stummgeschalten",
 
@@ -277,6 +277,5 @@
   "trim_pattern.nguhcraft.atlantic": "Atlantisch-Rüstungsbesatz",
   "trim_pattern.nguhcraft.cenrail": "Zenschienen-Rüstungsbesatz",
   "trim_pattern.nguhcraft.ice_cold": "Eiskalt-Rüstungsbesatz",
-  "trim_pattern.nguhcraft.veneficium": "Venēficium-Rüstungsbesatz",
-  "block.nguhcraft.example": "Example"
+  "trim_pattern.nguhcraft.veneficium": "Venēficium-Rüstungsbesatz"
 }
