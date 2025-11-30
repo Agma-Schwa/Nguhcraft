@@ -6,6 +6,7 @@ import net.minecraft.sounds.SoundEvents
 import net.minecraft.sounds.SoundSource
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.InteractionResult
+import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
@@ -80,24 +81,7 @@ class GrapeCropBlock(Settings: Properties) : CropBlock(Settings) {
         val age = getAge(St)
         if (age != getMaxAge()) return super.useWithoutItem(St, L, Pos, PE, BHR)
 
-        val amount_grapes = 1 + L.random.nextInt(2)
-        val amount_seeds = L.random.nextInt(2)
-        val amount_leaves = L.random.nextInt(2)
-        popResource(L, Pos, ItemStack(NguhItems.GRAPES, amount_grapes))
-        if (amount_seeds > 0) popResource(L, Pos, ItemStack(NguhItems.GRAPE_SEEDS, amount_seeds))
-        if (amount_leaves > 0) popResource(L, Pos, ItemStack(NguhItems.GRAPE_LEAF, amount_leaves))
-
-        L.playSound(
-            null,
-            Pos,
-            SoundEvents.SWEET_BERRY_BUSH_PICK_BERRIES,
-            SoundSource.BLOCKS,
-            1f,
-            0.8f + L.random.nextFloat() * 0.4f
-        )
-
-        L.setBlock(Pos, St.setValue(AGE, 1), UPDATE_CLIENTS)
-        L.gameEvent(PE, GameEvent.BLOCK_CHANGE, Pos)
+        use(St, L, Pos, PE)
         return InteractionResult.SUCCESS
     }
 
@@ -118,6 +102,32 @@ class GrapeCropBlock(Settings: Properties) : CropBlock(Settings) {
         private val BIG_SHAPE: VoxelShape? = cube(16.0)
 
         fun IsStickLogged(St: BlockState): Boolean = St.getValue(STICK_LOGGED)
+
+        fun use(
+            St: BlockState,
+            L: Level,
+            Pos: BlockPos,
+            E: Entity
+        ) {
+            val amount_grapes = 1 + L.random.nextInt(2)
+            val amount_seeds = L.random.nextInt(2)
+            val amount_leaves = L.random.nextInt(2)
+            popResource(L, Pos, ItemStack(NguhItems.GRAPES, amount_grapes))
+            if (amount_seeds > 0) popResource(L, Pos, ItemStack(NguhItems.GRAPE_SEEDS, amount_seeds))
+            if (amount_leaves > 0) popResource(L, Pos, ItemStack(NguhItems.GRAPE_LEAF, amount_leaves))
+
+            L.playSound(
+                null,
+                Pos,
+                SoundEvents.SWEET_BERRY_BUSH_PICK_BERRIES,
+                SoundSource.BLOCKS,
+                1f,
+                0.8f + L.random.nextFloat() * 0.4f
+            )
+
+            L.setBlock(Pos, St.setValue(AGE, 1), UPDATE_CLIENTS)
+            L.gameEvent(E, GameEvent.BLOCK_CHANGE, Pos)
+        }
     }
 }
 
