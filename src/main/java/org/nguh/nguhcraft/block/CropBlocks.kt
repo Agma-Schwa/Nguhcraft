@@ -55,7 +55,6 @@ class GrapeCropBlock(Settings: Properties) : CropBlock(Settings) {
         Hand: InteractionHand,
         BHR: BlockHitResult
     ): InteractionResult? {
-        if (ProtectionManager.IsProtectedBlock(L, Pos)) return InteractionResult.FAIL
         if (S.`is`(Items.STICK) && !IsStickLogged(St)) {
             L.setBlockAndUpdate(Pos, St.setValue(STICK_LOGGED, true))
             L.playSound(
@@ -83,8 +82,8 @@ class GrapeCropBlock(Settings: Properties) : CropBlock(Settings) {
         val age = getAge(St)
         if (age != getMaxAge()) return super.useWithoutItem(St, L, Pos, PE, BHR)
 
-        if (Use(St, L, Pos, PE)) return InteractionResult.SUCCESS
-        else return InteractionResult.FAIL
+        Use(St, L, Pos, PE)
+        return InteractionResult.SUCCESS
     }
 
     override fun createBlockStateDefinition(B: StateDefinition.Builder<Block, BlockState>) {
@@ -110,9 +109,7 @@ class GrapeCropBlock(Settings: Properties) : CropBlock(Settings) {
             L: Level,
             Pos: BlockPos,
             E: Entity
-        ): Boolean {
-            if (ProtectionManager.IsProtectedBlock(L, Pos)) return false
-
+        ) {
             val amount_grapes = 1 + L.random.nextInt(2)
             val amount_seeds = L.random.nextInt(2)
             val amount_leaves = L.random.nextInt(2)
@@ -131,7 +128,6 @@ class GrapeCropBlock(Settings: Properties) : CropBlock(Settings) {
 
             L.setBlock(Pos, St.setValue(AGE, 1), UPDATE_CLIENTS)
             L.gameEvent(E, GameEvent.BLOCK_CHANGE, Pos)
-            return true
         }
 
         fun OnFoxUse(
@@ -144,6 +140,7 @@ class GrapeCropBlock(Settings: Properties) : CropBlock(Settings) {
                 if (L.getBlockState(Pos.above()).`is`(NguhBlocks.GRAPE_CROP)) Pos = Pos.above();
                 else return
             }
+            if (ProtectionManager.IsProtectedBlock(L, Pos)) return
             Use(St, L, Pos, E)
         }
     }
