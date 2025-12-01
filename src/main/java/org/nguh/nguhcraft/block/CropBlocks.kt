@@ -24,7 +24,6 @@ import net.minecraft.world.phys.BlockHitResult
 import net.minecraft.world.phys.shapes.CollisionContext
 import net.minecraft.world.phys.shapes.VoxelShape
 import org.nguh.nguhcraft.item.NguhItems
-import org.nguh.nguhcraft.protect.ProtectionManager
 
 class GrapeCropBlock(Settings: Properties) : CropBlock(Settings) {
     init { registerDefaultState(defaultBlockState().setValue(STICK_LOGGED, true)) }
@@ -96,6 +95,7 @@ class GrapeCropBlock(Settings: Properties) : CropBlock(Settings) {
     companion object {
         const val MAX_AGE: Int = 4
         val CODEC: MapCodec<GrapeCropBlock> = simpleCodec(::GrapeCropBlock)
+        @JvmField
         val AGE: IntegerProperty = BlockStateProperties.AGE_4
         val STICK_LOGGED: BooleanProperty = BooleanProperty.create("sticklogged")
         private val FLAT_SHAPE: VoxelShape? = column(16.0, 0.0, 2.0)
@@ -130,6 +130,7 @@ class GrapeCropBlock(Settings: Properties) : CropBlock(Settings) {
             L.gameEvent(E, GameEvent.BLOCK_CHANGE, Pos)
         }
 
+        @JvmStatic
         fun OnFoxUse(
             St: BlockState,
             E: Entity
@@ -140,7 +141,6 @@ class GrapeCropBlock(Settings: Properties) : CropBlock(Settings) {
                 if (L.getBlockState(Pos.above()).`is`(NguhBlocks.GRAPE_CROP)) Pos = Pos.above();
                 else return
             }
-            if (ProtectionManager.IsProtectedBlock(L, Pos)) return
             Use(St, L, Pos, E)
         }
     }
