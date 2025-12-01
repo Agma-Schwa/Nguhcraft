@@ -22,6 +22,7 @@ import org.nguh.nguhcraft.block.ChestVariantProperty
 import org.nguh.nguhcraft.block.NguhBlockModels
 import org.nguh.nguhcraft.client.render.Renderer
 import org.nguh.nguhcraft.client.render.WorldRendering
+import org.nguh.nguhcraft.item.NguhItems
 
 @Environment(EnvType.CLIENT)
 class NguhcraftClient : ClientModInitializer {
@@ -30,6 +31,7 @@ class NguhcraftClient : ClientModInitializer {
         Renderer.Init()
 
         Registry.register(BuiltInRegistries.CREATIVE_MODE_TAB, Id("treasures"), TREASURES_ITEM_GROUP)
+        Registry.register(BuiltInRegistries.CREATIVE_MODE_TAB, Id("farming"), FARMING_ITEM_GROUP)
 
         NguhBlockModels.InitRenderLayers()
 
@@ -50,9 +52,15 @@ class NguhcraftClient : ClientModInitializer {
 
     companion object {
         val TREASURES_ITEM_GROUP: CreativeModeTab = net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup.builder()
-            .icon { ItemStack(Items.NETHERITE_INGOT) }
+            .icon { ItemStack(Items.PETRIFIED_OAK_SLAB) }
             .title(Component.translatable("itemGroup.nguhcraft.treasures"))
             .displayItems { Ctx, Entries -> Treasures.AddAll(Ctx, Entries) }
+            .build()
+
+        val FARMING_ITEM_GROUP: CreativeModeTab = net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup.builder()
+            .icon { ItemStack(NguhItems.GRAPES) }
+            .title(Component.translatable("itemGroup.nguhcraft.farming"))
+            .displayItems { Ctx, Entries -> Farming.AddAll(Ctx, Entries) }
             .build()
 
         // FIXME: All of these should be attached to some singleton 'Session' object so

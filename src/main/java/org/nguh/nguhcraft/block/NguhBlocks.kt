@@ -595,6 +595,15 @@ object NguhBlocks {
         BlockBehaviour.Properties.ofFullCopy(Blocks.POTATOES)
     )
 
+    val CRATES: List<Block> = mutableListOf()
+
+    val SUGAR_CANE_CRATE = RegisterCrate("sugar_cane_crate")
+    val SWEET_BERRY_CRATE = RegisterCrate("sweet_berry_crate")
+    val GLOW_BERRY_CRATE = RegisterCrate("glow_berry_crate")
+    val SEAGRASS_CRATE = RegisterCrate("seagrass_crate")
+    val GRAPE_CRATE = RegisterCrate("grape_crate")
+    val PEANUT_CRATE = RegisterCrate("peanut_crate")
+
     // =========================================================================
     //  Block entities
     // =========================================================================
@@ -927,6 +936,7 @@ object NguhBlocks {
     ).also {
         it.addAll(CHAINS_AND_LANTERNS.flatten())
         it.addAll(ALL_BROCADE_BLOCKS)
+        it.addAll(CRATES)
 
         // Slabs may drop 2 or 1 and are thus handled separately. Same for doors
         it.addAll(ALL_VARIANT_FAMILY_BLOCKS.filter { it !is SlabBlock && it !is DoorBlock })
@@ -997,6 +1007,12 @@ object NguhBlocks {
         { StairBlock(Parent.defaultBlockState(), it) },
         BlockBehaviour.Properties.ofLegacyCopy(Parent)
     )
+
+    private fun RegisterCrate( Key: String ) = Register(
+        Key,
+        ::Block,
+        BlockBehaviour.Properties.ofFullCopy(Blocks.OAK_PLANKS).strength(2.0F, 3.0F).sound(SoundType.WOOD)
+    ).also { (CRATES as MutableList).add(it) }
 
     private fun <T : Block> RegisterWithoutItem(
         Key: String,

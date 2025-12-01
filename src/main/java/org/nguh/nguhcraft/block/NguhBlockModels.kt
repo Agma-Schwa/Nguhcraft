@@ -287,6 +287,8 @@ object NguhBlockModels {
         RegisterCropWithStick(G, NguhBlocks.GRAPE_CROP, GrapeCropBlock.STICK_LOGGED, GrapeCropBlock.AGE, 0, 1, 2, 3, 4)
         G.createCropBlock(NguhBlocks.PEANUT_CROP, CropBlock.AGE, 0, 1, 2, 3, 4, 5, 6, 7)
 
+        for (B in NguhBlocks.CRATES) RegisterCrate(G, B)
+
         // Block families.
         NguhBlocks.ALL_VARIANT_FAMILIES
             .filter(BlockFamily::shouldGenerateModel)
@@ -487,6 +489,21 @@ object NguhBlockModels {
                     )
                 }
             })
+        )
+    }
+
+    @Environment(EnvType.CLIENT)
+    fun RegisterCrate(G: BlockModelGenerators, B: Block) {
+        val Map = TextureMapping()
+            .put(TextureSlot.PARTICLE, TextureMapping.getBlockTexture(B, "_top"))
+            .put(TextureSlot.DOWN, ResourceLocation.parse("nguhcraft:block/crate_bottom"))
+            .put(TextureSlot.UP, TextureMapping.getBlockTexture(B, "_top"))
+            .put(TextureSlot.SIDE, TextureMapping.getBlockTexture(B, "_side"))
+        G.blockStateOutput.accept(
+            BlockModelGenerators.createSimpleBlock(
+                B,
+                plainVariant(ModelTemplates.CUBE.create(B, Map, G.modelOutput))
+            )
         )
     }
 }

@@ -397,6 +397,25 @@ class NguhcraftRecipeGenerator(
         // =========================================================================
         offerShapelessRecipe(NguhItems.GRAPE_SEEDS, 1, NguhItems.GRAPES to 1)
         offerShapelessRecipe(NguhItems.GRAPE_JUICE, 1, NguhItems.GRAPES to 1, Items.GLASS_BOTTLE to 1, Items.SUGAR to 1)
+        for (i in mutableMapOf(
+            Pair(NguhBlocks.SUGAR_CANE_CRATE, Items.SUGAR_CANE),
+            Pair(NguhBlocks.SWEET_BERRY_CRATE, Items.SWEET_BERRIES),
+            Pair(NguhBlocks.GLOW_BERRY_CRATE, Items.GLOW_BERRIES),
+            Pair(NguhBlocks.SEAGRASS_CRATE, Items.SEAGRASS),
+            Pair(NguhBlocks.GRAPE_CRATE, NguhItems.GRAPES),
+            Pair(NguhBlocks.PEANUT_CRATE, NguhItems.PEANUTS)
+        ).iterator()) {
+            nineBlockStorageRecipes(
+                RecipeCategory.FOOD,
+                i.value,
+                RecipeCategory.FOOD,
+                i.key,
+                getSimpleRecipeName(i.key),
+                null,
+                "${getSimpleRecipeName(i.key)}_uncompact",
+                null
+            )
+        }
 
         // =========================================================================
         //  Brocade Blocks
