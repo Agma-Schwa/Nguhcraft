@@ -98,6 +98,7 @@ class NguhcraftRecipeGenerator(
         offerShapelessRecipe(Items.NETHER_WART, 9, Items.NETHER_WART_BLOCK to 1)
         offerShapelessRecipe(Items.BAMBOO, 18, Items.BAMBOO_BLOCK to 2)
         offerShapelessRecipe(Items.SOUL_SOIL, 2, Items.SOUL_SAND to 1, Items.DIRT to 1)
+        offerShapelessRecipe(Items.HONEYCOMB, 4, Items.HONEYCOMB_BLOCK to 1)
 
         // =========================================================================
         //  Miscellaneous Blocks
@@ -189,6 +190,19 @@ class NguhcraftRecipeGenerator(
         offerShapelessRecipe(Items.HOPPER, 1, NguhBlocks.DECORATIVE_HOPPER to 1, Items.CHEST to 1)
         offerShapelessRecipe(NguhBlocks.DECORATIVE_HOPPER, 1, Items.HOPPER to 1)
         offerShapelessRecipe(Items.CHARCOAL, 9, NguhBlocks.CHARCOAL_BLOCK to 1)
+
+        offerShaped(Items.SAND, 4, "from_clay") {
+            pattern("SC")
+            pattern("CS")
+            cinput('S', Items.SAND)
+            cinput('C', Items.CLAY)
+        }
+        offerShaped(Items.RED_SAND, 4, "from_clay") {
+            pattern("SC")
+            pattern("CS")
+            cinput('S', Items.RED_SAND)
+            cinput('C', Items.CLAY)
+        }
 
         // =========================================================================
         //  Block Families
