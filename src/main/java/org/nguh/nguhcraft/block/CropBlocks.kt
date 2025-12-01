@@ -80,7 +80,6 @@ class GrapeCropBlock(Settings: Properties) : CropBlock(Settings) {
     ): InteractionResult {
         val age = getAge(St)
         if (age != getMaxAge()) return super.useWithoutItem(St, L, Pos, PE, BHR)
-
         Use(St, L, Pos, PE)
         return InteractionResult.SUCCESS
     }
@@ -94,9 +93,8 @@ class GrapeCropBlock(Settings: Properties) : CropBlock(Settings) {
 
     companion object {
         const val MAX_AGE: Int = 4
+        @JvmField val AGE: IntegerProperty = BlockStateProperties.AGE_4
         val CODEC: MapCodec<GrapeCropBlock> = simpleCodec(::GrapeCropBlock)
-        @JvmField
-        val AGE: IntegerProperty = BlockStateProperties.AGE_4
         val STICK_LOGGED: BooleanProperty = BooleanProperty.create("sticklogged")
         private val FLAT_SHAPE: VoxelShape? = column(16.0, 0.0, 2.0)
         private val SMALL_SHAPE: VoxelShape? = cube(9.5, 16.0, 9.5)
@@ -112,12 +110,12 @@ class GrapeCropBlock(Settings: Properties) : CropBlock(Settings) {
         ) {
             if (St.getValue(AGE) != MAX_AGE) return
 
-            val amount_grapes = 1 + L.random.nextInt(2)
-            val amount_seeds = L.random.nextInt(2)
-            val amount_leaves = L.random.nextInt(2)
-            popResource(L, Pos, ItemStack(NguhItems.GRAPES, amount_grapes))
-            if (amount_seeds > 0) popResource(L, Pos, ItemStack(NguhItems.GRAPE_SEEDS, amount_seeds))
-            if (amount_leaves > 0) popResource(L, Pos, ItemStack(NguhItems.GRAPE_LEAF, amount_leaves))
+            val AmountGrapes = 1 + L.random.nextInt(2)
+            val AmountSeeds = L.random.nextInt(2)
+            val AmountLeaves = L.random.nextInt(2)
+            popResource(L, Pos, ItemStack(NguhItems.GRAPES, AmountGrapes))
+            if (AmountSeeds > 0) popResource(L, Pos, ItemStack(NguhItems.GRAPE_SEEDS, AmountSeeds))
+            if (AmountLeaves > 0) popResource(L, Pos, ItemStack(NguhItems.GRAPE_LEAF, AmountLeaves))
 
             L.playSound(
                 null,
@@ -133,15 +131,14 @@ class GrapeCropBlock(Settings: Properties) : CropBlock(Settings) {
         }
 
         @JvmStatic
-        fun OnFoxUse(
-            E: Entity
-        ) {
+        fun OnFoxUse(E: Entity) {
             var Pos = E.blockPosition()
             val L = E.level()
             if (!L.getBlockState(Pos).`is`(NguhBlocks.GRAPE_CROP)) {
-                if (L.getBlockState(Pos.above()).`is`(NguhBlocks.GRAPE_CROP)) Pos = Pos.above();
+                if (L.getBlockState(Pos.above()).`is`(NguhBlocks.GRAPE_CROP)) Pos = Pos.above()
                 else return
             }
+
             Use(L.getBlockState(Pos), L, Pos, E)
         }
     }
