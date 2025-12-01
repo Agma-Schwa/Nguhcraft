@@ -29,6 +29,7 @@
         "datafixer.SchemasMixin",
         "discord.common.EntityMixin",
         "entity.CreeperAccessor",
+        "entity.FoxEatBerriesGoalMixin",
         "entity.LargeFireballMixin",
         "entity.Ghast_GhastShootFireballGoalMixin",
         "entity.GhastMixin",

@@ -576,6 +576,7 @@ object NguhBlocks {
     // =========================================================================
     //  New Crops
     // =========================================================================
+    @JvmField
     val GRAPE_CROP = RegisterWithoutItem(
         "grape_crop",
         ::GrapeCropBlock,

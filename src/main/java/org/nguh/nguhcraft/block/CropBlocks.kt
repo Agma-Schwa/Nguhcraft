@@ -6,6 +6,7 @@ import net.minecraft.sounds.SoundEvents
 import net.minecraft.sounds.SoundSource
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.InteractionResult
+import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
@@ -79,25 +80,7 @@ class GrapeCropBlock(Settings: Properties) : CropBlock(Settings) {
     ): InteractionResult {
         val age = getAge(St)
         if (age != getMaxAge()) return super.useWithoutItem(St, L, Pos, PE, BHR)
-
-        val amount_grapes = 1 + L.random.nextInt(2)
-        val amount_seeds = L.random.nextInt(2)
-        val amount_leaves = L.random.nextInt(2)
-        popResource(L, Pos, ItemStack(NguhItems.GRAPES, amount_grapes))
-        if (amount_seeds > 0) popResource(L, Pos, ItemStack(NguhItems.GRAPE_SEEDS, amount_seeds))
-        if (amount_leaves > 0) popResource(L, Pos, ItemStack(NguhItems.GRAPE_LEAF, amount_leaves))
-
-        L.playSound(
-            null,
-            Pos,
-            SoundEvents.SWEET_BERRY_BUSH_PICK_BERRIES,
-            SoundSource.BLOCKS,
-            1f,
-            0.8f + L.random.nextFloat() * 0.4f
-        )
-
-        L.setBlock(Pos, St.setValue(AGE, 1), UPDATE_CLIENTS)
-        L.gameEvent(PE, GameEvent.BLOCK_CHANGE, Pos)
+        Use(St, L, Pos, PE)
         return InteractionResult.SUCCESS
     }
 
@@ -110,14 +93,54 @@ class GrapeCropBlock(Settings: Properties) : CropBlock(Settings) {
 
     companion object {
         const val MAX_AGE: Int = 4
+        @JvmField val AGE: IntegerProperty = BlockStateProperties.AGE_4
         val CODEC: MapCodec<GrapeCropBlock> = simpleCodec(::GrapeCropBlock)
-        val AGE: IntegerProperty = BlockStateProperties.AGE_4
         val STICK_LOGGED: BooleanProperty = BooleanProperty.create("sticklogged")
         private val FLAT_SHAPE: VoxelShape? = column(16.0, 0.0, 2.0)
         private val SMALL_SHAPE: VoxelShape? = cube(9.5, 16.0, 9.5)
         private val BIG_SHAPE: VoxelShape? = cube(16.0)
 
         fun IsStickLogged(St: BlockState): Boolean = St.getValue(STICK_LOGGED)
+
+        fun Use(
+            St: BlockState,
+            L: Level,
+            Pos: BlockPos,
+            E: Entity
+        ) {
+            if (St.getValue(AGE) != MAX_AGE) return
+
+            val AmountGrapes = 1 + L.random.nextInt(2)
+            val AmountSeeds = L.random.nextInt(2)
+            val AmountLeaves = L.random.nextInt(2)
+            popResource(L, Pos, ItemStack(NguhItems.GRAPES, AmountGrapes))
+            if (AmountSeeds > 0) popResource(L, Pos, ItemStack(NguhItems.GRAPE_SEEDS, AmountSeeds))
+            if (AmountLeaves > 0) popResource(L, Pos, ItemStack(NguhItems.GRAPE_LEAF, AmountLeaves))
+
+            L.playSound(
+                null,
+                Pos,
+                SoundEvents.SWEET_BERRY_BUSH_PICK_BERRIES,
+                SoundSource.BLOCKS,
+                1f,
+                0.8f + L.random.nextFloat() * 0.4f
+            )
+
+            L.setBlock(Pos, St.setValue(AGE, 1), UPDATE_CLIENTS)
+            L.gameEvent(E, GameEvent.BLOCK_CHANGE, Pos)
+        }
+
+        @JvmStatic
+        fun OnFoxUse(E: Entity) {
+            var Pos = E.blockPosition()
+            val L = E.level()
+            if (!L.getBlockState(Pos).`is`(NguhBlocks.GRAPE_CROP)) {
+                if (L.getBlockState(Pos.above()).`is`(NguhBlocks.GRAPE_CROP)) Pos = Pos.above()
+                else return
+            }
+
+            Use(L.getBlockState(Pos), L, Pos, E)
+        }
     }
 }
 
