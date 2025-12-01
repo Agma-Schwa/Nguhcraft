@@ -33,7 +33,7 @@ public class FoxEatBerriesGoalMixin {
     @Inject(method = "onReachedTarget", at = @At("TAIL"))
     private void inject$onReachedTarget(CallbackInfo ci, @Local BlockState St) {
         if (St.is(NguhBlocks.GRAPE_CROP)) {
-            GrapeCropBlock.OnFoxUse(St, field_17975);
+            GrapeCropBlock.OnFoxUse(field_17975);
         }
     }
 }

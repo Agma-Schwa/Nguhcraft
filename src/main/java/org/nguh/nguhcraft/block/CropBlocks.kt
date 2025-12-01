@@ -110,6 +110,8 @@ class GrapeCropBlock(Settings: Properties) : CropBlock(Settings) {
             Pos: BlockPos,
             E: Entity
         ) {
+            if (St.getValue(AGE) != MAX_AGE) return
+
             val amount_grapes = 1 + L.random.nextInt(2)
             val amount_seeds = L.random.nextInt(2)
             val amount_leaves = L.random.nextInt(2)
@@ -132,7 +134,6 @@ class GrapeCropBlock(Settings: Properties) : CropBlock(Settings) {
 
         @JvmStatic
         fun OnFoxUse(
-            St: BlockState,
             E: Entity
         ) {
             var Pos = E.blockPosition()
@@ -141,7 +142,7 @@ class GrapeCropBlock(Settings: Properties) : CropBlock(Settings) {
                 if (L.getBlockState(Pos.above()).`is`(NguhBlocks.GRAPE_CROP)) Pos = Pos.above();
                 else return
             }
-            Use(St, L, Pos, E)
+            Use(L.getBlockState(Pos), L, Pos, E)
         }
     }
 }
