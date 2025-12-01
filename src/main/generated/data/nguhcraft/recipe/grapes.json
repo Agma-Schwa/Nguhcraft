@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "nguhcraft:grape_crate"
+  ],
+  "result": {
+    "count": 9,
+    "id": "nguhcraft:grapes"
+  }
+}

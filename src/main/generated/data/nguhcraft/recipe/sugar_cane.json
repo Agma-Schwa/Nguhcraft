@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "nguhcraft:sugar_cane_crate"
+  ],
+  "result": {
+    "count": 9,
+    "id": "minecraft:sugar_cane"
+  }
+}

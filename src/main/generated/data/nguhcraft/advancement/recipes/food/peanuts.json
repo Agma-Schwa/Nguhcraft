@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_peanut_crate": {
+      "conditions": {
+        "items": [
+          {
+            "items": "nguhcraft:peanut_crate"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "nguhcraft:peanuts"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_peanut_crate"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "nguhcraft:peanuts"
+    ]
+  }
+}

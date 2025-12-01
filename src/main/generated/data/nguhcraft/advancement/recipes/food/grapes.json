@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_grape_crate": {
+      "conditions": {
+        "items": [
+          {
+            "items": "nguhcraft:grape_crate"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "nguhcraft:grapes"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_grape_crate"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "nguhcraft:grapes"
+    ]
+  }
+}

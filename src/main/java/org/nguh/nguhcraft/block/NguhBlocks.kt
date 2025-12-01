@@ -1008,7 +1008,7 @@ object NguhBlocks {
         BlockBehaviour.Properties.ofLegacyCopy(Parent)
     )
 
-    private fun RegisterCrate( Key: String ) = Register(
+    private fun RegisterCrate(Key: String) = Register(
         Key,
         ::Block,
         BlockBehaviour.Properties.ofFullCopy(Blocks.OAK_PLANKS).strength(2.0F, 3.0F).sound(SoundType.WOOD)
