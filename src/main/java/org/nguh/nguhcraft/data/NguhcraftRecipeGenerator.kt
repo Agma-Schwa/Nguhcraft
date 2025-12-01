@@ -197,6 +197,7 @@ class NguhcraftRecipeGenerator(
             cinput('S', Items.SAND)
             cinput('C', Items.CLAY)
         }
+
         offerShaped(Items.RED_SAND, 4, "from_clay") {
             pattern("SC")
             pattern("CS")

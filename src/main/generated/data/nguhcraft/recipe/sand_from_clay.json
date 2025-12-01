@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "C": "minecraft:clay",
+    "S": "minecraft:sand"
+  },
+  "pattern": [
+    "SC",
+    "CS"
+  ],
+  "result": {
+    "count": 4,
+    "id": "minecraft:sand"
+  }
+}
