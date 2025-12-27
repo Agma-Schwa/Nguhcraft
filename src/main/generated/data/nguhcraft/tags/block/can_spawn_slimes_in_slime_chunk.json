@@ -1,0 +1,13 @@
+{
+  "values": [
+    "minecraft:andesite",
+    "minecraft:deepslate",
+    "minecraft:diorite",
+    "minecraft:granite",
+    "minecraft:stone",
+    "minecraft:tuff",
+    "minecraft:gravel",
+    "minecraft:infested_stone",
+    "minecraft:infested_deepslate"
+  ]
+}
