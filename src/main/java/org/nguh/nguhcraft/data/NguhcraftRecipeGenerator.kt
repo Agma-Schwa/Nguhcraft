@@ -96,9 +96,15 @@ class NguhcraftRecipeGenerator(
         offerShapelessRecipe(Items.AMETHYST_SHARD, 4, Items.AMETHYST_BLOCK to 1)
         offerShapelessRecipe(Items.QUARTZ, 4, Items.QUARTZ_BLOCK to 1)
         offerShapelessRecipe(Items.NETHER_WART, 9, Items.NETHER_WART_BLOCK to 1)
+        offerShapelessRecipe(NguhItems.WARPED_WART, 9, Items.WARPED_WART_BLOCK to 1)
         offerShapelessRecipe(Items.BAMBOO, 18, Items.BAMBOO_BLOCK to 2)
         offerShapelessRecipe(Items.SOUL_SOIL, 2, Items.SOUL_SAND to 1, Items.DIRT to 1)
         offerShapelessRecipe(Items.HONEYCOMB, 4, Items.HONEYCOMB_BLOCK to 1)
+
+        // =========================================================================
+        // Vanilla Block Compositions
+        // =========================================================================
+        offerShapelessRecipe(Items.WARPED_WART_BLOCK, 9, NguhItems.WARPED_WART to 9)
 
         // =========================================================================
         //  Miscellaneous Blocks
@@ -170,6 +176,13 @@ class NguhcraftRecipeGenerator(
             cinput('#', NguhBlocks.PYRITE)
         }
 
+        offerShaped(NguhBlocks.VITRIOLIC_BRICKS, 2) {
+            pattern("WB")
+            pattern("BW")
+            cinput('B', Items.NETHER_BRICK)
+            cinput('W', NguhItems.WARPED_WART)
+        }
+
         offerShaped(NguhBlocks.DRIPSTONE_BRICKS, 4) {
             pattern("##")
             pattern("##")
@@ -186,10 +199,22 @@ class NguhcraftRecipeGenerator(
         offerChainAndLantern(NguhBlocks.OCHRE_CHAIN, NguhBlocks.OCHRE_LANTERN, Items.RESIN_CLUMP, Items.OCHRE_FROGLIGHT)
         offerChainAndLantern(NguhBlocks.PEARLESCENT_CHAIN, NguhBlocks.PEARLESCENT_LANTERN, Items.AMETHYST_SHARD, Items.PEARLESCENT_FROGLIGHT)
         offerChainAndLantern(NguhBlocks.VERDANT_CHAIN, NguhBlocks.VERDANT_LANTERN, Items.EMERALD, Items.VERDANT_FROGLIGHT)
+        offerChainAndLantern(NguhBlocks.VITRIOLIC_CHAIN, NguhBlocks.VITRIOLIC_LANTERN, Items.LAPIS_LAZULI, NguhBlocks.VITRIOLIC_FROGLIGHT)
 
         offerShapelessRecipe(Items.HOPPER, 1, NguhBlocks.DECORATIVE_HOPPER to 1, Items.CHEST to 1)
         offerShapelessRecipe(NguhBlocks.DECORATIVE_HOPPER, 1, Items.HOPPER to 1)
         offerShapelessRecipe(Items.CHARCOAL, 9, NguhBlocks.CHARCOAL_BLOCK to 1)
+
+        // Froglight drops are based on frog variant so in lieu of making more frog types, add froglight alchemy
+        offerShapelessRecipe(NguhBlocks.CLEANSING_FROGLIGHT, 1, Items.OCHRE_FROGLIGHT to 1, Items.PRISMARINE_CRYSTALS to 1)
+        offerShapelessRecipe(NguhBlocks.CLEANSING_FROGLIGHT, 1, Items.VERDANT_FROGLIGHT to 1, Items.PRISMARINE_CRYSTALS to 1)
+        offerShapelessRecipe(NguhBlocks.CLEANSING_FROGLIGHT, 1, Items.PEARLESCENT_FROGLIGHT to 1, Items.PRISMARINE_CRYSTALS to 1)
+        // The below line gives a warning in IntelliJ IDEA because NguhItems entries don't function like NguhBlocks or Items entries
+        offerShapelessRecipe(NguhBlocks.VITRIOLIC_FROGLIGHT, 1, NguhBlocks.CLEANSING_FROGLIGHT to 1, NguhItems.WARPED_WART to 1)
+        offerShapelessRecipe(NguhBlocks.SANGUINE_FROGLIGHT, 1, NguhBlocks.CLEANSING_FROGLIGHT to 1, Items.NETHER_WART to 1)
+        offerShapelessRecipe(Items.OCHRE_FROGLIGHT, 1, NguhBlocks.CLEANSING_FROGLIGHT to 1, Items.RESIN_CLUMP to 1)
+        offerShapelessRecipe(Items.VERDANT_FROGLIGHT, 1, NguhBlocks.CLEANSING_FROGLIGHT to 1, Items.EMERALD to 1)
+        offerShapelessRecipe(Items.PEARLESCENT_FROGLIGHT, 1, NguhBlocks.CLEANSING_FROGLIGHT to 1, Items.AMETHYST_SHARD to 1)
 
         offerShaped(Items.SAND, 4, "from_clay") {
             pattern("SC")

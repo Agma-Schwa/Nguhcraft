@@ -320,6 +320,31 @@ object NguhBlocks {
     )
 
     // =========================================================================
+    //  Froglights
+    // =========================================================================
+
+    val VITRIOLIC_FROGLIGHT = Register(
+        "vitriolic_froglight",
+        ::RotatedPillarBlock,
+        BlockBehaviour.Properties.ofFullCopy(Blocks.OCHRE_FROGLIGHT)
+            .mapColor(MapColor.LAPIS)
+    )
+
+    val SANGUINE_FROGLIGHT = Register(
+        "sanguine_froglight",
+        ::RotatedPillarBlock,
+        BlockBehaviour.Properties.ofFullCopy(Blocks.OCHRE_FROGLIGHT)
+            .mapColor(MapColor.FIRE)
+    )
+
+    val CLEANSING_FROGLIGHT = Register(
+        "cleansing_froglight",
+        ::RotatedPillarBlock,
+        BlockBehaviour.Properties.ofFullCopy(Blocks.OCHRE_FROGLIGHT)
+            .mapColor(MapColor.SNOW)
+    )
+
+    // =========================================================================
     //  Lanterns and Chains
     // =========================================================================
     val OCHRE_LANTERN = Register(
@@ -364,10 +389,25 @@ object NguhBlocks {
             .mapColor(MapColor.COLOR_GRAY)
     )
 
+    val VITRIOLIC_LANTERN = Register(
+        "vitriolic_lantern",
+        ::LanternBlock,
+        BlockBehaviour.Properties.ofFullCopy(Blocks.LANTERN)
+            .mapColor(MapColor.LAPIS)
+    )
+
+    val VITRIOLIC_CHAIN = Register(
+        "vitriolic_chain",
+        ::ChainBlock,
+        BlockBehaviour.Properties.ofFullCopy(Blocks.CHAIN)
+            .mapColor(MapColor.COLOR_GRAY)
+    )
+
     val CHAINS_AND_LANTERNS = listOf(
         OCHRE_CHAIN to OCHRE_LANTERN,
         PEARLESCENT_CHAIN to PEARLESCENT_LANTERN,
-        VERDANT_CHAIN to VERDANT_LANTERN
+        VERDANT_CHAIN to VERDANT_LANTERN,
+        VITRIOLIC_CHAIN to VITRIOLIC_LANTERN
     )
 
     // =========================================================================
@@ -407,6 +447,36 @@ object NguhBlocks {
     val CINNABAR_BRICK_SLAB_VERTICAL = RegisterVSlab("cinnabar_bricks", CINNABAR_BRICK_SLAB)
     val CINNABAR_BRICK_STAIRS = RegisterStairs(CINNABAR_BRICKS)
     val CINNABAR_BRICK_WALL = RegisterVariant(CINNABAR_BRICKS, "wall", ::WallBlock)
+
+    val CHISELED_CINNABAR_BRICKS = Register(
+        "chiseled_cinnabar_bricks",
+        ::Block,
+        BlockBehaviour.Properties.ofFullCopy(Blocks.STONE)
+            .mapColor(MapColor.NETHER)
+    )
+
+    // =========================================================================
+    //  Vitriolic Blocks
+    // =========================================================================
+
+    val VITRIOLIC_BRICKS = Register(
+        "vitriolic_bricks",
+        ::Block,
+        BlockBehaviour.Properties.ofFullCopy(Blocks.RED_NETHER_BRICKS)
+            .mapColor(MapColor.WARPED_NYLIUM)
+    )
+
+    val VITRIOLIC_BRICK_SLAB = RegisterVariant(VITRIOLIC_BRICKS, "slab", ::SlabBlock)
+    val VITRIOLIC_BRICK_SLAB_VERTICAL = RegisterVSlab("vitriolic_bricks", VITRIOLIC_BRICK_SLAB)
+    val VITRIOLIC_BRICK_STAIRS = RegisterStairs(VITRIOLIC_BRICKS)
+    val VITRIOLIC_BRICK_WALL = RegisterVariant(VITRIOLIC_BRICKS, "wall", ::WallBlock)
+
+    val CHISELED_VITRIOLIC_BRICKS = Register(
+        "chiseled_vitriolic_bricks",
+        ::Block,
+        BlockBehaviour.Properties.ofFullCopy(Blocks.RED_NETHER_BRICKS)
+            .mapColor(MapColor.WARPED_NYLIUM)
+    )
 
     // =========================================================================
     //  Calcite blocks
@@ -633,6 +703,7 @@ object NguhBlocks {
         .slab(CINNABAR_BRICK_SLAB)
         .stairs(CINNABAR_BRICK_STAIRS)
         .wall(CINNABAR_BRICK_WALL)
+        .chiseled(CHISELED_CINNABAR_BRICKS)
         .family
 
     val PYRITE_BRICK_FAMILY: BlockFamily = BlockFamilies.familyBuilder(PYRITE_BRICKS)
@@ -682,6 +753,13 @@ object NguhBlocks {
         .chiseled(GILDED_CHISELED_CALCITE_BRICKS)
         .family
 
+    val VITRIOLIC_BRICK_FAMILY: BlockFamily = BlockFamilies.familyBuilder(VITRIOLIC_BRICKS)
+        .slab(VITRIOLIC_BRICK_SLAB)
+        .stairs(VITRIOLIC_BRICK_STAIRS)
+        .wall(VITRIOLIC_BRICK_WALL)
+        .chiseled(CHISELED_VITRIOLIC_BRICKS)
+        .family
+
     val TINTED_OAK_FAMILY: BlockFamily = BlockFamilies.familyBuilder(TINTED_OAK_PLANKS)
         .slab(TINTED_OAK_SLAB)
         .stairs(TINTED_OAK_STAIRS)
@@ -708,7 +786,8 @@ object NguhBlocks {
         GILDED_POLISHED_CALCITE_FAMILY,
         GILDED_CALCITE_BRICK_FAMILY,
         PYRITE_BRICK_FAMILY,
-        DRIPSTONE_BRICK_FAMILY
+        DRIPSTONE_BRICK_FAMILY,
+        VITRIOLIC_BRICK_FAMILY
     )
 
     val WOOD_VARIANT_FAMILIES = arrayOf(
