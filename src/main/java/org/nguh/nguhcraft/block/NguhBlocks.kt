@@ -323,8 +323,8 @@ object NguhBlocks {
     //  Froglights
     // =========================================================================
 
-    val VITRIOLIC_FROGLIGHT = Register(
-        "vitriolic_froglight",
+    val AZURE_FROGLIGHT = Register(
+        "azure_froglight",
         ::RotatedPillarBlock,
         BlockBehaviour.Properties.ofFullCopy(Blocks.OCHRE_FROGLIGHT)
             .mapColor(MapColor.LAPIS)
@@ -389,15 +389,15 @@ object NguhBlocks {
             .mapColor(MapColor.COLOR_GRAY)
     )
 
-    val VITRIOLIC_LANTERN = Register(
-        "vitriolic_lantern",
+    val AZURE_LANTERN = Register(
+        "azure_lantern",
         ::LanternBlock,
         BlockBehaviour.Properties.ofFullCopy(Blocks.LANTERN)
             .mapColor(MapColor.LAPIS)
     )
 
-    val VITRIOLIC_CHAIN = Register(
-        "vitriolic_chain",
+    val AZURE_CHAIN = Register(
+        "azure_chain",
         ::ChainBlock,
         BlockBehaviour.Properties.ofFullCopy(Blocks.CHAIN)
             .mapColor(MapColor.COLOR_GRAY)
@@ -407,7 +407,7 @@ object NguhBlocks {
         OCHRE_CHAIN to OCHRE_LANTERN,
         PEARLESCENT_CHAIN to PEARLESCENT_LANTERN,
         VERDANT_CHAIN to VERDANT_LANTERN,
-        VITRIOLIC_CHAIN to VITRIOLIC_LANTERN
+        AZURE_CHAIN to AZURE_LANTERN
     )
 
     // =========================================================================
@@ -456,23 +456,23 @@ object NguhBlocks {
     )
 
     // =========================================================================
-    //  Vitriolic Blocks
+    //  Azure Nether Brick Blocks
     // =========================================================================
 
-    val VITRIOLIC_BRICKS = Register(
-        "vitriolic_bricks",
+    val AZURE_NETHER_BRICKS = Register(
+        "azure_nether_bricks",
         ::Block,
         BlockBehaviour.Properties.ofFullCopy(Blocks.RED_NETHER_BRICKS)
             .mapColor(MapColor.WARPED_NYLIUM)
     )
 
-    val VITRIOLIC_BRICK_SLAB = RegisterVariant(VITRIOLIC_BRICKS, "slab", ::SlabBlock)
-    val VITRIOLIC_BRICK_SLAB_VERTICAL = RegisterVSlab("vitriolic_bricks", VITRIOLIC_BRICK_SLAB)
-    val VITRIOLIC_BRICK_STAIRS = RegisterStairs(VITRIOLIC_BRICKS)
-    val VITRIOLIC_BRICK_WALL = RegisterVariant(VITRIOLIC_BRICKS, "wall", ::WallBlock)
+    val AZURE_NETHER_BRICK_SLAB = RegisterVariant(AZURE_NETHER_BRICKS, "slab", ::SlabBlock)
+    val AZURE_NETHER_BRICK_SLAB_VERTICAL = RegisterVSlab("azure_nether_bricks", AZURE_NETHER_BRICK_SLAB)
+    val AZURE_NETHER_BRICK_STAIRS = RegisterStairs(AZURE_NETHER_BRICKS)
+    val AZURE_NETHER_BRICK_WALL = RegisterVariant(AZURE_NETHER_BRICKS, "wall", ::WallBlock)
 
-    val CHISELED_VITRIOLIC_BRICKS = Register(
-        "chiseled_vitriolic_bricks",
+    val CHISELED_AZURE_NETHER_BRICKS = Register(
+        "chiseled_azure_nether_bricks",
         ::Block,
         BlockBehaviour.Properties.ofFullCopy(Blocks.RED_NETHER_BRICKS)
             .mapColor(MapColor.WARPED_NYLIUM)
@@ -753,11 +753,11 @@ object NguhBlocks {
         .chiseled(GILDED_CHISELED_CALCITE_BRICKS)
         .family
 
-    val VITRIOLIC_BRICK_FAMILY: BlockFamily = BlockFamilies.familyBuilder(VITRIOLIC_BRICKS)
-        .slab(VITRIOLIC_BRICK_SLAB)
-        .stairs(VITRIOLIC_BRICK_STAIRS)
-        .wall(VITRIOLIC_BRICK_WALL)
-        .chiseled(CHISELED_VITRIOLIC_BRICKS)
+    val AZURE_NETHER_BRICK_FAMILY: BlockFamily = BlockFamilies.familyBuilder(AZURE_NETHER_BRICKS)
+        .slab(AZURE_NETHER_BRICK_SLAB)
+        .stairs(AZURE_NETHER_BRICK_STAIRS)
+        .wall(AZURE_NETHER_BRICK_WALL)
+        .chiseled(CHISELED_AZURE_NETHER_BRICKS)
         .family
 
     val TINTED_OAK_FAMILY: BlockFamily = BlockFamilies.familyBuilder(TINTED_OAK_PLANKS)
@@ -787,7 +787,7 @@ object NguhBlocks {
         GILDED_CALCITE_BRICK_FAMILY,
         PYRITE_BRICK_FAMILY,
         DRIPSTONE_BRICK_FAMILY,
-        VITRIOLIC_BRICK_FAMILY
+        AZURE_NETHER_BRICK_FAMILY
     )
 
     val WOOD_VARIANT_FAMILIES = arrayOf(

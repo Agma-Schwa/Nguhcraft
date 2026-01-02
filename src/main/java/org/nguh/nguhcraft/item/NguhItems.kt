@@ -244,9 +244,7 @@ object NguhItems {
 
     var WARPED_WART = CreateItem(
         Id("warped_wart"),
-        { BlockItem(NguhBlocks.PEANUT_CROP, it) },
         Item.Properties()
-            .stacksTo(64)
     )
 
     // =========================================================================

@@ -240,7 +240,7 @@ object NguhBlockModels {
         VSlab(NguhBlocks.TINTED_OAK_SLAB_VERTICAL, NguhBlocks.TINTED_OAK_PLANKS, true),
         VSlab(NguhBlocks.PYRITE_BRICK_SLAB_VERTICAL, NguhBlocks.PYRITE_BRICKS),
         VSlab(NguhBlocks.DRIPSTONE_BRICK_SLAB_VERTICAL, NguhBlocks.DRIPSTONE_BRICKS),
-        VSlab(NguhBlocks.VITRIOLIC_BRICK_SLAB_VERTICAL, NguhBlocks.VITRIOLIC_BRICK_SLAB),
+        VSlab(NguhBlocks.AZURE_NETHER_BRICK_SLAB_VERTICAL, NguhBlocks.AZURE_NETHER_BRICK_SLAB),
     ).toTypedArray()
 
     @Environment(EnvType.CLIENT)
