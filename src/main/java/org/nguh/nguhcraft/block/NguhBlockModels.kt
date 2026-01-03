@@ -261,7 +261,7 @@ object NguhBlockModels {
         G.createTrivialCube(NguhBlocks.CHARCOAL_BLOCK)
 
         // Pillar-like blocks.
-        G.createRotatedPillarWithHorizontalVariant(NguhBlocks.VITRIOLIC_FROGLIGHT, TexturedModel.COLUMN, TexturedModel.COLUMN_HORIZONTAL)
+        G.createRotatedPillarWithHorizontalVariant(NguhBlocks.AZURE_FROGLIGHT, TexturedModel.COLUMN, TexturedModel.COLUMN_HORIZONTAL)
         G.createRotatedPillarWithHorizontalVariant(NguhBlocks.SANGUINE_FROGLIGHT, TexturedModel.COLUMN, TexturedModel.COLUMN_HORIZONTAL)
         G.createRotatedPillarWithHorizontalVariant(NguhBlocks.CLEANSING_FROGLIGHT, TexturedModel.COLUMN, TexturedModel.COLUMN_HORIZONTAL)
 
