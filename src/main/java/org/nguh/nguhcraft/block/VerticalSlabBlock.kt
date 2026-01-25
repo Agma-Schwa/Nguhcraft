@@ -1,35 +1,37 @@
 package org.nguh.nguhcraft.block
 
 import com.mojang.serialization.MapCodec
-import net.minecraft.world.level.block.Block
-import net.minecraft.world.level.block.state.BlockState
-import net.minecraft.world.phys.shapes.CollisionContext
-import net.minecraft.world.level.block.SimpleWaterloggedBlock
-import net.minecraft.world.entity.LivingEntity
-import net.minecraft.world.level.pathfinder.PathComputationType
-import net.minecraft.world.entity.player.Player
-import net.minecraft.world.level.material.Fluid
-import net.minecraft.world.level.material.FluidState
-import net.minecraft.world.level.material.Fluids
-import net.minecraft.world.item.context.BlockPlaceContext
-import net.minecraft.tags.FluidTags
-import net.minecraft.world.level.block.state.StateDefinition
-import net.minecraft.world.level.block.state.properties.EnumProperty
-import net.minecraft.world.level.block.state.properties.BlockStateProperties
-import net.minecraft.util.StringRepresentable
+import com.mojang.serialization.codecs.RecordCodecBuilder
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
-import net.minecraft.world.phys.Vec3
+import net.minecraft.server.level.ServerLevel
+import net.minecraft.tags.FluidTags
 import net.minecraft.util.RandomSource
-import net.minecraft.world.phys.shapes.VoxelShape
-import net.minecraft.world.phys.shapes.Shapes
+import net.minecraft.util.StringRepresentable
+import net.minecraft.world.entity.LivingEntity
+import net.minecraft.world.item.context.BlockPlaceContext
 import net.minecraft.world.level.BlockGetter
 import net.minecraft.world.level.LevelAccessor
 import net.minecraft.world.level.LevelReader
 import net.minecraft.world.level.ScheduledTickAccess
+import net.minecraft.world.level.block.Block
+import net.minecraft.world.level.block.SimpleWaterloggedBlock
+import net.minecraft.world.level.block.WeatheringCopper
+import net.minecraft.world.level.block.state.BlockState
+import net.minecraft.world.level.block.state.StateDefinition
+import net.minecraft.world.level.block.state.properties.BlockStateProperties
+import net.minecraft.world.level.block.state.properties.EnumProperty
+import net.minecraft.world.level.material.Fluid
+import net.minecraft.world.level.material.FluidState
+import net.minecraft.world.level.material.Fluids
+import net.minecraft.world.level.pathfinder.PathComputationType
+import net.minecraft.world.phys.Vec3
+import net.minecraft.world.phys.shapes.CollisionContext
+import net.minecraft.world.phys.shapes.Shapes
+import net.minecraft.world.phys.shapes.VoxelShape
 import org.nguh.nguhcraft.minus
 
-class VerticalSlabBlock(S: Properties) : Block(S), SimpleWaterloggedBlock {
+open class VerticalSlabBlock(S: Properties) : Block(S), SimpleWaterloggedBlock {
     enum class Type(val Name: String) : StringRepresentable {
         NORTH("north"),
         SOUTH("south"),
@@ -60,7 +62,7 @@ class VerticalSlabBlock(S: Properties) : Block(S), SimpleWaterloggedBlock {
         B.add(TYPE, WATERLOGGED)
     }
 
-    override fun codec(): MapCodec<VerticalSlabBlock> = CODEC
+    override fun codec(): MapCodec<out VerticalSlabBlock?> = CODEC
     override fun useShapeForLightOcclusion(St : BlockState) =
         St.getValue(TYPE) != Type.DOUBLE
 
@@ -159,6 +161,33 @@ class VerticalSlabBlock(S: Properties) : Block(S), SimpleWaterloggedBlock {
             // Map the click position to a quadrant within the XZ plane of the block.
             val Quad = Ctx.clickLocation - Vec3.atCenterOf(Pos)
             return Type.From(Direction.getApproximateNearest(Quad.with(Direction.Axis.Y, 0.0)))
+        }
+    }
+}
+
+class WeatheringCopperVerticalSlabBlock(weatherState: WeatheringCopper.WeatherState, S: Properties): VerticalSlabBlock(S), WeatheringCopper {
+    val weatheredState = weatherState
+
+    override fun codec(): MapCodec<WeatheringCopperVerticalSlabBlock> = CODEC
+
+    override fun getAge() = this.weatheredState
+
+    override fun randomTick(
+        blockState: BlockState,
+        serverLevel: ServerLevel,
+        blockPos: BlockPos,
+        randomSource: RandomSource
+    ) {
+        this.changeOverTime(blockState, serverLevel, blockPos, randomSource)
+    }
+
+    override fun isRandomlyTicking(blockState: BlockState) = WeatheringCopper.getNext(blockState.block).isPresent
+
+    companion object {
+        val CODEC: MapCodec<WeatheringCopperVerticalSlabBlock> = RecordCodecBuilder.mapCodec { instance ->
+            instance.group(WeatheringCopper.WeatherState.CODEC.fieldOf("weathering_state").forGetter(
+                WeatheringCopperVerticalSlabBlock::getAge), propertiesCodec()).apply(instance
+            ) { state, properties -> WeatheringCopperVerticalSlabBlock(state, properties) }
         }
     }
 }

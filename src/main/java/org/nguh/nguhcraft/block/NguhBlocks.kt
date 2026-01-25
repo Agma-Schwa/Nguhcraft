@@ -7,6 +7,7 @@ import net.fabricmc.fabric.api.`object`.builder.v1.block.entity.FabricBlockEntit
 import net.fabricmc.fabric.api.`object`.builder.v1.block.type.BlockSetTypeBuilder
 import net.fabricmc.fabric.api.`object`.builder.v1.block.type.WoodTypeBuilder
 import net.fabricmc.fabric.api.registry.FlammableBlockRegistry
+import net.fabricmc.fabric.api.registry.OxidizableBlocksRegistry
 import net.fabricmc.fabric.api.registry.StrippableBlockRegistry
 import net.minecraft.core.Registry
 import net.minecraft.core.component.DataComponentType
@@ -846,7 +847,7 @@ object NguhBlocks {
     val COBBLED_DEEPSLATE_SLAB_VERTICAL = RegisterVSlab("cobbled_deepslate", Blocks.COBBLED_DEEPSLATE_SLAB)
     val COBBLESTONE_SLAB_VERTICAL = RegisterVSlab("cobblestone", Blocks.COBBLESTONE_SLAB)
     val CRIMSON_SLAB_VERTICAL = RegisterVSlab("crimson", Blocks.CRIMSON_SLAB)
-    val CUT_COPPER_SLAB_VERTICAL = RegisterVSlab("cut_copper", Blocks.CUT_COPPER_SLAB)
+    val CUT_COPPER_SLAB_VERTICAL = RegisterCopperVSlab("cut_copper", Blocks.CUT_COPPER_SLAB, WeatheringCopper.WeatherState.UNAFFECTED)
     val CUT_RED_SANDSTONE_SLAB_VERTICAL = RegisterVSlab("cut_red_sandstone", Blocks.CUT_RED_SANDSTONE_SLAB)
     val CUT_SANDSTONE_SLAB_VERTICAL = RegisterVSlab("cut_sandstone", Blocks.CUT_SANDSTONE_SLAB)
     val DARK_OAK_SLAB_VERTICAL = RegisterVSlab("dark_oak", Blocks.DARK_OAK_SLAB)
@@ -855,7 +856,7 @@ object NguhBlocks {
     val DEEPSLATE_TILE_SLAB_VERTICAL = RegisterVSlab("deepslate_tile", Blocks.DEEPSLATE_TILE_SLAB)
     val DIORITE_SLAB_VERTICAL = RegisterVSlab("diorite", Blocks.DIORITE_SLAB)
     val END_STONE_BRICK_SLAB_VERTICAL = RegisterVSlab("end_stone_brick", Blocks.END_STONE_BRICK_SLAB)
-    val EXPOSED_CUT_COPPER_SLAB_VERTICAL = RegisterVSlab("exposed_cut_copper", Blocks.EXPOSED_CUT_COPPER_SLAB)
+    val EXPOSED_CUT_COPPER_SLAB_VERTICAL = RegisterCopperVSlab("exposed_cut_copper", Blocks.EXPOSED_CUT_COPPER_SLAB, WeatheringCopper.WeatherState.EXPOSED)
     val GRANITE_SLAB_VERTICAL = RegisterVSlab("granite", Blocks.GRANITE_SLAB)
     val JUNGLE_SLAB_VERTICAL = RegisterVSlab("jungle", Blocks.JUNGLE_SLAB)
     val MANGROVE_SLAB_VERTICAL = RegisterVSlab("mangrove", Blocks.MANGROVE_SLAB)
@@ -864,7 +865,7 @@ object NguhBlocks {
     val MUD_BRICK_SLAB_VERTICAL = RegisterVSlab("mud_brick", Blocks.MUD_BRICK_SLAB)
     val NETHER_BRICK_SLAB_VERTICAL = RegisterVSlab("nether_brick", Blocks.NETHER_BRICK_SLAB)
     val OAK_SLAB_VERTICAL = RegisterVSlab("oak", Blocks.OAK_SLAB)
-    val OXIDIZED_CUT_COPPER_SLAB_VERTICAL = RegisterVSlab("oxidized_cut_copper", Blocks.OXIDIZED_CUT_COPPER_SLAB)
+    val OXIDIZED_CUT_COPPER_SLAB_VERTICAL = RegisterCopperVSlab("oxidized_cut_copper", Blocks.OXIDIZED_CUT_COPPER_SLAB, WeatheringCopper.WeatherState.OXIDIZED)
     val PALE_OAK_SLAB_VERTICAL = RegisterVSlab("pale_oak", Blocks.PALE_OAK_SLAB)
     val POLISHED_ANDESITE_SLAB_VERTICAL = RegisterVSlab("polished_andesite", Blocks.POLISHED_ANDESITE_SLAB)
     val POLISHED_BLACKSTONE_BRICK_SLAB_VERTICAL = RegisterVSlab("polished_blackstone_brick", Blocks.POLISHED_BLACKSTONE_BRICK_SLAB)
@@ -894,7 +895,7 @@ object NguhBlocks {
     val WAXED_EXPOSED_CUT_COPPER_SLAB_VERTICAL = RegisterVSlab("waxed_exposed_cut_copper", Blocks.WAXED_EXPOSED_CUT_COPPER_SLAB)
     val WAXED_OXIDIZED_CUT_COPPER_SLAB_VERTICAL = RegisterVSlab("waxed_oxidized_cut_copper", Blocks.WAXED_OXIDIZED_CUT_COPPER_SLAB)
     val WAXED_WEATHERED_CUT_COPPER_SLAB_VERTICAL = RegisterVSlab("waxed_weathered_cut_copper", Blocks.WAXED_WEATHERED_CUT_COPPER_SLAB)
-    val WEATHERED_CUT_COPPER_SLAB_VERTICAL = RegisterVSlab("weathered_cut_copper", Blocks.WEATHERED_CUT_COPPER_SLAB)
+    val WEATHERED_CUT_COPPER_SLAB_VERTICAL = RegisterCopperVSlab("weathered_cut_copper", Blocks.WEATHERED_CUT_COPPER_SLAB, WeatheringCopper.WeatherState.WEATHERED)
 
     // =========================================================================
     // Tags
@@ -988,6 +989,11 @@ object NguhBlocks {
         RegisterFlammable(TINTED_OAK_WOOD, 5, 5)
         RegisterFlammable(STRIPPED_TINTED_OAK_LOG, 5, 5)
         RegisterFlammable(STRIPPED_TINTED_OAK_WOOD, 5, 5)
+
+        RegisterCopper(
+            listOf(CUT_COPPER_SLAB_VERTICAL, EXPOSED_CUT_COPPER_SLAB_VERTICAL, WEATHERED_CUT_COPPER_SLAB_VERTICAL, OXIDIZED_CUT_COPPER_SLAB_VERTICAL),
+            listOf(WAXED_CUT_COPPER_SLAB_VERTICAL, WAXED_EXPOSED_CUT_COPPER_SLAB_VERTICAL, WAXED_WEATHERED_CUT_COPPER_SLAB_VERTICAL, WAXED_OXIDIZED_CUT_COPPER_SLAB_VERTICAL)
+        )
     }
 
     @Suppress("DEPRECATION")
@@ -1061,13 +1067,40 @@ object NguhBlocks {
         Type
     )
 
-    fun RegisterVSlab(Name: String, SlabBlock: Block) = Register(
+    fun <T : VerticalSlabBlock> RegisterVSlab(
+        Name: String,
+        Ctor: (S: BlockBehaviour.Properties) -> T,
+        S: BlockBehaviour.Properties
+    ) = Register(
         "${Name}_slab_vertical",
-        ::VerticalSlabBlock,
-        BlockBehaviour.Properties.ofFullCopy(SlabBlock)
+        Ctor,
+        S
     ).also { (VERTICAL_SLABS as MutableList).add(it) }
+
+    fun RegisterVSlab(Name: String, SlabBlock: Block) = RegisterVSlab(
+        Name, ::VerticalSlabBlock,
+        BlockBehaviour.Properties.ofFullCopy(SlabBlock)
+    )
+
+    fun RegisterCopperVSlab(Name: String, SlabBlock: Block, State: WeatheringCopper.WeatherState) = RegisterVSlab(
+        Name, { s -> WeatheringCopperVerticalSlabBlock(State, s) },
+        BlockBehaviour.Properties.ofFullCopy(SlabBlock)
+    )
 
     fun RegisterStrippable(L: Block, S: Block) = StrippableBlockRegistry.register(L, S)
 
     fun RegisterFlammable(b: Block, burn: Int, spread: Int) = FlammableBlockRegistry.getDefaultInstance().add(b, burn, spread)
+
+    fun RegisterWaxable(U: Block, W: Block) = OxidizableBlocksRegistry.registerWaxableBlockPair(U, W)
+
+    fun RegisterOxidizable(L: Block, M: Block) = OxidizableBlocksRegistry.registerOxidizableBlockPair(L, M)
+
+    fun RegisterCopper(unwaxed: List<Block>, waxed: List<Block>)
+    {
+        assert(unwaxed.size == waxed.size)
+        for (i in waxed.indices) {
+            RegisterWaxable(unwaxed[i], waxed[i])
+            if (i < unwaxed.size - 1) RegisterOxidizable(unwaxed[i], unwaxed[i + 1])
+        }
+    }
 }
