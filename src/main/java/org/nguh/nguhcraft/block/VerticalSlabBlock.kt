@@ -184,10 +184,13 @@ class WeatheringCopperVerticalSlabBlock(weatherState: WeatheringCopper.WeatherSt
     override fun isRandomlyTicking(blockState: BlockState) = WeatheringCopper.getNext(blockState.block).isPresent
 
     companion object {
-        val CODEC: MapCodec<WeatheringCopperVerticalSlabBlock> = RecordCodecBuilder.mapCodec { instance ->
-            instance.group(WeatheringCopper.WeatherState.CODEC.fieldOf("weathering_state").forGetter(
-                WeatheringCopperVerticalSlabBlock::getAge), propertiesCodec()).apply(instance
-            ) { state, properties -> WeatheringCopperVerticalSlabBlock(state, properties) }
+        val CODEC: MapCodec<WeatheringCopperVerticalSlabBlock> = RecordCodecBuilder.mapCodec { 
+            it.group(
+                WeatheringCopper.WeatherState.CODEC.fieldOf("weathering_state").forGetter(
+                    WeatheringCopperVerticalSlabBlock::getAge
+                ), 
+                propertiesCodec() 
+            ).apply(it, ::WeatheringCopperVerticalSlabBlock)
         }
     }
 }
