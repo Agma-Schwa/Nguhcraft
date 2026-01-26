@@ -165,8 +165,7 @@ open class VerticalSlabBlock(S: Properties) : Block(S), SimpleWaterloggedBlock {
     }
 }
 
-class WeatheringCopperVerticalSlabBlock(weatherState: WeatheringCopper.WeatherState, S: Properties): VerticalSlabBlock(S), WeatheringCopper {
-    val weatheredState = weatherState
+class WeatheringCopperVerticalSlabBlock(val weatheredState: WeatheringCopper.WeatherState, S: Properties): VerticalSlabBlock(S), WeatheringCopper {
 
     override fun codec(): MapCodec<WeatheringCopperVerticalSlabBlock> = CODEC
 
