@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "nguhcraft:cleansing_froglight",
+    "minecraft:nether_wart"
+  ],
+  "result": {
+    "count": 1,
+    "id": "nguhcraft:sanguine_froglight"
+  }
+}

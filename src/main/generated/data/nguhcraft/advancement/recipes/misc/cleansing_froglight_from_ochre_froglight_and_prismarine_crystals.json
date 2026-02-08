@@ -1,0 +1,43 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_ochre_froglight": {
+      "conditions": {
+        "items": [
+          {
+            "items": "minecraft:ochre_froglight"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_prismarine_crystals": {
+      "conditions": {
+        "items": [
+          {
+            "items": "minecraft:prismarine_crystals"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "nguhcraft:cleansing_froglight_from_ochre_froglight_and_prismarine_crystals"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_ochre_froglight",
+      "has_prismarine_crystals"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "nguhcraft:cleansing_froglight_from_ochre_froglight_and_prismarine_crystals"
+    ]
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "variants": {
+    "axis=x": {
+      "model": "nguhcraft:block/cleansing_froglight_horizontal",
+      "x": 90,
+      "y": 90
+    },
+    "axis=y": {
+      "model": "nguhcraft:block/cleansing_froglight"
+    },
+    "axis=z": {
+      "model": "nguhcraft:block/cleansing_froglight_horizontal",
+      "x": 90
+    }
+  }
+}

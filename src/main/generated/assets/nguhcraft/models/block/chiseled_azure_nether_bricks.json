@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:block/cube_all",
+  "textures": {
+    "all": "nguhcraft:block/chiseled_azure_nether_bricks"
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_cleansing_froglight": {
+      "conditions": {
+        "items": [
+          {
+            "items": "nguhcraft:cleansing_froglight"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "nguhcraft:azure_froglight_from_cleansing_froglight_and_warped_wart"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    },
+    "has_warped_wart": {
+      "conditions": {
+        "items": [
+          {
+            "items": "nguhcraft:warped_wart"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_cleansing_froglight",
+      "has_warped_wart"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "nguhcraft:azure_froglight_from_cleansing_froglight_and_warped_wart"
+    ]
+  }
+}

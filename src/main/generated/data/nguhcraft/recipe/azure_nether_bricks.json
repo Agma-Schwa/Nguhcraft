@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": "minecraft:nether_brick",
+    "W": "nguhcraft:warped_wart"
+  },
+  "pattern": [
+    "WB",
+    "BW"
+  ],
+  "result": {
+    "count": 2,
+    "id": "nguhcraft:azure_nether_bricks"
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/cube_column_horizontal",
+  "textures": {
+    "end": "nguhcraft:block/azure_froglight_top",
+    "side": "nguhcraft:block/azure_froglight_side"
+  }
+}

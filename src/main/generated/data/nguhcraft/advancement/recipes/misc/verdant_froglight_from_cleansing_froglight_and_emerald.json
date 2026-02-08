@@ -1,0 +1,43 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_cleansing_froglight": {
+      "conditions": {
+        "items": [
+          {
+            "items": "nguhcraft:cleansing_froglight"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_emerald": {
+      "conditions": {
+        "items": [
+          {
+            "items": "minecraft:emerald"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "nguhcraft:verdant_froglight_from_cleansing_froglight_and_emerald"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_cleansing_froglight",
+      "has_emerald"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "nguhcraft:verdant_froglight_from_cleansing_froglight_and_emerald"
+    ]
+  }
+}

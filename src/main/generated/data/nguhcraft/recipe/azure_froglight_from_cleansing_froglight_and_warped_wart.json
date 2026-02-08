@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "nguhcraft:cleansing_froglight",
+    "nguhcraft:warped_wart"
+  ],
+  "result": {
+    "count": 1,
+    "id": "nguhcraft:azure_froglight"
+  }
+}

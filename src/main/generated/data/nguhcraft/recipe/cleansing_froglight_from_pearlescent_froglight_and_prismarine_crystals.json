@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "minecraft:pearlescent_froglight",
+    "minecraft:prismarine_crystals"
+  ],
+  "result": {
+    "count": 1,
+    "id": "nguhcraft:cleansing_froglight"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "variants": {
+    "type=bottom": {
+      "model": "nguhcraft:block/azure_nether_bricks_slab"
+    },
+    "type=double": {
+      "model": "nguhcraft:block/azure_nether_bricks"
+    },
+    "type=top": {
+      "model": "nguhcraft:block/azure_nether_bricks_slab_top"
+    }
+  }
+}

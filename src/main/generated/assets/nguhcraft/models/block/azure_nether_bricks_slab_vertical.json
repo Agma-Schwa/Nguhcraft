@@ -1,0 +1,6 @@
+{
+  "parent": "nguhcraft:block/vertical_slab",
+  "textures": {
+    "all": "nguhcraft:block/azure_nether_bricks"
+  }
+}

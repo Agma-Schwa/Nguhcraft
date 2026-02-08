@@ -10,6 +10,7 @@
     "nguhcraft:gilded_calcite_bricks_slab",
     "nguhcraft:pyrite_bricks_slab",
     "nguhcraft:dripstone_bricks_slab",
+    "nguhcraft:azure_nether_bricks_slab",
     "nguhcraft:tinted_oak_planks_slab",
     "nguhcraft:acacia_slab_vertical",
     "nguhcraft:andesite_slab_vertical",
@@ -81,6 +82,7 @@
     "nguhcraft:polished_cinnabar_slab_vertical",
     "nguhcraft:tinted_oak_slab_vertical",
     "nguhcraft:pyrite_bricks_slab_vertical",
-    "nguhcraft:dripstone_bricks_slab_vertical"
+    "nguhcraft:dripstone_bricks_slab_vertical",
+    "nguhcraft:azure_nether_bricks_slab_vertical"
   ]
 }

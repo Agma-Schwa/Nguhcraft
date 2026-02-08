@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:stonecutting",
+  "ingredient": "nguhcraft:cinnabar_bricks",
+  "result": {
+    "count": 1,
+    "id": "nguhcraft:chiseled_cinnabar_bricks"
+  }
+}

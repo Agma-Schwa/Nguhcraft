@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "nguhcraft:warped_wart"
+  ],
+  "result": {
+    "count": 9,
+    "id": "minecraft:warped_wart_block"
+  }
+}
