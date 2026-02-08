@@ -247,6 +247,9 @@ object NguhItems {
         Item.Properties()
     )
 
+    @JvmField
+    val FROGLIGHTS_CRAFTABLE_TO_CLEANSING = TagKey.create(Registries.ITEM, Id("froglights_craftable_to_cleansing"))
+
     // =========================================================================
     //  Initialisation
     // =========================================================================

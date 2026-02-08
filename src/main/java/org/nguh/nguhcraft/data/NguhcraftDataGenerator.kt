@@ -220,6 +220,11 @@ class NguhcraftItemTagProvider(
         valueLookupBuilder(ItemTags.CHICKEN_FOOD).add(NguhItems.GRAPE_SEEDS)
         valueLookupBuilder(ItemTags.FOX_FOOD).add(NguhItems.GRAPES)
         valueLookupBuilder(ItemTags.PARROT_FOOD).add(NguhItems.GRAPE_SEEDS).add(NguhItems.PEANUTS)
+
+        valueLookupBuilder(NguhItems.FROGLIGHTS_CRAFTABLE_TO_CLEANSING)
+            .add(Blocks.OCHRE_FROGLIGHT.asItem())
+            .add(Blocks.VERDANT_FROGLIGHT.asItem())
+            .add(Blocks.PEARLESCENT_FROGLIGHT.asItem())
     }
 }
 

@@ -205,9 +205,7 @@ class NguhcraftRecipeGenerator(
         offerShapelessRecipe(Items.CHARCOAL, 9, NguhBlocks.CHARCOAL_BLOCK to 1)
 
         // Froglight drops are based on frog variant so in lieu of making more frog types, add froglight alchemy
-        offerShapelessRecipe(NguhBlocks.CLEANSING_FROGLIGHT, 1, Items.OCHRE_FROGLIGHT to 1, Items.PRISMARINE_CRYSTALS to 1)
-        offerShapelessRecipe(NguhBlocks.CLEANSING_FROGLIGHT, 1, Items.VERDANT_FROGLIGHT to 1, Items.PRISMARINE_CRYSTALS to 1)
-        offerShapelessRecipe(NguhBlocks.CLEANSING_FROGLIGHT, 1, Items.PEARLESCENT_FROGLIGHT to 1, Items.PRISMARINE_CRYSTALS to 1)
+        offerShapelessRecipe(NguhBlocks.CLEANSING_FROGLIGHT, 1, NguhItems.FROGLIGHTS_CRAFTABLE_TO_CLEANSING to 1, Items.PRISMARINE_CRYSTALS to 1)
         offerShapelessRecipe(NguhBlocks.AZURE_FROGLIGHT, 1, NguhBlocks.CLEANSING_FROGLIGHT.asItem() to 1, NguhItems.WARPED_WART to 1)
         offerShapelessRecipe(NguhBlocks.SANGUINE_FROGLIGHT, 1, NguhBlocks.CLEANSING_FROGLIGHT.asItem() to 1, Items.NETHER_WART to 1)
         offerShapelessRecipe(Items.OCHRE_FROGLIGHT, 1, NguhBlocks.CLEANSING_FROGLIGHT.asItem() to 1, Items.RESIN_CLUMP to 1)
