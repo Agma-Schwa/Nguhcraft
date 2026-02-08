@@ -106,6 +106,18 @@ class NguhcraftBlockTagProvider(
             .add(Blocks.CORNFLOWER)
             .add(Blocks.LILY_OF_THE_VALLEY)
 
+        // Block tag for where slimes can spawn in slime chunks.
+        valueLookupBuilder(NguhBlocks.CAN_SPAWN_SLIMES_IN_SLIME_CHUNK)
+            .add(Blocks.ANDESITE)
+            .add(Blocks.DEEPSLATE)
+            .add(Blocks.DIORITE)
+            .add(Blocks.GRANITE)
+            .add(Blocks.STONE)
+            .add(Blocks.TUFF)
+            .add(Blocks.GRAVEL)
+            .add(Blocks.INFESTED_STONE)
+            .add(Blocks.INFESTED_DEEPSLATE)
+
         // Add blocks from families.
         val Fences = valueLookupBuilder(BlockTags.FENCES)
         val Walls = valueLookupBuilder(BlockTags.WALLS)
