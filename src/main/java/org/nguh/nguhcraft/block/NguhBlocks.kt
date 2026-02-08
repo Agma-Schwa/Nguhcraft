@@ -322,7 +322,6 @@ object NguhBlocks {
     // =========================================================================
     //  Froglights
     // =========================================================================
-
     val AZURE_FROGLIGHT = Register(
         "azure_froglight",
         ::RotatedPillarBlock,
@@ -404,10 +403,10 @@ object NguhBlocks {
     )
 
     val CHAINS_AND_LANTERNS = listOf(
+        AZURE_CHAIN to AZURE_LANTERN,
         OCHRE_CHAIN to OCHRE_LANTERN,
         PEARLESCENT_CHAIN to PEARLESCENT_LANTERN,
         VERDANT_CHAIN to VERDANT_LANTERN,
-        AZURE_CHAIN to AZURE_LANTERN
     )
 
     // =========================================================================
@@ -458,7 +457,6 @@ object NguhBlocks {
     // =========================================================================
     //  Azure Nether Brick Blocks
     // =========================================================================
-
     val AZURE_NETHER_BRICKS = Register(
         "azure_nether_bricks",
         ::Block,
@@ -1053,6 +1051,9 @@ object NguhBlocks {
 
         ItemGroupEvents.modifyEntriesEvent(CreativeModeTabs.FUNCTIONAL_BLOCKS).register {
             for (B in CHAINS_AND_LANTERNS.flatten()) it.accept(B)
+            it.accept(AZURE_FROGLIGHT)
+            it.accept(SANGUINE_FROGLIGHT)
+            it.accept(CLEANSING_FROGLIGHT)
         }
 
         RegisterStrippable(TINTED_OAK_LOG, STRIPPED_TINTED_OAK_LOG)

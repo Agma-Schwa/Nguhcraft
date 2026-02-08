@@ -208,12 +208,11 @@ class NguhcraftRecipeGenerator(
         offerShapelessRecipe(NguhBlocks.CLEANSING_FROGLIGHT, 1, Items.OCHRE_FROGLIGHT to 1, Items.PRISMARINE_CRYSTALS to 1)
         offerShapelessRecipe(NguhBlocks.CLEANSING_FROGLIGHT, 1, Items.VERDANT_FROGLIGHT to 1, Items.PRISMARINE_CRYSTALS to 1)
         offerShapelessRecipe(NguhBlocks.CLEANSING_FROGLIGHT, 1, Items.PEARLESCENT_FROGLIGHT to 1, Items.PRISMARINE_CRYSTALS to 1)
-        // The below line gives a warning in IntelliJ IDEA because NguhItems entries don't function like NguhBlocks or Items entries
-        offerShapelessRecipe(NguhBlocks.AZURE_FROGLIGHT, 1, NguhBlocks.CLEANSING_FROGLIGHT to 1, NguhItems.WARPED_WART to 1)
-        offerShapelessRecipe(NguhBlocks.SANGUINE_FROGLIGHT, 1, NguhBlocks.CLEANSING_FROGLIGHT to 1, Items.NETHER_WART to 1)
-        offerShapelessRecipe(Items.OCHRE_FROGLIGHT, 1, NguhBlocks.CLEANSING_FROGLIGHT to 1, Items.RESIN_CLUMP to 1)
-        offerShapelessRecipe(Items.VERDANT_FROGLIGHT, 1, NguhBlocks.CLEANSING_FROGLIGHT to 1, Items.EMERALD to 1)
-        offerShapelessRecipe(Items.PEARLESCENT_FROGLIGHT, 1, NguhBlocks.CLEANSING_FROGLIGHT to 1, Items.AMETHYST_SHARD to 1)
+        offerShapelessRecipe(NguhBlocks.AZURE_FROGLIGHT, 1, NguhBlocks.CLEANSING_FROGLIGHT.asItem() to 1, NguhItems.WARPED_WART to 1)
+        offerShapelessRecipe(NguhBlocks.SANGUINE_FROGLIGHT, 1, NguhBlocks.CLEANSING_FROGLIGHT.asItem() to 1, Items.NETHER_WART to 1)
+        offerShapelessRecipe(Items.OCHRE_FROGLIGHT, 1, NguhBlocks.CLEANSING_FROGLIGHT.asItem() to 1, Items.RESIN_CLUMP to 1)
+        offerShapelessRecipe(Items.VERDANT_FROGLIGHT, 1, NguhBlocks.CLEANSING_FROGLIGHT.asItem() to 1, Items.EMERALD to 1)
+        offerShapelessRecipe(Items.PEARLESCENT_FROGLIGHT, 1, NguhBlocks.CLEANSING_FROGLIGHT.asItem() to 1, Items.AMETHYST_SHARD to 1)
 
         offerShaped(Items.SAND, 4, "from_clay") {
             pattern("SC")
@@ -558,7 +557,7 @@ class NguhcraftRecipeGenerator(
     }
 
     /** Offer a lantern and chain recipe. */
-    fun offerChainAndLantern(Chain: Block, Lantern: Block, Material: Item, Froglight: Item) {
+    fun offerChainAndLantern(Chain: Block, Lantern: Block, Material: ItemLike, Froglight: ItemLike) {
         offerShaped(Chain) {
             pattern("N")
             pattern("A")

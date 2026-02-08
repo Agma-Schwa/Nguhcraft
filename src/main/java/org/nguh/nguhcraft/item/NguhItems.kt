@@ -294,7 +294,6 @@ object NguhItems {
         Register(GRAPE_LEAF)
         Register(GRAPE_JUICE)
         Register(STUFFED_GRAPE_LEAVES)
-
         Register(WARPED_WART)
     }
 
