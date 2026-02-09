@@ -1,11 +1,11 @@
 {
   "parent": "minecraft:recipes/root",
   "criteria": {
-    "has_pearlescent_froglight": {
+    "has_froglights_craftable_to_cleansing": {
       "conditions": {
         "items": [
           {
-            "items": "minecraft:pearlescent_froglight"
+            "items": "#nguhcraft:froglights_craftable_to_cleansing"
           }
         ]
       },
@@ -23,7 +23,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:cleansing_froglight_from_pearlescent_froglight_and_prismarine_crystals"
+        "recipe": "nguhcraft:cleansing_froglight_from_froglights_craftable_to_cleansing_and_prismarine_crystals"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
@@ -31,13 +31,13 @@
   "requirements": [
     [
       "has_the_recipe",
-      "has_pearlescent_froglight",
+      "has_froglights_craftable_to_cleansing",
       "has_prismarine_crystals"
     ]
   ],
   "rewards": {
     "recipes": [
-      "nguhcraft:cleansing_froglight_from_pearlescent_froglight_and_prismarine_crystals"
+      "nguhcraft:cleansing_froglight_from_froglights_craftable_to_cleansing_and_prismarine_crystals"
     ]
   }
 }

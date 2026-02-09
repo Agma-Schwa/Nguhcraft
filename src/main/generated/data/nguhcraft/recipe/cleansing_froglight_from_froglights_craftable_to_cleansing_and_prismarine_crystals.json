@@ -2,7 +2,7 @@
   "type": "minecraft:crafting_shapeless",
   "category": "misc",
   "ingredients": [
-    "minecraft:verdant_froglight",
+    "#nguhcraft:froglights_craftable_to_cleansing",
     "minecraft:prismarine_crystals"
   ],
   "result": {
