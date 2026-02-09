@@ -225,8 +225,6 @@ class NguhcraftItemTagProvider(
             .add(Blocks.OCHRE_FROGLIGHT.asItem())
             .add(Blocks.VERDANT_FROGLIGHT.asItem())
             .add(Blocks.PEARLESCENT_FROGLIGHT.asItem())
-            .add(NguhBlocks.AZURE_FROGLIGHT.asItem())
-            .add(NguhBlocks.SANGUINE_FROGLIGHT.asItem())
     }
 }
 
