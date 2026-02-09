@@ -242,6 +242,12 @@ object NguhItems {
             .stacksTo(64)
     )
 
+    var CHERRY = CreateItem(
+        Id("cherry"),
+        Item.Properties()
+            .food(FoodProperties(2, 0.1F, false))
+    )
+
     var WARPED_WART = CreateItem(
         Id("warped_wart"),
         Item.Properties()
@@ -297,6 +303,7 @@ object NguhItems {
         Register(GRAPE_LEAF)
         Register(GRAPE_JUICE)
         Register(STUFFED_GRAPE_LEAVES)
+        Register(CHERRY)
         Register(WARPED_WART)
     }
 
@@ -340,6 +347,7 @@ object NguhItems {
             it.accept(GRAPE_JUICE)
             it.accept(STUFFED_GRAPE_LEAVES)
             it.accept(PEANUTS)
+            it.accept(CHERRY)
         }
 
         KeyLockPairingRecipe.SERIALISER = Registry.register(
@@ -358,6 +366,7 @@ object NguhItems {
         CompostingChanceRegistry.INSTANCE.add(GRAPE_SEEDS, 0.3F)
         CompostingChanceRegistry.INSTANCE.add(GRAPE_LEAF, 0.3F)
         CompostingChanceRegistry.INSTANCE.add(PEANUTS, 0.5F)
+        CompostingChanceRegistry.INSTANCE.add(CHERRY, 0.5F)
     }
 
     private fun CreateItem(Id: ResourceLocation, I: Item): Item =

@@ -1,0 +1,7 @@
+{
+  "parent": "nguhcraft:block/tinted_budding_leaves",
+  "textures": {
+    "side": "minecraft:block/oak_leaves",
+    "overlay": "minecraft:block/oak_leaves_stage4"
+  }
+}

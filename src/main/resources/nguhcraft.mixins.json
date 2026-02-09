@@ -76,6 +76,7 @@
         "protect.server.WitherSkullBlockMixin",
         "server.AbstractMinecartAccessor",
         "server.BlockMixin",
+        "server.BlocksMixin",
         "server.DetectorRailBlockAccessor",
         "server.EnchantmentHelperMixin",
         "server.EntityMixin",
