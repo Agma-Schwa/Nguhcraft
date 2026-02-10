@@ -30,6 +30,7 @@ import net.minecraft.world.level.block.*
 import net.minecraft.world.level.block.entity.BlockEntity
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockBehaviour
+import net.minecraft.world.level.block.state.BlockBehaviour.Properties
 import net.minecraft.world.level.block.state.properties.BlockSetType
 import net.minecraft.world.level.block.state.properties.WoodType
 import net.minecraft.world.level.material.MapColor
@@ -673,6 +674,26 @@ object NguhBlocks {
     val GRAPE_CRATE = RegisterCrate("grape_crate")
     val PEANUT_CRATE = RegisterCrate("peanut_crate")
 
+    val BUDDING_OAK_LEAVES = RegisterWithoutItem(
+        "budding_oak_leaves",
+        BuddingLeavesBlock.Companion::OAK_LEAVES,
+        Properties.ofFullCopy(Blocks.OAK_LEAVES)
+    )
+    val BUDDING_DARK_OAK_LEAVES = RegisterWithoutItem(
+        "budding_dark_oak_leaves",
+        BuddingLeavesBlock.Companion::DARK_OAK_LEAVES,
+        Properties.ofFullCopy(Blocks.DARK_OAK_LEAVES)
+    )
+    val BUDDING_CHERRY_LEAVES = RegisterWithoutItem(
+        "budding_cherry_leaves",
+        BuddingLeavesBlock.Companion::CHERRY_LEAVES,
+        Properties.ofFullCopy(Blocks.CHERRY_LEAVES)
+    )
+
+    val LEAVE_BLOCKS: List<Block> = mutableListOf(
+        BUDDING_OAK_LEAVES, BUDDING_DARK_OAK_LEAVES, BUDDING_CHERRY_LEAVES
+    )
+
     // =========================================================================
     //  Block entities
     // =========================================================================
@@ -1069,6 +1090,9 @@ object NguhBlocks {
         RegisterFlammable(TINTED_OAK_WOOD, 5, 5)
         RegisterFlammable(STRIPPED_TINTED_OAK_LOG, 5, 5)
         RegisterFlammable(STRIPPED_TINTED_OAK_WOOD, 5, 5)
+        for (B in LEAVE_BLOCKS) {
+            RegisterFlammable(B, 60, 30)
+        }
 
         RegisterCopper(
             listOf(CUT_COPPER_SLAB_VERTICAL, EXPOSED_CUT_COPPER_SLAB_VERTICAL, WEATHERED_CUT_COPPER_SLAB_VERTICAL, OXIDIZED_CUT_COPPER_SLAB_VERTICAL),

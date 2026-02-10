@@ -25,6 +25,7 @@ class NguhcraftClient : ClientModInitializer {
         Renderer.Init()
         NguhcraftItemGroups.Init()
         NguhBlockModels.InitRenderLayers()
+        NguhBlockModels.InitColorRegistry()
 
         ClientCommandRegistrationCallback.EVENT.register { Dispatcher, _ ->
             Dispatcher.register(RenderCommand())

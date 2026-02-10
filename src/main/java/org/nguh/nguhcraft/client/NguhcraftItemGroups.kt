@@ -132,6 +132,7 @@ object NguhcraftItemGroups {
         Entries.accept(NguhItems.PEANUTS)
         Entries.accept(NguhItems.GRAPE_SEEDS)
         Entries.accept(NguhItems.GRAPE_LEAF)
+        Entries.accept(NguhItems.CHERRY)
     }
 
     private fun Name(Name: String, Format: ChatFormatting = ChatFormatting.GOLD): Component = Component.literal(Name)

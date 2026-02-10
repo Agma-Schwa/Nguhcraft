@@ -20,6 +20,7 @@ import net.minecraft.world.item.Items
 import net.minecraft.world.item.context.BlockPlaceContext
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.Block
+import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.LeavesBlock
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.StateDefinition
@@ -31,6 +32,129 @@ import org.nguh.nguhcraft.item.NguhItems
 import java.util.*
 import java.util.function.Function
 
+open class GrowingLeavesBlock : LeavesBlock {
+    private val leafParticleEffect: ParticleOptions?
+
+    private constructor(leafParticleChance: Float, leafParticleEffect: ParticleOptions?, settings: Properties) : super(
+        leafParticleChance,
+        settings
+    ) {
+        this.leafParticleEffect = leafParticleEffect
+    }
+
+    private constructor(leafParticleChance: Float, settings: Properties) : super(leafParticleChance, settings) {
+        this.leafParticleEffect = null
+    }
+
+    override fun spawnFallingLeavesParticle(world: Level, pos: BlockPos, random: RandomSource) {
+        if (Objects.isNull(this.leafParticleEffect)) {
+            val tintedParticleEffect =
+                ColorParticleOption.create(ParticleTypes.TINTED_LEAVES, world.getClientLeafTintColor(pos))
+            ParticleUtils.spawnParticleBelow(world, pos, random, tintedParticleEffect)
+        } else {
+            ParticleUtils.spawnParticleBelow(world, pos, random, this.leafParticleEffect)
+        }
+    }
+
+    private fun getLeafParticleChance(): Float {
+        return this.leafParticleChance
+    }
+
+    override fun isRandomlyTicking(state: BlockState): Boolean {
+        return !state.getValue(PERSISTENT)
+    }
+
+    override fun randomTick(
+        state: BlockState,
+        world: ServerLevel,
+        pos: BlockPos,
+        random: RandomSource
+    ) {
+        super.randomTick(state, world, pos, random)
+        val neighbors = countBuddingNeighbors(world, pos)
+        if (neighbors < random.nextIntBetweenInclusive(1, 4)) {
+            world.setBlock(pos, block.defaultBlockState()
+                .setValue(PERSISTENT, state.getValue(PERSISTENT))
+                .setValue(DISTANCE, state.getValue(DISTANCE))
+                .setValue(WATERLOGGED, state.getValue(WATERLOGGED)),
+                UPDATE_CLIENTS
+            )
+        }
+    }
+
+    private fun countBuddingNeighbors(
+        world: ServerLevel,
+        pos: BlockPos
+    ): Int {
+        var i = 0
+        for (x in -1..1) {
+            for (z in -1..1) {
+                for (y in -1..1) {
+                    if (x == 0 && z == 0 && y == 0) { continue }
+                    val state = world.getBlockState(pos.offset(x, y, z))
+                    if (state.block is BuddingLeavesBlock) { i++ }
+                }
+            }
+        }
+        return i
+    }
+
+    open val block: Block
+        get() = NguhBlocks.BUDDING_OAK_LEAVES
+
+    override fun codec(): MapCodec<out LeavesBlock?> {
+        return CODEC
+    }
+
+    companion object {
+        val CODEC: MapCodec<GrowingLeavesBlock?> =
+            RecordCodecBuilder.mapCodec<GrowingLeavesBlock?>(
+                Function { instance: RecordCodecBuilder.Instance<GrowingLeavesBlock?>? ->
+                    instance!!.group(
+                        ExtraCodecs.floatRange(0.0f, 1.0f)
+                            .fieldOf("leaf_particle_chance")
+                            .forGetter<GrowingLeavesBlock?> { GrowingLeavesBlock: GrowingLeavesBlock? -> GrowingLeavesBlock?.getLeafParticleChance() },
+                        ParticleTypes.CODEC.fieldOf("leaf_particle")
+                            .forGetter<GrowingLeavesBlock?> { GrowingLeavesBlock: GrowingLeavesBlock? -> GrowingLeavesBlock!!.leafParticleEffect },
+                        propertiesCodec<GrowingLeavesBlock?>()
+                    )
+                        .apply<GrowingLeavesBlock?>(
+                            instance
+                        ) { leafParticleChance: Float?, leafParticleEffect: ParticleOptions?, settings: Properties? ->
+                            GrowingLeavesBlock(
+                                leafParticleChance!!,
+                                leafParticleEffect,
+                                settings!!
+                            )
+                        }
+                }
+            )
+
+        fun CHERRY_LEAVES(settings: Properties): GrowingLeavesBlock {
+            return object : GrowingLeavesBlock(0.1f, ParticleTypes.CHERRY_LEAVES, settings) {
+                override val block: Block
+                    get() {
+                        return NguhBlocks.BUDDING_CHERRY_LEAVES
+                    }
+            }
+        }
+
+        fun OAK_LEAVES(settings: Properties): GrowingLeavesBlock {
+            return object : GrowingLeavesBlock(0.01f, settings) {
+            }
+        }
+
+        fun DARK_OAK_LEAVES(settings: Properties): GrowingLeavesBlock {
+            return object : GrowingLeavesBlock(0.01f, settings) {
+                override val block: Block
+                    get() {
+                        return NguhBlocks.BUDDING_DARK_OAK_LEAVES
+                    }
+            }
+        }
+    }
+}
+
 open class BuddingLeavesBlock : LeavesBlock {
     private val leafParticleEffect: ParticleOptions?
 
@@ -40,14 +164,14 @@ open class BuddingLeavesBlock : LeavesBlock {
     ) {
         this.leafParticleEffect = leafParticleEffect
         this.registerDefaultState(
-            super.defaultBlockState().setValue(getAgeProperty(), 0).setValue(BUDDING, 0)
+            super.defaultBlockState().setValue(getAgeProperty(), 0)
         )
     }
 
     private constructor(leafParticleChance: Float, settings: Properties) : super(leafParticleChance, settings) {
         this.leafParticleEffect = null
         this.registerDefaultState(
-            super.defaultBlockState().setValue(getAgeProperty(), 0).setValue(BUDDING, 0)
+            super.defaultBlockState().setValue(getAgeProperty(), 0)
         )
     }
 
@@ -85,30 +209,14 @@ open class BuddingLeavesBlock : LeavesBlock {
         return getAge(state) >= getMaxAge()
     }
 
-    fun getBudding(state: BlockState): Optional<Boolean> {
-        return when (state.getValue(BUDDING)) {
-            0 -> Optional.empty<Boolean>()
-            1 -> Optional.of<Boolean>(true)
-            else -> Optional.of<Boolean>(false)
-        }
-    }
-
-    fun withBudding(budding: Boolean, state: BlockState): BlockState {
-        return state.setValue(BUDDING, if (budding) 1 else 2)
-    }
-
     override fun isRandomlyTicking(state: BlockState): Boolean {
-        return (!this.isMature(state) || state.getValue(DISTANCE) == 7) && !(state.getValue(PERSISTENT) || !getBudding(state).orElse(true)!!)
+        return (!this.isMature(state) || state.getValue(DISTANCE) == 7) && !(state.getValue(PERSISTENT))
     }
 
     override fun randomTick(state: BlockState, world: ServerLevel, pos: BlockPos, random: RandomSource) {
         super.randomTick(state, world, pos, random)
-        if (getBudding(state).isEmpty) {
-            world.setBlock(pos, withBudding(random.nextInt(10) == 0, state), UPDATE_CLIENTS)
-            return
-        }
         val i = getAge(state)
-        if (i < getMaxAge() && getBudding(state).orElse(false)) {
+        if (i < getMaxAge() && !state.getValue(PERSISTENT)) {
             if (random.nextInt(25.0f.toInt() / (8 - state.getValue(DISTANCE))) == 0) {
                 world.setBlock(pos, withAge(i + 1, state), UPDATE_CLIENTS)
             }
@@ -167,11 +275,11 @@ open class BuddingLeavesBlock : LeavesBlock {
 
     override fun createBlockStateDefinition(builder: StateDefinition.Builder<Block?, BlockState?>) {
         super.createBlockStateDefinition(builder)
-        builder.add(getAgeProperty()).add(BUDDING)
+        builder.add(getAgeProperty())
     }
 
     override fun getStateForPlacement(context: BlockPlaceContext): BlockState {
-        return Objects.requireNonNull<BlockState>(super.getStateForPlacement(context)).setValue(BUDDING, 2)
+        return Objects.requireNonNull<BlockState>(super.getStateForPlacement(context))
     }
 
     override fun codec(): MapCodec<BuddingLeavesBlock?> {
@@ -202,7 +310,6 @@ open class BuddingLeavesBlock : LeavesBlock {
         )
         const val MAX_AGE: Int = 4
         val AGE: IntegerProperty = BlockStateProperties.AGE_4
-        val BUDDING: IntegerProperty = IntegerProperty.create("budding", 0, 2)
 
         fun CHERRY_LEAVES(settings: Properties): BuddingLeavesBlock {
             return object : BuddingLeavesBlock(0.1f, ParticleTypes.CHERRY_LEAVES, settings) {
@@ -210,16 +317,19 @@ open class BuddingLeavesBlock : LeavesBlock {
                     get() {
                         return NguhItems.CHERRY
                     }
+                override fun asItem(): Item { return Blocks.CHERRY_LEAVES.asItem() }
             }
         }
 
         fun OAK_LEAVES(settings: Properties): BuddingLeavesBlock {
             return object : BuddingLeavesBlock(0.01f, settings) {
+                override fun asItem(): Item { return Blocks.OAK_LEAVES.asItem() }
             }
         }
 
         fun DARK_OAK_LEAVES(settings: Properties): BuddingLeavesBlock {
             return object : BuddingLeavesBlock(0.01f, settings) {
+                override fun asItem(): Item { return Blocks.DARK_OAK_LEAVES.asItem() }
             }
         }
     }

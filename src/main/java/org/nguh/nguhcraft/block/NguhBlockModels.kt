@@ -2,42 +2,42 @@ package org.nguh.nguhcraft.block
 
 import com.mojang.serialization.Codec
 import com.mojang.serialization.MapCodec
+import it.unimi.dsi.fastutil.ints.Int2ObjectFunction
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
 import net.fabricmc.fabric.api.client.rendering.v1.BlockRenderLayerMap
-import net.minecraft.world.level.block.Block
-import net.minecraft.world.level.block.Blocks
-import net.minecraft.world.level.block.state.properties.ChestType
+import net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry
+import net.minecraft.client.color.block.BlockColor
 import net.minecraft.client.data.models.BlockModelGenerators
 import net.minecraft.client.data.models.BlockModelGenerators.plainVariant
 import net.minecraft.client.data.models.blockstates.MultiPartGenerator
 import net.minecraft.client.data.models.blockstates.MultiVariantGenerator
 import net.minecraft.client.data.models.blockstates.PropertyDispatch
-import net.minecraft.client.data.models.model.ItemModelUtils
+import net.minecraft.client.data.models.model.*
 import net.minecraft.client.data.models.model.ModelLocationUtils.getModelLocation
-import net.minecraft.client.data.models.model.ModelTemplate
-import net.minecraft.client.data.models.model.ModelTemplates
-import net.minecraft.client.data.models.model.TextureMapping
-import net.minecraft.client.data.models.model.TextureSlot
 import net.minecraft.client.data.models.model.TextureSlot.ALL
-import net.minecraft.client.data.models.model.TexturedModel
-import net.minecraft.client.renderer.chunk.ChunkSectionLayer
-import net.minecraft.client.renderer.Sheets
-import net.minecraft.client.renderer.special.ChestSpecialRenderer
-import net.minecraft.client.renderer.item.properties.select.SelectItemModelProperty
-import net.minecraft.client.resources.model.Material
 import net.minecraft.client.multiplayer.ClientLevel
+import net.minecraft.client.renderer.BiomeColors
+import net.minecraft.client.renderer.Sheets
+import net.minecraft.client.renderer.chunk.ChunkSectionLayer
+import net.minecraft.client.renderer.item.properties.select.SelectItemModelProperty
+import net.minecraft.client.renderer.special.ChestSpecialRenderer
+import net.minecraft.client.resources.model.Material
+import net.minecraft.core.BlockPos
 import net.minecraft.data.BlockFamily
+import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.item.ItemDisplayContext
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
-import net.minecraft.world.level.block.state.properties.BlockStateProperties
-import net.minecraft.resources.ResourceLocation
+import net.minecraft.world.level.BlockAndTintGetter
+import net.minecraft.world.level.block.Block
+import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.CropBlock
-import net.minecraft.world.level.block.state.properties.BooleanProperty
-import net.minecraft.world.level.block.state.properties.IntegerProperty
+import net.minecraft.world.level.block.state.BlockState
+import net.minecraft.world.level.block.state.properties.*
 import org.nguh.nguhcraft.Nguhcraft.Companion.Id
 import org.nguh.nguhcraft.flatten
 import java.util.*
@@ -295,6 +295,10 @@ object NguhBlockModels {
 
         for (B in NguhBlocks.CRATES) RegisterCrate(G, B)
 
+        RegisterBuddingLeaves(G, NguhBlocks.BUDDING_OAK_LEAVES, Blocks.OAK_LEAVES, true, BuddingLeavesBlock.AGE, 0, 1, 2, 3, 4)
+        RegisterBuddingLeaves(G, NguhBlocks.BUDDING_DARK_OAK_LEAVES, Blocks.DARK_OAK_LEAVES, true, BuddingLeavesBlock.AGE, 0, 1, 2, 3, 4)
+        RegisterBuddingLeaves(G, NguhBlocks.BUDDING_CHERRY_LEAVES, Blocks.CHERRY_LEAVES, false, BuddingLeavesBlock.AGE, 0, 1, 2, 3, 4)
+
         // Block families.
         NguhBlocks.ALL_VARIANT_FAMILIES
             .filter(BlockFamily::shouldGenerateModel)
@@ -332,6 +336,19 @@ object NguhBlockModels {
             BlockRenderLayerMap.putBlock(NguhBlocks.WROUGHT_IRON_BARS, it)
             BlockRenderLayerMap.putBlock(NguhBlocks.GOLD_BARS, it)
         }
+    }
+
+    @Environment(EnvType.CLIENT)
+    fun InitColorRegistry() {
+        ColorProviderRegistry.BLOCK.register(BlockColor
+        {
+                _: BlockState?, blockAndTintGetter: BlockAndTintGetter?, blockPos: BlockPos?, _: Int ->
+            if (blockAndTintGetter != null && blockPos != null)
+                BiomeColors.getAverageFoliageColor(blockAndTintGetter, blockPos)
+            else
+                -12012264
+        }, NguhBlocks.BUDDING_OAK_LEAVES, NguhBlocks.BUDDING_DARK_OAK_LEAVES
+        )
     }
 
     // Copied from ::registerIronBars()
@@ -511,5 +528,49 @@ object NguhBlockModels {
                 plainVariant(ModelTemplates.CUBE.create(B, Map, G.modelOutput))
             )
         )
+    }
+
+    @Environment(EnvType.CLIENT)
+    fun RegisterBuddingLeaves(G: BlockModelGenerators, B: Block, BaseBlock: Block?, tinted: Boolean, ageProperty: Property<Int>, vararg ageTextureIndices: Int) {
+        require(ageProperty.possibleValues.size == ageTextureIndices.size)
+        val int2ObjectMap: Int2ObjectMap<ResourceLocation?> = Int2ObjectOpenHashMap<ResourceLocation?>()
+        G.blockStateOutput
+            .accept(
+                MultiVariantGenerator.dispatch(B)
+                    .with(
+                        PropertyDispatch.initial(ageProperty)
+                            .generate(
+                                { age: Int ->
+                                    val i: Int = ageTextureIndices[age]
+                                    plainVariant( int2ObjectMap.computeIfAbsent( i, Int2ObjectFunction {
+                                            stage: Int ->
+                                        var function = { location: ResourceLocation -> TextureMapping.cube(location) }
+                                        if (stage == 0 && !Objects.isNull(BaseBlock)) {
+                                            function = { _ -> TextureMapping.cube(BaseBlock) }
+                                        }
+                                        if (tinted && stage == 0) {
+                                            G.createSuffixedVariant(B, "_stage${0}", ModelTemplates.LEAVES, function)
+                                        }
+                                        else if (tinted) {
+                                            function = {
+                                                location: ResourceLocation -> TextureMapping.layered(
+                                                TextureMapping.getBlockTexture(if (Objects.isNull(BaseBlock)) B else BaseBlock),
+                                                location)
+                                            }
+                                            G.createSuffixedVariant(
+                                                B,
+                                                "_stage$stage",
+                                                ModelTemplate(Optional.of(Id("block/tinted_budding_leaves")), empty(), TextureSlot.LAYER0, TextureSlot.LAYER1),
+                                                function
+                                            )
+                                        }
+                                        else {
+                                            G.createSuffixedVariant(B, "_stage$stage", ModelTemplates.CUBE_ALL, function)
+                                        }
+                                    }) )
+                                }
+                            )
+                    )
+            )
     }
 }
