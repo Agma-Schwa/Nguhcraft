@@ -340,17 +340,15 @@ object NguhBlockModels {
 
     @Environment(EnvType.CLIENT)
     fun InitColorRegistry() {
-        ColorProviderRegistry.BLOCK.register(BlockColor
-        {
-                _: BlockState?, blockAndTintGetter: BlockAndTintGetter?, blockPos: BlockPos?, _: Int ->
-            if (blockAndTintGetter != null && blockPos != null)
-                BiomeColors.getAverageFoliageColor(blockAndTintGetter, blockPos)
-            else
-                -12012264
-        }, NguhBlocks.BUDDING_OAK_LEAVES, NguhBlocks.BUDDING_DARK_OAK_LEAVES
+        ColorProviderRegistry.BLOCK.register(
+            { _, Getter, Pos, _ ->
+                if (Getter != null && Pos != null) BiomeColors.getAverageFoliageColor(Getter, Pos)
+                else -12012264
+            },
+            NguhBlocks.BUDDING_OAK_LEAVES,
+            NguhBlocks.BUDDING_DARK_OAK_LEAVES
         )
     }
-
     // Copied from ::registerIronBars()
     @Environment(EnvType.CLIENT)
     fun RegisterBarsModel(G: BlockModelGenerators, B: Block) {
