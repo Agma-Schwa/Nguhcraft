@@ -103,7 +103,7 @@ class NguhcraftRecipeGenerator(
         // =========================================================================
         // Vanilla Block Compositions
         // =========================================================================
-        nineBlockStorageRecipes(RecipeCategory.MISC, Items.WARPED_WART_BLOCK, RecipeCategory.MISC, NguhItems.WARPED_WART)
+        nineBlockStorageRecipes(RecipeCategory.MISC, NguhItems.WARPED_WART, RecipeCategory.MISC, Items.WARPED_WART_BLOCK)
 
         // =========================================================================
         //  Miscellaneous Blocks
