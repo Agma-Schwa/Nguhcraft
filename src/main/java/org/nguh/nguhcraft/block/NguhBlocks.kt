@@ -690,7 +690,7 @@ object NguhBlocks {
         Properties.ofFullCopy(Blocks.CHERRY_LEAVES)
     )
 
-    val LEAVE_BLOCKS: List<Block> = mutableListOf(
+    val LEAF_BLOCKS: List<Block> = mutableListOf(
         BUDDING_OAK_LEAVES, BUDDING_DARK_OAK_LEAVES, BUDDING_CHERRY_LEAVES
     )
 
