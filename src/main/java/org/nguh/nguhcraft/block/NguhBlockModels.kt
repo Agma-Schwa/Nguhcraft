@@ -531,46 +531,36 @@ object NguhBlockModels {
     }
 
     @Environment(EnvType.CLIENT)
-    fun RegisterBuddingLeaves(G: BlockModelGenerators, B: Block, BaseBlock: Block?, tinted: Boolean, ageProperty: Property<Int>, vararg ageTextureIndices: Int) {
-        require(ageProperty.possibleValues.size == ageTextureIndices.size)
-        val int2ObjectMap: Int2ObjectMap<ResourceLocation?> = Int2ObjectOpenHashMap<ResourceLocation?>()
-        G.blockStateOutput
-            .accept(
-                MultiVariantGenerator.dispatch(B)
-                    .with(
-                        PropertyDispatch.initial(ageProperty)
-                            .generate(
-                                { age: Int ->
-                                    val i: Int = ageTextureIndices[age]
-                                    plainVariant( int2ObjectMap.computeIfAbsent( i, Int2ObjectFunction {
-                                            stage: Int ->
-                                        var function = { location: ResourceLocation -> TextureMapping.cube(location) }
-                                        if (stage == 0 && !Objects.isNull(BaseBlock)) {
-                                            function = { _ -> TextureMapping.cube(BaseBlock) }
-                                        }
-                                        if (tinted && stage == 0) {
-                                            G.createSuffixedVariant(B, "_stage${0}", ModelTemplates.LEAVES, function)
-                                        }
-                                        else if (tinted) {
-                                            function = {
-                                                location: ResourceLocation -> TextureMapping.layered(
-                                                TextureMapping.getBlockTexture(if (Objects.isNull(BaseBlock)) B else BaseBlock),
-                                                location)
-                                            }
-                                            G.createSuffixedVariant(
-                                                B,
-                                                "_stage$stage",
-                                                ModelTemplate(Optional.of(Id("block/tinted_budding_leaves")), empty(), TextureSlot.LAYER0, TextureSlot.LAYER1),
-                                                function
-                                            )
-                                        }
-                                        else {
-                                            G.createSuffixedVariant(B, "_stage$stage", ModelTemplates.CUBE_ALL, function)
-                                        }
-                                    }) )
-                                }
-                            )
-                    )
+    fun RegisterBuddingLeaves(
+        G: BlockModelGenerators,
+        B: Block,
+        BaseBlock: Block,
+        Tinted: Boolean,
+        Age: Property<Int>,
+        vararg AgeTextureIndices: Int) {
+        require(Age.possibleValues.size == AgeTextureIndices.size)
+        val Map = Int2ObjectOpenHashMap<ResourceLocation>()
+        G.blockStateOutput.accept(
+            MultiVariantGenerator.dispatch(B)
+                .with(PropertyDispatch.initial(Age).generate {
+                    plainVariant(Map.computeIfAbsent(AgeTextureIndices[it]) {
+                        when {
+                            Tinted && it == 0 -> G.createSuffixedVariant(B, "_stage${0}", ModelTemplates.LEAVES) { TextureMapping.cube(it) }
+                            Tinted -> G.createSuffixedVariant(
+                                B,
+                                "_stage$it",
+                                ModelTemplate(
+                                    Optional.of(Id("block/tinted_budding_leaves")),
+                                    empty(),
+                                    TextureSlot.LAYER0,
+                                    TextureSlot.LAYER1
+                                )
+                            ) { TextureMapping.layered(TextureMapping.getBlockTexture(BaseBlock), it) }
+                            else -> G.createSuffixedVariant(B, "_stage$it", ModelTemplates.CUBE_ALL) { TextureMapping.cube(it) }
+                        }
+                    })
+                }
             )
+        )
     }
 }
