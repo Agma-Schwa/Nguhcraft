@@ -338,7 +338,7 @@ class NguhcraftLootTableProvider(
                 .setRolls(ConstantValue.exactly(1.0F))
                 .`when`(doesNotHaveShearsOrSilkTouch())
                 .add(
-                    (applyExplosionCondition(B, LootItem.lootTableItem(B.fruit)))
+                    (applyExplosionCondition(B, LootItem.lootTableItem(B.Fruit)))
                         .`when`(
                             BonusLevelTableCondition.bonusLevelFlatChance(
                                 impl.getOrThrow(Enchantments.FORTUNE),

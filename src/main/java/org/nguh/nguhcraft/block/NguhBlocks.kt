@@ -11,6 +11,7 @@ import net.fabricmc.fabric.api.registry.OxidizableBlocksRegistry
 import net.fabricmc.fabric.api.registry.StrippableBlockRegistry
 import net.minecraft.core.Registry
 import net.minecraft.core.component.DataComponentType
+import net.minecraft.core.particles.ParticleTypes
 import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.core.registries.Registries
 import net.minecraft.data.BlockFamilies
@@ -37,6 +38,7 @@ import net.minecraft.world.level.material.MapColor
 import net.minecraft.world.level.material.PushReaction
 import org.nguh.nguhcraft.Nguhcraft.Companion.Id
 import org.nguh.nguhcraft.flatten
+import org.nguh.nguhcraft.item.NguhItems
 import java.util.function.IntFunction
 
 enum class ChestVariant : StringRepresentable {
@@ -676,17 +678,17 @@ object NguhBlocks {
 
     val BUDDING_OAK_LEAVES = RegisterWithoutItem(
         "budding_oak_leaves",
-        BuddingLeavesBlock.Companion::OAK_LEAVES,
+        { s -> BuddingLeavesBlock.MakeInstance(0.01F, null, s, Blocks.OAK_LEAVES, null) },
         Properties.ofFullCopy(Blocks.OAK_LEAVES)
     )
     val BUDDING_DARK_OAK_LEAVES = RegisterWithoutItem(
         "budding_dark_oak_leaves",
-        BuddingLeavesBlock.Companion::DARK_OAK_LEAVES,
+        { s -> BuddingLeavesBlock.MakeInstance(0.01F, null, s, Blocks.DARK_OAK_LEAVES, null) },
         Properties.ofFullCopy(Blocks.DARK_OAK_LEAVES)
     )
     val BUDDING_CHERRY_LEAVES = RegisterWithoutItem(
         "budding_cherry_leaves",
-        BuddingLeavesBlock.Companion::CHERRY_LEAVES,
+        { s -> BuddingLeavesBlock.MakeInstance(0.1F, ParticleTypes.CHERRY_LEAVES, s, Blocks.CHERRY_LEAVES, NguhItems.CHERRY) },
         Properties.ofFullCopy(Blocks.CHERRY_LEAVES)
     )
 
@@ -1090,9 +1092,7 @@ object NguhBlocks {
         RegisterFlammable(TINTED_OAK_WOOD, 5, 5)
         RegisterFlammable(STRIPPED_TINTED_OAK_LOG, 5, 5)
         RegisterFlammable(STRIPPED_TINTED_OAK_WOOD, 5, 5)
-        for (B in LEAVE_BLOCKS) {
-            RegisterFlammable(B, 60, 30)
-        }
+        for (B in LEAF_BLOCKS) RegisterFlammable(B, 60, 30)
 
         RegisterCopper(
             listOf(CUT_COPPER_SLAB_VERTICAL, EXPOSED_CUT_COPPER_SLAB_VERTICAL, WEATHERED_CUT_COPPER_SLAB_VERTICAL, OXIDIZED_CUT_COPPER_SLAB_VERTICAL),
