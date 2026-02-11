@@ -155,25 +155,12 @@ open class GrowingLeavesBlock : LeavesBlock {
     }
 }
 
-open class BuddingLeavesBlock : LeavesBlock {
-    private val leafParticleEffect: ParticleOptions?
-
-    private constructor(leafParticleChance: Float, leafParticleEffect: ParticleOptions?, settings: Properties) : super(
-        leafParticleChance,
-        settings
-    ) {
-        this.leafParticleEffect = leafParticleEffect
-        this.registerDefaultState(
-            super.defaultBlockState().setValue(getAgeProperty(), 0)
-        )
-    }
-
-    private constructor(leafParticleChance: Float, settings: Properties) : super(leafParticleChance, settings) {
-        this.leafParticleEffect = null
-        this.registerDefaultState(
-            super.defaultBlockState().setValue(getAgeProperty(), 0)
-        )
-    }
+open class BuddingLeavesBlock(
+    ParticleChance: Float,
+    private val ParticleEffect: ParticleOptions?,
+    Settings: Properties,
+) : LeavesBlock(ParticleChance, Settings) {
+    init { registerDefaultState(defaultBlockState().setValue(getAgeProperty(), 0)) }
 
     override fun spawnFallingLeavesParticle(world: Level, pos: BlockPos, random: RandomSource) {
         if (Objects.isNull(this.leafParticleEffect)) {
