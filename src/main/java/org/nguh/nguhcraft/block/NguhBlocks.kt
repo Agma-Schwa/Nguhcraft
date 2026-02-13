@@ -696,6 +696,13 @@ object NguhBlocks {
         BUDDING_OAK_LEAVES, BUDDING_DARK_OAK_LEAVES, BUDDING_CHERRY_LEAVES
     )
 
+    @JvmField
+    val LeavesBlock2BuddingLeavesBlock: Map<Block, Block> = mutableMapOf(
+        Blocks.OAK_LEAVES to BUDDING_OAK_LEAVES,
+        Blocks.DARK_OAK_LEAVES to BUDDING_DARK_OAK_LEAVES,
+        Blocks.CHERRY_LEAVES to BUDDING_CHERRY_LEAVES
+    )
+
     // =========================================================================
     //  Block entities
     // =========================================================================

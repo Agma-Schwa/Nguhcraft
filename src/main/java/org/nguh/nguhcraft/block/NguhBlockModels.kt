@@ -2,14 +2,11 @@ package org.nguh.nguhcraft.block
 
 import com.mojang.serialization.Codec
 import com.mojang.serialization.MapCodec
-import it.unimi.dsi.fastutil.ints.Int2ObjectFunction
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
 import net.fabricmc.fabric.api.client.rendering.v1.BlockRenderLayerMap
 import net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry
-import net.minecraft.client.color.block.BlockColor
 import net.minecraft.client.data.models.BlockModelGenerators
 import net.minecraft.client.data.models.BlockModelGenerators.plainVariant
 import net.minecraft.client.data.models.blockstates.MultiPartGenerator
@@ -25,18 +22,15 @@ import net.minecraft.client.renderer.chunk.ChunkSectionLayer
 import net.minecraft.client.renderer.item.properties.select.SelectItemModelProperty
 import net.minecraft.client.renderer.special.ChestSpecialRenderer
 import net.minecraft.client.resources.model.Material
-import net.minecraft.core.BlockPos
 import net.minecraft.data.BlockFamily
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.item.ItemDisplayContext
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
-import net.minecraft.world.level.BlockAndTintGetter
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.CropBlock
-import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.properties.*
 import org.nguh.nguhcraft.Nguhcraft.Companion.Id
 import org.nguh.nguhcraft.flatten
@@ -543,7 +537,7 @@ object NguhBlockModels {
                 .with(PropertyDispatch.initial(Age).generate {
                     plainVariant(Map.computeIfAbsent(AgeTextureIndices[it]) {
                         when {
-                            Tinted && it == 0 -> G.createSuffixedVariant(B, "_stage${0}", ModelTemplates.LEAVES) { TextureMapping.cube(it) }
+                            Tinted && it == 0 -> G.createSuffixedVariant(B, "_stage${0}", ModelTemplates.LEAVES) { TextureMapping.cube(BaseBlock) }
                             Tinted -> G.createSuffixedVariant(
                                 B,
                                 "_stage$it",
@@ -554,6 +548,7 @@ object NguhBlockModels {
                                     TextureSlot.LAYER1
                                 )
                             ) { TextureMapping.layered(TextureMapping.getBlockTexture(BaseBlock), it) }
+                            it == 0 -> G.createSuffixedVariant(B, "_stage${0}", ModelTemplates.CUBE_ALL) { TextureMapping.cube(BaseBlock) }
                             else -> G.createSuffixedVariant(B, "_stage$it", ModelTemplates.CUBE_ALL) { TextureMapping.cube(it) }
                         }
                     })

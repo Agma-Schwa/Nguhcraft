@@ -1,5 +1,6 @@
 package org.nguh.nguhcraft.mixin.server;
 
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.LeavesBlock;
 import net.minecraft.server.level.ServerLevel;
@@ -7,18 +8,28 @@ import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.RandomSource;
+import org.nguh.nguhcraft.block.BuddingLeavesBlock;
+import org.nguh.nguhcraft.block.NguhBlocks;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+
+import java.util.Map;
+import java.util.Optional;
+
+import static net.minecraft.world.level.block.Block.UPDATE_CLIENTS;
 
 @Mixin(LeavesBlock.class)
 public abstract class LeavesBlockMixin {
     @Shadow @Final public static IntegerProperty DISTANCE;
     @Shadow @Final public static int DECAY_DISTANCE;
     @Shadow @Final public static BooleanProperty PERSISTENT;
+    @Shadow @Final public static BooleanProperty WATERLOGGED;
 
     @Shadow protected abstract void randomTick(
         BlockState St,
@@ -50,5 +61,57 @@ public abstract class LeavesBlockMixin {
             (LeavesBlock) (Object) this,
             R.nextIntBetweenInclusive(1, 15)
         );
+    }
+
+    /** Budding Leaves stuff **/
+
+    @Unique
+    private Optional<Block> getBuddingLeavesBlock(BlockState St) {
+        for (Map.Entry<Block, Block> e : NguhBlocks.LeavesBlock2BuddingLeavesBlock.entrySet()) if (St.is(e.getKey())) return Optional.of(e.getValue());
+        return Optional.empty();
+    }
+
+    @Inject(method = "isRandomlyTicking", at = @At("HEAD"), cancellable = true)
+    private void inject$isRandomlyTicking(
+            BlockState St,
+            CallbackInfoReturnable<Boolean> CIR
+    ) {
+        if (getBuddingLeavesBlock(St).isPresent()) CIR.setReturnValue(!St.getValue(PERSISTENT));
+    }
+
+    @Inject(method = "randomTick", at = @At("TAIL"))
+    private void inject$randomTick(
+            BlockState St,
+            ServerLevel W,
+            BlockPos Pos,
+            RandomSource R,
+            CallbackInfo CI
+    ) {
+        Optional<Block> BuddingBlock = getBuddingLeavesBlock(St);
+        if (BuddingBlock.isPresent()) {
+            int neighbors = countBuddingNeighbors(W, Pos);
+            if (neighbors < R.nextIntBetweenInclusive(1, 4)) {
+                W.setBlock(Pos, BuddingBlock.get().defaultBlockState()
+                                .setValue(PERSISTENT, St.getValue(PERSISTENT))
+                                .setValue(DISTANCE, St.getValue(DISTANCE))
+                                .setValue(WATERLOGGED, St.getValue(WATERLOGGED)),
+                        UPDATE_CLIENTS
+                );
+            }
+        }
+    }
+
+    @Unique
+    private int countBuddingNeighbors(
+            ServerLevel W,
+            BlockPos Pos
+    ) {
+        var i = 0;
+        for (int x = -1; x <= 1; x++) for (int y = -1; y <= 1; y++) for (int z = -1; z <= 1; z++) {
+            if (x == 0 && z == 0 && y == 0) continue;
+            BlockState state = W.getBlockState(Pos.offset(x, y, z));
+            if (state.getBlock() instanceof BuddingLeavesBlock) i++;
+        }
+        return i;
     }
 }

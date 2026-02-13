@@ -29,124 +29,6 @@ import net.minecraft.world.level.gameevent.GameEvent
 import net.minecraft.world.phys.BlockHitResult
 import java.util.*
 
-open class GrowingLeavesBlock : LeavesBlock {
-    private val LeafParticleEffect: ParticleOptions?
-
-    private constructor(leafParticleChance: Float, leafParticleEffect: ParticleOptions?, settings: Properties) : super(
-        leafParticleChance,
-        settings
-    ) {
-        this.LeafParticleEffect = leafParticleEffect
-    }
-
-    private constructor(leafParticleChance: Float, settings: Properties) : super(leafParticleChance, settings) {
-        LeafParticleEffect = null
-    }
-
-    override fun spawnFallingLeavesParticle(world: Level, pos: BlockPos, random: RandomSource) {
-        if (LeafParticleEffect != null) {
-            val tintedParticleEffect =
-                ColorParticleOption.create(ParticleTypes.TINTED_LEAVES, world.getClientLeafTintColor(pos))
-            ParticleUtils.spawnParticleBelow(world, pos, random, tintedParticleEffect)
-        } else {
-            ParticleUtils.spawnParticleBelow(world, pos, random, LeafParticleEffect)
-        }
-    }
-
-    override fun isRandomlyTicking(state: BlockState): Boolean {
-        return !state.getValue(PERSISTENT)
-    }
-
-    override fun randomTick(
-        state: BlockState,
-        world: ServerLevel,
-        pos: BlockPos,
-        random: RandomSource
-    ) {
-        super.randomTick(state, world, pos, random)
-        val neighbors = countBuddingNeighbors(world, pos)
-        if (neighbors < random.nextIntBetweenInclusive(1, 4)) {
-            world.setBlock(pos, BaseBlock.defaultBlockState()
-                .setValue(PERSISTENT, state.getValue(PERSISTENT))
-                .setValue(DISTANCE, state.getValue(DISTANCE))
-                .setValue(WATERLOGGED, state.getValue(WATERLOGGED)),
-                UPDATE_CLIENTS
-            )
-        }
-    }
-
-    private fun countBuddingNeighbors(
-        world: ServerLevel,
-        pos: BlockPos
-    ): Int {
-        var i = 0
-        for (x in -1..1) {
-            for (z in -1..1) {
-                for (y in -1..1) {
-                    if (x == 0 && z == 0 && y == 0) { continue }
-                    val state = world.getBlockState(pos.offset(x, y, z))
-                    if (state.block is BuddingLeavesBlock) { i++ }
-                }
-            }
-        }
-        return i
-    }
-
-    open val BaseBlock: Block
-        get() = NguhBlocks.BUDDING_OAK_LEAVES
-
-    override fun codec(): MapCodec<out LeavesBlock?> {
-        return CODEC
-    }
-
-    companion object {
-        val CODEC: MapCodec<GrowingLeavesBlock> =
-            RecordCodecBuilder.mapCodec()
-                { instance: RecordCodecBuilder.Instance<GrowingLeavesBlock> ->
-                    instance.group(
-                        ExtraCodecs.floatRange(0.0f, 1.0f)
-                            .fieldOf("leaf_particle_chance")
-                            .forGetter { GrowingLeavesBlock: GrowingLeavesBlock -> GrowingLeavesBlock.leafParticleChance },
-                        ParticleTypes.CODEC.fieldOf("leaf_particle")
-                            .forGetter { GrowingLeavesBlock: GrowingLeavesBlock -> GrowingLeavesBlock.LeafParticleEffect },
-                        propertiesCodec()
-                    )
-                        .apply(
-                            instance
-                        ) { leafParticleChance: Float, leafParticleEffect: ParticleOptions, settings: Properties ->
-                            GrowingLeavesBlock(
-                                leafParticleChance,
-                                leafParticleEffect,
-                                settings
-                            )
-                        }
-                }
-
-        fun CHERRY_LEAVES(settings: Properties): GrowingLeavesBlock {
-            return object : GrowingLeavesBlock(0.1f, ParticleTypes.CHERRY_LEAVES, settings) {
-                override val BaseBlock: Block
-                    get() {
-                        return NguhBlocks.BUDDING_CHERRY_LEAVES
-                    }
-            }
-        }
-
-        fun OAK_LEAVES(settings: Properties): GrowingLeavesBlock {
-            return object : GrowingLeavesBlock(0.01f, settings) {
-            }
-        }
-
-        fun DARK_OAK_LEAVES(settings: Properties): GrowingLeavesBlock {
-            return object : GrowingLeavesBlock(0.01f, settings) {
-                override val BaseBlock: Block
-                    get() {
-                        return NguhBlocks.BUDDING_DARK_OAK_LEAVES
-                    }
-            }
-        }
-    }
-}
-
 open class BuddingLeavesBlock(
     ParticleChance: Float,
     private val ParticleEffect: ParticleOptions?,
@@ -155,7 +37,7 @@ open class BuddingLeavesBlock(
     init { registerDefaultState(defaultBlockState().setValue(AGE, 0)) }
 
     override fun spawnFallingLeavesParticle(world: Level, pos: BlockPos, random: RandomSource) {
-        if (ParticleEffect != null) {
+        if (ParticleEffect == null) {
             val tintedParticleEffect =
                 ColorParticleOption.create(ParticleTypes.TINTED_LEAVES, world.getClientLeafTintColor(pos))
             ParticleUtils.spawnParticleBelow(world, pos, random, tintedParticleEffect)
@@ -282,7 +164,7 @@ open class BuddingLeavesBlock(
             return object : BuddingLeavesBlock(ParticleChance, ParticleEffect, Settings) {
                 override fun asItem(): Item { return BaseBlock.asItem() }
                 override val Fruit: Item
-                    get() = FruitItem ?: super.asItem()
+                    get() = FruitItem ?: super.Fruit
             }
         }
     }
