@@ -1,6 +1,7 @@
 package org.nguh.nguhcraft.mixin.server;
 
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.LeavesBlock;
 import net.minecraft.server.level.ServerLevel;
@@ -63,12 +64,21 @@ public abstract class LeavesBlockMixin {
         );
     }
 
-    /** Budding Leaves stuff **/
+    /**
+     * We can't just use the lookup table in `NguhBlocks` because
+     * this is called during bootstrap (via isRandomlyTicking(), and
+     * initialising `NguhBlocks` early leads to arcane data corruption
+     * issues, so we need to duplicate this information here.
+     **/
+    @Unique static private boolean IsBuddingLeavesBlock(BlockState St) {
+        return St.is(Blocks.OAK_LEAVES) ||
+               St.is(Blocks.DARK_OAK_LEAVES) ||
+               St.is(Blocks.CHERRY_LEAVES);
+    }
 
     @Unique
     private Optional<Block> getBuddingLeavesBlock(BlockState St) {
-        for (Map.Entry<Block, Block> e : NguhBlocks.LeavesBlock2BuddingLeavesBlock.entrySet()) if (St.is(e.getKey())) return Optional.of(e.getValue());
-        return Optional.empty();
+        return Optional.ofNullable(NguhBlocks.LeavesToBuddingLeaves.get(St.getBlock()));
     }
 
     @Inject(method = "isRandomlyTicking", at = @At("HEAD"), cancellable = true)
@@ -76,7 +86,7 @@ public abstract class LeavesBlockMixin {
             BlockState St,
             CallbackInfoReturnable<Boolean> CIR
     ) {
-        if (getBuddingLeavesBlock(St).isPresent()) CIR.setReturnValue(!St.getValue(PERSISTENT));
+        if (IsBuddingLeavesBlock(St)) CIR.setReturnValue(!St.getValue(PERSISTENT));
     }
 
     @Inject(method = "randomTick", at = @At("TAIL"))
