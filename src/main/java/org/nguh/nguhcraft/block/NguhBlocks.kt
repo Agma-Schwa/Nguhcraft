@@ -1098,7 +1098,7 @@ object NguhBlocks {
 
         for (B in WOOD_VARIANT_FAMILY_BLOCKS) {
             if (B !is DoorBlock && B !is TrapDoorBlock && B !is PressurePlateBlock && B !is ButtonBlock) {
-                RegisterFlammable(B, 5, 5)
+                RegisterFlammable(B, 20, 5)
             }
         }
         RegisterFlammable(TINTED_OAK_LOG, 5, 5)
