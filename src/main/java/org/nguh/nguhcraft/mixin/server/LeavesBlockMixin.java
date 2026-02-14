@@ -30,7 +30,6 @@ public abstract class LeavesBlockMixin {
     @Shadow @Final public static IntegerProperty DISTANCE;
     @Shadow @Final public static int DECAY_DISTANCE;
     @Shadow @Final public static BooleanProperty PERSISTENT;
-    @Shadow @Final public static BooleanProperty WATERLOGGED;
 
     @Shadow protected abstract void randomTick(
         BlockState St,
@@ -99,14 +98,22 @@ public abstract class LeavesBlockMixin {
         CallbackInfo CI
     ) {
         if (ProtectionManager.IsProtectedBlock(W, Pos)) return;
+
+        // If this block doesn't have a corresponding budding block, give up.
         Optional<Block> BuddingBlock = getBuddingLeavesBlock(St);
         if (BuddingBlock.isEmpty()) return;
+
+        // We don't want every leaves block to turn into a budding block, so
+        // check how many of our neighbours are already budding blocks.
         int Neighbours = CountBuddingNeighbors(W, Pos);
-        if (Neighbours >= R.nextIntBetweenInclusive(1, 4)) return;
-        var NewState = BuddingBlock.get().defaultBlockState()
-            .setValue(PERSISTENT, St.getValue(PERSISTENT))
-            .setValue(DISTANCE, St.getValue(DISTANCE))
-            .setValue(WATERLOGGED, St.getValue(WATERLOGGED));
+        if (Neighbours >= R.nextIntBetweenInclusive(1, 3)) return;
+
+        // Ok, turn this into a budding block but preserve the rest of the block state.
+        var NewState = BuddingLeavesBlock.CopySharedProperties(
+            BuddingBlock.get().defaultBlockState(),
+            St
+        );
+
         W.setBlock(Pos, NewState, UPDATE_CLIENTS);
     }
 

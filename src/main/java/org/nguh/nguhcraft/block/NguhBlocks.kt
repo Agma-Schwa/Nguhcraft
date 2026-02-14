@@ -38,7 +38,6 @@ import net.minecraft.world.level.material.MapColor
 import net.minecraft.world.level.material.PushReaction
 import org.nguh.nguhcraft.Nguhcraft.Companion.Id
 import org.nguh.nguhcraft.flatten
-import org.nguh.nguhcraft.item.NguhItems
 import java.util.function.IntFunction
 
 enum class ChestVariant : StringRepresentable {
@@ -679,19 +678,19 @@ object NguhBlocks {
     // Budding leaves manually override 'asItem()' to return the base block.
     val BUDDING_OAK_LEAVES = RegisterWithoutItem(
         "budding_oak_leaves",
-        { BuddingLeavesBlock.MakeInstance(0.01F, null, it, Blocks.OAK_LEAVES) },
+        { BuddingLeavesBlock(0.01F, null, it, Blocks.OAK_LEAVES, References.APPLE_ITEM) },
         Properties.ofFullCopy(Blocks.OAK_LEAVES)
     )
 
     val BUDDING_DARK_OAK_LEAVES = RegisterWithoutItem(
         "budding_dark_oak_leaves",
-        { BuddingLeavesBlock.MakeInstance(0.01F, null, it, Blocks.DARK_OAK_LEAVES) },
+        { BuddingLeavesBlock(0.01F, null, it, Blocks.DARK_OAK_LEAVES, References.APPLE_ITEM) },
         Properties.ofFullCopy(Blocks.DARK_OAK_LEAVES)
     )
 
     val BUDDING_CHERRY_LEAVES = RegisterWithoutItem(
         "budding_cherry_leaves",
-        { BuddingLeavesBlock.MakeInstance(0.1F, ParticleTypes.CHERRY_LEAVES, it, Blocks.CHERRY_LEAVES, NguhItems.CHERRY) },
+        { BuddingLeavesBlock(0.1F, ParticleTypes.CHERRY_LEAVES, it, Blocks.CHERRY_LEAVES, References.CHERRY_ITEM) },
         Properties.ofFullCopy(Blocks.CHERRY_LEAVES)
     )
 
@@ -703,6 +702,10 @@ object NguhBlocks {
         // When adding an entry here, also update
         // LeavesBlockMixin::IsBuddingLeavesBlock().
     )
+
+    val BUDDING_LEAVES_TO_LEAVES = buildMap {
+        for ((K, V) in LEAVES_TO_BUDDING_LEAVES) put(V, K)
+    }
 
     val BUDDING_LEAVES get() = LEAVES_TO_BUDDING_LEAVES.values
 

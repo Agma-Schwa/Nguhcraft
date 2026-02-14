@@ -43,8 +43,8 @@ class Nguhcraft : ModInitializer {
 
         // Misc.
         Commands.Register()
-        NguhItems.Init()
         NguhBlocks.Init()
+        NguhItems.Init()
         NguhSounds.Init()
         ServerNetworkHandler.Init()
 

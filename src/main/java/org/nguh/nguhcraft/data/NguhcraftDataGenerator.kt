@@ -27,7 +27,6 @@ import net.minecraft.tags.*
 import net.minecraft.world.damagesource.DamageType
 import net.minecraft.world.entity.decoration.PaintingVariant
 import net.minecraft.world.item.Items
-import net.minecraft.world.item.enchantment.Enchantment
 import net.minecraft.world.item.enchantment.Enchantments
 import net.minecraft.world.item.equipment.EquipmentAsset
 import net.minecraft.world.level.block.Block
@@ -37,9 +36,9 @@ import net.minecraft.world.level.block.SlabBlock
 import net.minecraft.world.level.storage.loot.LootPool
 import net.minecraft.world.level.storage.loot.LootTable
 import net.minecraft.world.level.storage.loot.entries.LootItem
+import net.minecraft.world.level.storage.loot.functions.ApplyBonusCount
 import net.minecraft.world.level.storage.loot.functions.CopyComponentsFunction
 import net.minecraft.world.level.storage.loot.functions.SetItemCountFunction
-import net.minecraft.world.level.storage.loot.predicates.BonusLevelTableCondition
 import net.minecraft.world.level.storage.loot.predicates.LootItemBlockStatePropertyCondition
 import net.minecraft.world.level.storage.loot.providers.number.ConstantValue
 import net.minecraft.world.level.storage.loot.providers.number.UniformGenerator
@@ -330,20 +329,22 @@ class NguhcraftLootTableProvider(
             )
     )
 
-    fun BuddingLeavesDrops(B: BuddingLeavesBlock, sapling: Block) = createLeavesDrops(B, sapling, *SaplingDropChances).withPool(
-        LootPool.lootPool()
-            .setRolls(ConstantValue.exactly(1.0F))
-            .`when`(doesNotHaveShearsOrSilkTouch())
-            .add(applyExplosionCondition(B, LootItem.lootTableItem(B.Fruit))
-                .`when`(
-                    BonusLevelTableCondition.bonusLevelFlatChance(
-                        registries.lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.FORTUNE),
-                        *BuddingLeavesBlock.FruitDropChances
-                    )
+    fun BuddingLeavesDrops(B: BuddingLeavesBlock, sapling: Block): LootTable.Builder {
+        val Fortune = registries.lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.FORTUNE)
+        return createLeavesDrops(B, sapling, *SaplingDropChances)
+                .withPool(
+                    LootPool.lootPool()
+                        .`when`(
+                            LootItemBlockStatePropertyCondition.hasBlockStateProperties(B).setProperties(
+                                StatePropertiesPredicate.Builder.properties()
+                                    .hasProperty(BuddingLeavesBlock.AGE, BuddingLeavesBlock.MAX_AGE)
+                            )
+                        )
+                        .add(LootItem.lootTableItem(B.Fruit))
+                        .apply(SetItemCountFunction.setCount(ConstantValue.exactly(1.0F)))
+                        .apply(ApplyBonusCount.addUniformBonusCount(Fortune))
                 )
-            )
-    )
-
+    }
 
     companion object {
         val SaplingDropChances = floatArrayOf(0.05F, 0.0625F, 0.0833F, 0.1F)

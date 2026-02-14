@@ -6,6 +6,9 @@ import net.minecraft.core.BlockPos
 import net.minecraft.core.particles.ColorParticleOption
 import net.minecraft.core.particles.ParticleOptions
 import net.minecraft.core.particles.ParticleTypes
+import net.minecraft.core.registries.BuiltInRegistries
+import net.minecraft.core.registries.Registries
+import net.minecraft.resources.ResourceKey
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.sounds.SoundEvents
 import net.minecraft.sounds.SoundSource
@@ -16,23 +19,26 @@ import net.minecraft.world.InteractionResult
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.item.Item
 import net.minecraft.world.item.ItemStack
-import net.minecraft.world.item.Items
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.LeavesBlock
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.StateDefinition
-import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import net.minecraft.world.level.block.state.properties.IntegerProperty
 import net.minecraft.world.level.gameevent.GameEvent
 import net.minecraft.world.phys.BlockHitResult
 
-open class BuddingLeavesBlock(
+class BuddingLeavesBlock(
     ParticleChance: Float,
     private val ParticleEffect: ParticleOptions?,
     Settings: Properties,
+    val BaseBlock: Block,
+    val FruitKey: ResourceKey<Item>,
 ) : LeavesBlock(ParticleChance, Settings) {
-    init { registerDefaultState(defaultBlockState().setValue(AGE, 0)) }
+    init { registerDefaultState(defaultBlockState().setValue(AGE, MIN_AGE)) }
+
+    // It's important that this is computed at the time of access and not initialisation.
+    val Fruit get() = BuiltInRegistries.ITEM.getValue(FruitKey)!!
 
     override fun spawnFallingLeavesParticle(L: Level, Pos: BlockPos, Random: RandomSource) = ParticleUtils.spawnParticleBelow(
         L,
@@ -55,8 +61,6 @@ open class BuddingLeavesBlock(
         ) SL.setBlock(Pos, St.setValue(AGE, Age + 1), UPDATE_CLIENTS)
     }
 
-    open val Fruit: Item get() = Items.APPLE
-
     public override fun useWithoutItem(
         St: BlockState,
         L: Level,
@@ -75,8 +79,11 @@ open class BuddingLeavesBlock(
         Min: Int,
         Max: Int
     ): InteractionResult {
+        // Only apply this if we've reached the maximum age.
         val Age = St.getValue(AGE)
         if (Age != MAX_AGE) return super.useWithoutItem(St, L, Pos, PE, BHR)
+
+        // Drop the fruits.
         val Amount = Min + (if (Max > Min) L.random.nextInt(Max - Min) else 0)
         if (Amount > 0) popResource(L, Pos, ItemStack(Loot, Amount))
         L.playSound(
@@ -87,7 +94,13 @@ open class BuddingLeavesBlock(
             1f,
             0.8f + L.random.nextFloat() * 0.4f
         )
-        val NewState = St.setValue(AGE, 0)
+
+        // Revert this block back to a regular leaves block.
+        val NewState = CopySharedProperties(
+            NguhBlocks.BUDDING_LEAVES_TO_LEAVES.getValue(this).defaultBlockState(),
+            CopyFrom = St
+        )
+
         L.setBlock(Pos, NewState, UPDATE_CLIENTS)
         L.gameEvent(GameEvent.BLOCK_CHANGE, Pos, GameEvent.Context.of(PE, NewState))
         return InteractionResult.SUCCESS
@@ -98,6 +111,8 @@ open class BuddingLeavesBlock(
         builder.add(AGE)
     }
 
+    override fun asItem() = BaseBlock.asItem()
+
     override fun codec() = CODEC
     companion object {
         val CODEC: MapCodec<BuddingLeavesBlock> = RecordCodecBuilder.mapCodec {
@@ -107,25 +122,25 @@ open class BuddingLeavesBlock(
                     .forGetter(BuddingLeavesBlock::leafParticleChance),
                 ParticleTypes.CODEC.fieldOf("leaf_particle")
                     .forGetter(BuddingLeavesBlock::ParticleEffect),
-                propertiesCodec()
+                propertiesCodec(),
+                BuiltInRegistries.BLOCK.byNameCodec()
+                    .fieldOf("base")
+                    .forGetter(BuddingLeavesBlock::BaseBlock),
+                ResourceKey.codec(Registries.ITEM)
+                    .fieldOf("fruit")
+                    .forGetter(BuddingLeavesBlock::FruitKey),
             ).apply(it, ::BuddingLeavesBlock)
         }
 
-        const val MAX_AGE: Int = 4
-        val AGE: IntegerProperty = BlockStateProperties.AGE_4
-        val FruitDropChances = floatArrayOf(0.005f, 0.0055555557f, 0.00625f, 0.008333334f, 0.025f)
+        // Age = 0  is just a regular leaves block.
+        const val MIN_AGE = 1
+        const val MAX_AGE = 4
+        val AGE = IntegerProperty.create("age", MIN_AGE, MAX_AGE)!!
 
-        fun MakeInstance(
-            ParticleChance: Float,
-            ParticleEffect: ParticleOptions?,
-            Settings: Properties,
-            BaseBlock: Block,
-            FruitItem: Item? = null
-        ): BuddingLeavesBlock {
-            return object : BuddingLeavesBlock(ParticleChance, ParticleEffect, Settings) {
-                override fun asItem() = BaseBlock.asItem()
-                override val Fruit get() = FruitItem ?: super.Fruit
-            }
-        }
+        @JvmStatic
+        fun CopySharedProperties(St: BlockState, CopyFrom: BlockState) = St
+            .setValue(PERSISTENT, CopyFrom.getValue(PERSISTENT))
+            .setValue(DISTANCE, CopyFrom.getValue(DISTANCE))
+            .setValue(WATERLOGGED, CopyFrom.getValue(WATERLOGGED))!!
     }
 }

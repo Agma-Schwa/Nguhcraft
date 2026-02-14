@@ -242,7 +242,7 @@ object NguhItems {
             .stacksTo(64)
     )
 
-    var CHERRY = CreateItem(
+    val CHERRY = CreateItem(
         Id("cherry"),
         Item.Properties()
             .food(FoodProperties(2, 0.1F, false))
