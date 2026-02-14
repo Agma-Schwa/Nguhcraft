@@ -1,0 +1,16 @@
+{
+  "variants": {
+    "age=1": {
+      "model": "nguhcraft:block/budding_oak_leaves_stage1"
+    },
+    "age=2": {
+      "model": "nguhcraft:block/budding_oak_leaves_stage2"
+    },
+    "age=3": {
+      "model": "nguhcraft:block/budding_oak_leaves_stage3"
+    },
+    "age=4": {
+      "model": "nguhcraft:block/budding_oak_leaves_stage4"
+    }
+  }
+}

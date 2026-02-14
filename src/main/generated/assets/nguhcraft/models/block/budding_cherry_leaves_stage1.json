@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:block/cube_all",
+  "textures": {
+    "all": "nguhcraft:block/budding_cherry_leaves_stage1"
+  }
+}
