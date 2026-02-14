@@ -676,36 +676,35 @@ object NguhBlocks {
     val GRAPE_CRATE = RegisterCrate("grape_crate")
     val PEANUT_CRATE = RegisterCrate("peanut_crate")
 
-    val BUDDING_OAK_LEAVES = Register(
+    // Budding leaves manually override 'asItem()' to return the base block.
+    val BUDDING_OAK_LEAVES = RegisterWithoutItem(
         "budding_oak_leaves",
-        { s -> BuddingLeavesBlock.MakeInstance(0.01F, null, s, Blocks.OAK_LEAVES, null) },
+        { BuddingLeavesBlock.MakeInstance(0.01F, null, it, Blocks.OAK_LEAVES) },
         Properties.ofFullCopy(Blocks.OAK_LEAVES)
     )
 
-    val BUDDING_DARK_OAK_LEAVES = Register(
+    val BUDDING_DARK_OAK_LEAVES = RegisterWithoutItem(
         "budding_dark_oak_leaves",
-        { s -> BuddingLeavesBlock.MakeInstance(0.01F, null, s, Blocks.DARK_OAK_LEAVES, null) },
+        { BuddingLeavesBlock.MakeInstance(0.01F, null, it, Blocks.DARK_OAK_LEAVES) },
         Properties.ofFullCopy(Blocks.DARK_OAK_LEAVES)
     )
 
-    val BUDDING_CHERRY_LEAVES = Register(
+    val BUDDING_CHERRY_LEAVES = RegisterWithoutItem(
         "budding_cherry_leaves",
-        { s -> BuddingLeavesBlock.MakeInstance(0.1F, ParticleTypes.CHERRY_LEAVES, s, Blocks.CHERRY_LEAVES, NguhItems.CHERRY) },
+        { BuddingLeavesBlock.MakeInstance(0.1F, ParticleTypes.CHERRY_LEAVES, it, Blocks.CHERRY_LEAVES, NguhItems.CHERRY) },
         Properties.ofFullCopy(Blocks.CHERRY_LEAVES)
     )
 
-    val LEAF_BLOCKS: List<Block> = mutableListOf(
-        BUDDING_OAK_LEAVES, BUDDING_DARK_OAK_LEAVES, BUDDING_CHERRY_LEAVES
-    )
-
     @JvmField
-    val LeavesToBuddingLeaves: Map<Block, Block> = mutableMapOf(
+    val LEAVES_TO_BUDDING_LEAVES = mapOf(
         Blocks.OAK_LEAVES to BUDDING_OAK_LEAVES,
         Blocks.DARK_OAK_LEAVES to BUDDING_DARK_OAK_LEAVES,
         Blocks.CHERRY_LEAVES to BUDDING_CHERRY_LEAVES
         // When adding an entry here, also update
         // LeavesBlockMixin::IsBuddingLeavesBlock().
     )
+
+    val BUDDING_LEAVES get() = LEAVES_TO_BUDDING_LEAVES.values
 
     // =========================================================================
     //  Block entities
@@ -1103,7 +1102,7 @@ object NguhBlocks {
         RegisterFlammable(TINTED_OAK_WOOD, 5, 5)
         RegisterFlammable(STRIPPED_TINTED_OAK_LOG, 5, 5)
         RegisterFlammable(STRIPPED_TINTED_OAK_WOOD, 5, 5)
-        for (B in LEAF_BLOCKS) RegisterFlammable(B, 60, 30)
+        for (B in BUDDING_LEAVES) RegisterFlammable(B, 60, 30)
 
         RegisterCopper(
             listOf(CUT_COPPER_SLAB_VERTICAL, EXPOSED_CUT_COPPER_SLAB_VERTICAL, WEATHERED_CUT_COPPER_SLAB_VERTICAL, OXIDIZED_CUT_COPPER_SLAB_VERTICAL),

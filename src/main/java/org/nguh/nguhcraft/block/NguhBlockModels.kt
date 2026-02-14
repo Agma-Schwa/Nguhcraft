@@ -329,6 +329,7 @@ object NguhBlockModels {
         ChunkSectionLayer.CUTOUT_MIPPED.let {
             BlockRenderLayerMap.putBlock(NguhBlocks.WROUGHT_IRON_BARS, it)
             BlockRenderLayerMap.putBlock(NguhBlocks.GOLD_BARS, it)
+            for (B in NguhBlocks.BUDDING_LEAVES) BlockRenderLayerMap.putBlock(B, it)
         }
     }
 
@@ -343,6 +344,7 @@ object NguhBlockModels {
             NguhBlocks.BUDDING_DARK_OAK_LEAVES
         )
     }
+
     // Copied from ::registerIronBars()
     @Environment(EnvType.CLIENT)
     fun RegisterBarsModel(G: BlockModelGenerators, B: Block) {
