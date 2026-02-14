@@ -1,16 +1,11 @@
 {
-  "type": "minecraft:crafting_shaped",
+  "type": "minecraft:crafting_shapeless",
   "category": "misc",
-  "key": {
-    "#": "minecraft:warped_wart_block"
-  },
-  "pattern": [
-    "###",
-    "###",
-    "###"
+  "ingredients": [
+    "minecraft:warped_wart_block"
   ],
   "result": {
-    "count": 1,
+    "count": 9,
     "id": "nguhcraft:warped_wart"
   }
 }
