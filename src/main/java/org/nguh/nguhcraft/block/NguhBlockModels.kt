@@ -328,6 +328,7 @@ object NguhBlockModels {
             BlockRenderLayerMap.putBlock(NguhBlocks.WROUGHT_IRON_GRATE, it)
             BlockRenderLayerMap.putBlock(NguhBlocks.GRAPE_CROP, it)
             BlockRenderLayerMap.putBlock(NguhBlocks.PEANUT_CROP, it)
+            BlockRenderLayerMap.putBlock(NguhBlocks.NGUHROVISION_TROPHY, it)
             for (B in NguhBlocks.CHAINS_AND_LANTERNS.flatten()) BlockRenderLayerMap.putBlock(B, it)
         }
 
@@ -570,8 +571,7 @@ object NguhBlockModels {
         B: Block
     ) {
         val Template = ModelTemplate(Optional.of(Id("block/trophy")), empty(), ALL)
-        val Map = TextureMapping()
-            .put(ALL, TextureMapping.getBlockTexture(B))
+        val Map = TextureMapping().put(ALL, TextureMapping.getBlockTexture(B))
         val Model = plainVariant(Template.create(B, Map, G.modelOutput))
         G.blockStateOutput.accept(
             MultiVariantGenerator.dispatch(B)

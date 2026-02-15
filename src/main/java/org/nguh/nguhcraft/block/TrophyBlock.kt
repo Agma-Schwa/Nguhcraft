@@ -24,13 +24,13 @@ class TrophyBlock(S: Properties) : HorizontalDirectionalBlock(S) {
     ): VoxelShape = SHAPE
 
     init {
-        this.registerDefaultState(
-            this.stateDefinition.any().setValue(FACING, Direction.NORTH)
+        registerDefaultState(
+            stateDefinition.any().setValue(FACING, Direction.NORTH)
         )
     }
 
     override fun getStateForPlacement(blockPlaceContext: BlockPlaceContext): BlockState {
-        return this.defaultBlockState().setValue(
+        return defaultBlockState().setValue(
             FACING,
             blockPlaceContext.horizontalDirection.opposite
         )

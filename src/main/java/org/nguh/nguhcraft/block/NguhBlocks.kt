@@ -331,9 +331,8 @@ object NguhBlocks {
 			.instrument(NoteBlockInstrument.BELL)
 			.sound(SoundType.METAL)
             .instabreak()
-            .pushReaction(PushReaction.DESTROY),
-        { b, s -> BlockItem(b, s.stacksTo(1)) }
-    )
+            .pushReaction(PushReaction.DESTROY)
+    ) { B, S -> BlockItem(B, S.stacksTo(1)) }
 
     // =========================================================================
     //  Froglights
