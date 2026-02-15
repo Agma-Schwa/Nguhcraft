@@ -22,6 +22,7 @@ import net.minecraft.client.renderer.chunk.ChunkSectionLayer
 import net.minecraft.client.renderer.item.properties.select.SelectItemModelProperty
 import net.minecraft.client.renderer.special.ChestSpecialRenderer
 import net.minecraft.client.resources.model.Material
+import net.minecraft.core.Direction
 import net.minecraft.data.BlockFamily
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.entity.LivingEntity
@@ -31,6 +32,7 @@ import net.minecraft.world.item.Items
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.CropBlock
+import net.minecraft.world.level.block.HorizontalDirectionalBlock
 import net.minecraft.world.level.block.state.properties.*
 import org.nguh.nguhcraft.Nguhcraft.Companion.Id
 import org.nguh.nguhcraft.flatten
@@ -292,6 +294,9 @@ object NguhBlockModels {
         RegisterBuddingLeaves(G, NguhBlocks.BUDDING_OAK_LEAVES, Blocks.OAK_LEAVES, true, BuddingLeavesBlock.AGE)
         RegisterBuddingLeaves(G, NguhBlocks.BUDDING_DARK_OAK_LEAVES, Blocks.DARK_OAK_LEAVES, true, BuddingLeavesBlock.AGE)
         RegisterBuddingLeaves(G, NguhBlocks.BUDDING_CHERRY_LEAVES, Blocks.CHERRY_LEAVES, false, BuddingLeavesBlock.AGE)
+
+        // custom block models
+        RegisterTrophyModel(G, NguhBlocks.NGUHROVISION_TROPHY)
 
         // Block families.
         NguhBlocks.ALL_VARIANT_FAMILIES
@@ -557,5 +562,38 @@ object NguhBlockModels {
                 }
             )
         )
+    }
+
+    @Environment(EnvType.CLIENT)
+    fun RegisterTrophyModel(
+        G: BlockModelGenerators,
+        B: Block
+    ) {
+        val Template = ModelTemplate(Optional.of(Id("block/trophy")), empty(), ALL)
+        val Map = TextureMapping()
+            .put(ALL, TextureMapping.getBlockTexture(B))
+        val Model = plainVariant(Template.create(B, Map, G.modelOutput))
+        G.blockStateOutput.accept(
+            MultiVariantGenerator.dispatch(B)
+                .with(PropertyDispatch.initial(HorizontalDirectionalBlock.FACING)
+                    .select(
+                        Direction.NORTH,
+                        Model.with(BlockModelGenerators.Y_ROT_180)
+                    )
+                    .select(
+                        Direction.SOUTH,
+                        Model
+                    )
+                    .select(
+                        Direction.WEST,
+                        Model.with(BlockModelGenerators.Y_ROT_90)
+                    )
+                    .select(
+                        Direction.EAST,
+                        Model.with(BlockModelGenerators.Y_ROT_270)
+                    )
+                )
+        )
+        G.registerSimpleItemModel(B, Template.create(B.asItem(), Map, G.modelOutput))
     }
 }
