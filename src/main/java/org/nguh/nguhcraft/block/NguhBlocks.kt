@@ -27,6 +27,7 @@ import net.minecraft.util.StringRepresentable
 import net.minecraft.world.item.BlockItem
 import net.minecraft.world.item.CreativeModeTabs
 import net.minecraft.world.item.Item
+import net.minecraft.world.item.Rarity
 import net.minecraft.world.level.block.*
 import net.minecraft.world.level.block.entity.BlockEntity
 import net.minecraft.world.level.block.entity.BlockEntityType
@@ -332,7 +333,7 @@ object NguhBlocks {
 			.sound(SoundType.METAL)
             .instabreak()
             .pushReaction(PushReaction.DESTROY)
-    ) { B, S -> BlockItem(B, S.stacksTo(1)) }
+    ) { B, S -> BlockItem(B, S.stacksTo(1).rarity(Rarity.EPIC)) }
 
     // =========================================================================
     //  Froglights

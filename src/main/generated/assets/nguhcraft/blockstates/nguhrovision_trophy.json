@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=east": {
+      "model": "nguhcraft:block/nguhrovision_trophy",
+      "y": 270
+    },
+    "facing=north": {
+      "model": "nguhcraft:block/nguhrovision_trophy",
+      "y": 180
+    },
+    "facing=south": {
+      "model": "nguhcraft:block/nguhrovision_trophy"
+    },
+    "facing=west": {
+      "model": "nguhcraft:block/nguhrovision_trophy",
+      "y": 90
+    }
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "parent": "nguhcraft:block/trophy",
+  "textures": {
+    "all": "nguhcraft:block/nguhrovision_trophy"
+  }
+}
