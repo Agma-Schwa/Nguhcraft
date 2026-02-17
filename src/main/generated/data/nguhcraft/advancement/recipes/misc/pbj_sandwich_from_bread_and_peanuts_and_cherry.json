@@ -1,0 +1,54 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_bread": {
+      "conditions": {
+        "items": [
+          {
+            "items": "minecraft:bread"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_cherry": {
+      "conditions": {
+        "items": [
+          {
+            "items": "nguhcraft:cherry"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_peanuts": {
+      "conditions": {
+        "items": [
+          {
+            "items": "nguhcraft:peanuts"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "nguhcraft:pbj_sandwich_from_bread_and_peanuts_and_cherry"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_bread",
+      "has_peanuts",
+      "has_cherry"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "nguhcraft:pbj_sandwich_from_bread_and_peanuts_and_cherry"
+    ]
+  }
+}

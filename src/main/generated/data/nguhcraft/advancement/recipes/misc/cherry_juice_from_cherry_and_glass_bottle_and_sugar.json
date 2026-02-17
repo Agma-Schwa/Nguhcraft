@@ -1,0 +1,54 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_cherry": {
+      "conditions": {
+        "items": [
+          {
+            "items": "nguhcraft:cherry"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_glass_bottle": {
+      "conditions": {
+        "items": [
+          {
+            "items": "minecraft:glass_bottle"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_sugar": {
+      "conditions": {
+        "items": [
+          {
+            "items": "minecraft:sugar"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "nguhcraft:cherry_juice_from_cherry_and_glass_bottle_and_sugar"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_cherry",
+      "has_glass_bottle",
+      "has_sugar"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "nguhcraft:cherry_juice_from_cherry_and_glass_bottle_and_sugar"
+    ]
+  }
+}

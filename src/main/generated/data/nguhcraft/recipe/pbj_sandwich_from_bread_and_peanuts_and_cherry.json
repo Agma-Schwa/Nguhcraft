@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "minecraft:bread",
+    "nguhcraft:peanuts",
+    "nguhcraft:cherry"
+  ],
+  "result": {
+    "count": 1,
+    "id": "nguhcraft:pbj_sandwich"
+  }
+}
