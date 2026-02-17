@@ -1,0 +1,19 @@
+{
+  "type": "farmersdelight:cooking",
+  "container": {
+    "count": 1,
+    "id": "minecraft:bowl"
+  },
+  "experience": 1.0,
+  "ingredients": [
+    "minecraft:rotten_flesh",
+    "minecraft:fermented_spider_eye",
+    "farmersdelight:onion",
+    "minecraft:bone"
+  ],
+  "recipe_book_tab": "meals",
+  "result": {
+    "count": 1,
+    "id": "nguhcraft:dubious_stew"
+  }
+}

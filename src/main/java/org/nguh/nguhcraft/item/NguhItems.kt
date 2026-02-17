@@ -21,6 +21,7 @@ import net.minecraft.tags.TagKey
 import net.minecraft.world.food.FoodProperties
 import net.minecraft.world.item.*
 import net.minecraft.world.item.component.Consumable
+import net.minecraft.world.item.component.Consumables
 import net.minecraft.world.item.crafting.CustomRecipe.Serializer
 import net.minecraft.world.item.equipment.ArmorMaterial
 import net.minecraft.world.item.equipment.ArmorType
@@ -248,6 +249,54 @@ object NguhItems {
             .food(FoodProperties(2, 0.1F, false))
     )
 
+    val PBJ_SANDWICH = CreateItem(
+        Id("pbj_sandwich"),
+        Item.Properties()
+            .food(FoodProperties(7, 0.8F, false))
+    )
+
+    val CHERRY_PIE = CreateItem(
+        Id("cherry_pie"),
+        Item.Properties()
+            .food(FoodProperties(8, 0.3F, false))
+    )
+
+    val CHERRY_JUICE = CreateItem(
+        Id("cherry_juice"),
+        Item.Properties()
+            .craftRemainder(Items.GLASS_BOTTLE)
+            .usingConvertsTo(Items.GLASS_BOTTLE)
+            .stacksTo(16)
+            .food(
+                FoodProperties(4, 0.1F, false),
+                Consumable.builder()
+                    .sound(SoundEvents.GENERIC_DRINK)
+                    .hasConsumeParticles(false)
+                    .build()
+            )
+    )
+
+    val DUBIOUS_STEW = CreateItem(
+        Id("dubious_stew"),
+        Item.Properties()
+            .food(FoodProperties(6, 0.6F, false), Consumables.ROTTEN_FLESH)
+            .stacksTo(16)
+            .usingConvertsTo(Items.BOWL)
+            .craftRemainder(Items.BOWL)
+    )
+
+    var CHOCOLATE = CreateItem(
+        Id("chocolate"),
+        Item.Properties()
+            .food(FoodProperties(4, 0.01F, false))
+    )
+
+    val GLOW_ROLLS = CreateItem(
+        Id("glow_rolls"),
+        Item.Properties()
+            .food(FoodProperties(7, 0.6F, false))
+    )
+
     var WARPED_WART = CreateItem(
         Id("warped_wart"),
         Item.Properties()
@@ -304,6 +353,12 @@ object NguhItems {
         Register(GRAPE_JUICE)
         Register(STUFFED_GRAPE_LEAVES)
         Register(CHERRY)
+        Register(PBJ_SANDWICH)
+        Register(CHERRY_PIE)
+        Register(CHERRY_JUICE)
+        Register(DUBIOUS_STEW)
+        Register(CHOCOLATE)
+        Register(GLOW_ROLLS)
         Register(WARPED_WART)
     }
 
@@ -348,6 +403,12 @@ object NguhItems {
             it.accept(STUFFED_GRAPE_LEAVES)
             it.accept(PEANUTS)
             it.accept(CHERRY)
+            it.accept(PBJ_SANDWICH)
+            it.accept(CHERRY_PIE)
+            it.accept(CHERRY_JUICE)
+            it.accept(DUBIOUS_STEW)
+            it.accept(CHOCOLATE)
+            it.accept(GLOW_ROLLS)
         }
 
         KeyLockPairingRecipe.SERIALISER = Registry.register(

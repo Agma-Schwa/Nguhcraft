@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "minecraft:rotten_flesh",
+    "minecraft:fermented_spider_eye",
+    "farmersdelight:onion",
+    "minecraft:bone",
+    "minecraft:bowl"
+  ],
+  "result": {
+    "count": 1,
+    "id": "nguhcraft:dubious_stew"
+  }
+}

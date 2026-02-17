@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "W": "minecraft:wheat",
+    "P": "farmersdelight:pie_crust",
+    "C": "nguhcraft:cherry",
+    "S": "minecraft:sugar"
+  },
+  "pattern": [
+    "WWW",
+    "CCC",
+    "SPS"
+  ],
+  "result": {
+    "count": 1,
+    "id": "nguhcraft:cherry_pie"
+  }
+}

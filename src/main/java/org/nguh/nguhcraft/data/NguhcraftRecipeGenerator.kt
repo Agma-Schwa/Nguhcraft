@@ -18,6 +18,7 @@ import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.resources.ResourceKey
 import net.minecraft.core.registries.Registries
 import net.minecraft.core.HolderLookup
+import net.minecraft.resources.ResourceLocation
 import net.minecraft.tags.ItemTags
 import net.minecraft.tags.TagKey
 import org.nguh.nguhcraft.Nguhcraft.Companion.Id
@@ -418,6 +419,9 @@ class NguhcraftRecipeGenerator(
         // =========================================================================
         offerShapelessRecipe(NguhItems.GRAPE_SEEDS, 1, NguhItems.GRAPES to 1)
         offerShapelessRecipe(NguhItems.GRAPE_JUICE, 1, NguhItems.GRAPES to 1, Items.GLASS_BOTTLE to 1, Items.SUGAR to 1)
+        offerShapelessRecipe(NguhItems.PBJ_SANDWICH, 1, Items.BREAD to 1, NguhItems.PEANUTS to 1, NguhItems.CHERRY to 1)
+        offerShapelessRecipe(NguhItems.CHERRY_JUICE, 1, NguhItems.CHERRY to 1, Items.GLASS_BOTTLE to 1, Items.SUGAR to 1)
+        offerShapelessRecipe(NguhItems.CHOCOLATE, 1, Items.COCOA_BEANS to 3, Items.SUGAR to 1, TagKey.create(Registries.ITEM, ResourceLocation.parse("c:foods/milk")) to 1)
         for ((Crate, Crop) in arrayOf(
             NguhBlocks.SUGAR_CANE_CRATE to Items.SUGAR_CANE,
             NguhBlocks.SWEET_BERRY_CRATE to Items.SWEET_BERRIES,

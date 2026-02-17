@@ -229,6 +229,7 @@ class NguhcraftItemTagProvider(
         valueLookupBuilder(ItemTags.CHICKEN_FOOD).add(NguhItems.GRAPE_SEEDS)
         valueLookupBuilder(ItemTags.FOX_FOOD).add(NguhItems.GRAPES)
         valueLookupBuilder(ItemTags.PARROT_FOOD).add(NguhItems.GRAPE_SEEDS).add(NguhItems.PEANUTS)
+        valueLookupBuilder(ItemTags.PARROT_POISONOUS_FOOD).add(NguhItems.CHOCOLATE)
 
         valueLookupBuilder(NguhItems.FROGLIGHTS_CRAFTABLE_TO_CLEANSING)
             .add(Blocks.OCHRE_FROGLIGHT.asItem())

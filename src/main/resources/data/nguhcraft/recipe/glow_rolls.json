@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "farmersdelight:cooked_rice",
+    "minecraft:glow_ink_sac",
+    "minecraft:seagrass",
+    "minecraft:tropical_fish"
+  ],
+  "result": {
+    "count": 1,
+    "id": "nguhcraft:glow_rolls"
+  }
+}
