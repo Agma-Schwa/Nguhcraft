@@ -391,10 +391,12 @@ object NguhItems {
         ItemGroupEvents.modifyEntriesEvent(CreativeModeTabs.INGREDIENTS).register {
             for (T in ALL_NGUHCRAFT_ARMOUR_TRIMS) it.accept(T)
             it.accept(GRAPE_LEAF)
+            it.accept(WARPED_WART)
         }
 
         ItemGroupEvents.modifyEntriesEvent(CreativeModeTabs.NATURAL_BLOCKS).register {
             it.accept(GRAPE_SEEDS)
+            it.accept(WARPED_WART)
         }
 
         ItemGroupEvents.modifyEntriesEvent(CreativeModeTabs.FOOD_AND_DRINKS).register {
