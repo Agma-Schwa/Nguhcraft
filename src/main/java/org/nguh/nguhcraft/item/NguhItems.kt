@@ -64,6 +64,13 @@ object NguhItems {
             .rarity(Rarity.EPIC)
             .jukeboxPlayable(RKey(Registries.JUKEBOX_SONG, "nguhrovision_2024"))
     )
+    val NGUHROVISION_2025_DISC: Item = CreateItem(
+        Id("music_disc_nguhrovision_2025"),
+        Item.Properties()
+            .stacksTo(1)
+            .rarity(Rarity.EPIC)
+            .jukeboxPlayable(RKey(Registries.JUKEBOX_SONG, "nguhrovision_2025"))
+    )
 
     // =========================================================================
     //  Armour Trims
@@ -335,6 +342,7 @@ object NguhItems {
         Register(SLAB_SHAVINGS_1)
         Register(SLAB_SHAVINGS_8)
         Register(NGUHROVISION_2024_DISC, ModelTemplates.MUSIC_DISC)
+        Register(NGUHROVISION_2025_DISC, ModelTemplates.MUSIC_DISC)
         ALL_NGUHCRAFT_ARMOUR_TRIMS.forEach { Register(it.Template) }
 
         Register(AMETHYST_SWORD, ModelTemplates.FLAT_HANDHELD_ITEM)
@@ -386,6 +394,7 @@ object NguhItems {
 
         ItemGroupEvents.modifyEntriesEvent(CreativeModeTabs.TOOLS_AND_UTILITIES).register {
             it.accept(NGUHROVISION_2024_DISC)
+            it.accept(NGUHROVISION_2025_DISC)
         }
 
         ItemGroupEvents.modifyEntriesEvent(CreativeModeTabs.INGREDIENTS).register {
