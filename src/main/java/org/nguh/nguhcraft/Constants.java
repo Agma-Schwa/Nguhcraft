@@ -23,6 +23,26 @@ public interface Constants {
     int Black = 0;
     int Purple = 0xAA00AA;
 
+    /** Minecraft colour names */
+    String[] colours = {
+            "white",
+            "light_gray",
+            "gray",
+            "black",
+            "brown",
+            "red",
+            "orange",
+            "yellow",
+            "lime",
+            "green",
+            "cyan",
+            "light_blue",
+            "blue",
+            "purple",
+            "magenta",
+            "pink"
+    };
+
     /**
     * Used to represent ‘infinity’.
     * <p>

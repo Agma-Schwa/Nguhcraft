@@ -7,16 +7,22 @@ import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource
+import net.fabricmc.fabric.api.client.particle.v1.ParticleFactoryRegistry
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents
 import net.minecraft.ChatFormatting
+import net.minecraft.client.particle.FlameParticle
+import net.minecraft.client.particle.ParticleProvider
 import net.minecraft.client.renderer.item.properties.select.SelectItemModelProperties
 import net.minecraft.core.BlockPos
+import net.minecraft.core.particles.ParticleOptions
+import net.minecraft.core.particles.ParticleType
 import net.minecraft.network.chat.Component
 import org.nguh.nguhcraft.Nguhcraft.Companion.Id
 import org.nguh.nguhcraft.block.ChestVariantProperty
 import org.nguh.nguhcraft.block.NguhBlockModels
 import org.nguh.nguhcraft.client.render.Renderer
 import org.nguh.nguhcraft.client.render.WorldRendering
+import org.nguh.nguhcraft.particle.NguhParticles
 
 @Environment(EnvType.CLIENT)
 class NguhcraftClient : ClientModInitializer {
@@ -26,6 +32,7 @@ class NguhcraftClient : ClientModInitializer {
         NguhcraftItemGroups.Init()
         NguhBlockModels.InitRenderLayers()
         NguhBlockModels.InitColorRegistry()
+        NguhParticles.ClientSideInitialisation()
 
         ClientCommandRegistrationCallback.EVENT.register { Dispatcher, _ ->
             Dispatcher.register(RenderCommand())

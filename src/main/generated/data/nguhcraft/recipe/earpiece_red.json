@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "group": "earpiece",
+  "key": {
+    "n": "minecraft:note_block",
+    "s": "minecraft:stick",
+    "w": "minecraft:red_wool"
+  },
+  "pattern": [
+    "n ",
+    "sw"
+  ],
+  "result": {
+    "count": 1,
+    "id": "nguhcraft:earpiece_red"
+  }
+}

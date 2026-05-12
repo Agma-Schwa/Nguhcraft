@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "p": "minecraft:red_stained_glass_pane",
+    "s": "minecraft:stick"
+  },
+  "pattern": [
+    "s s",
+    "psp"
+  ],
+  "result": {
+    "count": 1,
+    "id": "nguhcraft:hotspot_glasses"
+  }
+}

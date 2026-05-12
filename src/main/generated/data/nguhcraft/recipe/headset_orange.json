@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "group": "headset",
+  "key": {
+    "n": "minecraft:note_block",
+    "s": "minecraft:stick",
+    "w": "minecraft:orange_wool"
+  },
+  "pattern": [
+    "sss",
+    "n n",
+    "sw "
+  ],
+  "result": {
+    "count": 1,
+    "id": "nguhcraft:headset_orange"
+  }
+}

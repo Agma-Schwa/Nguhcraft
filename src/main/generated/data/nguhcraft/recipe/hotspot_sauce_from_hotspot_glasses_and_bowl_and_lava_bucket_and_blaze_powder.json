@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "nguhcraft:hotspot_glasses",
+    "minecraft:bowl",
+    "minecraft:lava_bucket",
+    "minecraft:blaze_powder"
+  ],
+  "result": {
+    "count": 1,
+    "id": "nguhcraft:hotspot_sauce"
+  }
+}

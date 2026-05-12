@@ -1,0 +1,14 @@
+{
+  "layers": {
+    "humanoid": [
+      {
+        "texture": "nguhcraft:earpiece_brown"
+      }
+    ],
+    "humanoid_leggings": [
+      {
+        "texture": "nguhcraft:earpiece_brown"
+      }
+    ]
+  }
+}
