@@ -8,6 +8,7 @@ import org.nguh.nguhcraft.Nguhcraft.Companion.Id
 object NguhSounds {
     val NGUH = Register("nguh")
     val NGUHROVISION_2024 = Register("music_disc.nguhrovision_2024")
+    val NGUHROVISION_2025 = Register("music_disc.nguhrovision_2025")
 
     fun Init() { }
 
