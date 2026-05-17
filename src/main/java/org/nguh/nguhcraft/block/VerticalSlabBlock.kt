@@ -45,7 +45,8 @@ open class VerticalSlabBlock(S: Properties) : Block(S), SimpleWaterloggedBlock {
                 Direction.SOUTH -> SOUTH
                 Direction.WEST -> WEST
                 Direction.EAST -> EAST
-                else -> NORTH
+                Direction.NORTH -> NORTH
+                else -> DOUBLE
             }
         }
     }
