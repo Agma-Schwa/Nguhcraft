@@ -1,0 +1,12 @@
+{
+  "parent": "minecraft:block/cube",
+  "textures": {
+    "down": "nguhcraft:block/crate_bottom",
+    "east": "nguhcraft:block/golden_apple_crate_side",
+    "north": "nguhcraft:block/golden_apple_crate_side",
+    "particle": "nguhcraft:block/golden_apple_crate_top",
+    "south": "nguhcraft:block/golden_apple_crate_side",
+    "up": "nguhcraft:block/golden_apple_crate_top",
+    "west": "nguhcraft:block/golden_apple_crate_side"
+  }
+}

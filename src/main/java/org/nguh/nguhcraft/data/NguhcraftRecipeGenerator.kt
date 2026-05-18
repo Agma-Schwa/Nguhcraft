@@ -427,8 +427,11 @@ class NguhcraftRecipeGenerator(
             NguhBlocks.SWEET_BERRY_CRATE to Items.SWEET_BERRIES,
             NguhBlocks.GLOW_BERRY_CRATE to Items.GLOW_BERRIES,
             NguhBlocks.SEAGRASS_CRATE to Items.SEAGRASS,
+            NguhBlocks.APPLE_CRATE to Items.APPLE,
+            NguhBlocks.GOLDEN_APPLE_CRATE to Items.GOLDEN_APPLE,
             NguhBlocks.GRAPE_CRATE to NguhItems.GRAPES,
             NguhBlocks.PEANUT_CRATE to NguhItems.PEANUTS,
+            NguhBlocks.CHERRY_CRATE to NguhItems.CHERRY,
         )) nineBlockStorageRecipes(
             RecipeCategory.FOOD,
             Crop,
