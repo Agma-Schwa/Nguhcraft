@@ -22,6 +22,7 @@ import net.minecraft.world.item.ItemStack
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.LevelReader
 import net.minecraft.world.level.block.Block
+import net.minecraft.world.level.block.BonemealSource
 import net.minecraft.world.level.block.BonemealableBlock
 import net.minecraft.world.level.block.LeavesBlock
 import net.minecraft.world.level.block.state.BlockState
@@ -128,21 +129,24 @@ class BuddingLeavesBlock(
     override fun isValidBonemealTarget(
         LR: LevelReader,
         Pos: BlockPos,
-        St: BlockState
+        St: BlockState,
+        source: BonemealSource
     ) = St.getValue(AGE) < MAX_AGE
 
     override fun isBonemealSuccess(
         L: Level,
         RS: RandomSource,
         Pos: BlockPos,
-        St: BlockState
+        St: BlockState,
+        source: BonemealSource
     ) = true
 
     override fun performBonemeal(
         SL: ServerLevel,
         RS: RandomSource,
         Pos: BlockPos,
-        St: BlockState
+        St: BlockState,
+        source: BonemealSource
     ) {
         val NewAge = min(St.getValue(AGE) + 1, MAX_AGE)
         SL.setBlock(Pos, St.setValue(AGE, NewAge), UPDATE_CLIENTS)
