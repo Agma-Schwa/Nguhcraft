@@ -22,5 +22,5 @@ class KeyLockItemComponentisationFix(S: Schema) : DataComponentRemainderFix(
      * implementation, so just return the value
      * unchanged here.
      */
-    override fun <T> fixComponent(D: Dynamic<T>) = D
+    override fun <T : Any> fixComponent(D: Dynamic<T>): Dynamic<T>? = D
 }

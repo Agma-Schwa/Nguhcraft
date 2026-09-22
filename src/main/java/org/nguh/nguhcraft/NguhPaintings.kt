@@ -26,14 +26,8 @@ object NguhPaintings {
                     Width,
                     Height,
                     K.identifier(),
-                    Optional.of(
-                        Component.translatable(K.identifier().toLanguageKey("painting", "title"))
-                            .withStyle(ChatFormatting.YELLOW)
-                    ),
-                    Optional.of(
-                        Component.translatable(K.identifier().toLanguageKey("painting", "author"))
-                            .withStyle(ChatFormatting.GRAY)
-                    )
+                    Optional.of(Component.translatable(K.identifier().toLanguageKey("painting", "title")).withStyle(ChatFormatting.YELLOW)),
+                    Optional.of(Component.translatable(K.identifier().toLanguageKey("painting", "author")).withStyle(ChatFormatting.GRAY))
                 )
             )
 

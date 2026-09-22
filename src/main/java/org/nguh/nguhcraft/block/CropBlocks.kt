@@ -1,6 +1,5 @@
 package org.nguh.nguhcraft.block
 
-import com.mojang.serialization.MapCodec
 import net.minecraft.core.BlockPos
 import net.minecraft.sounds.SoundEvents
 import net.minecraft.sounds.SoundSource
@@ -13,6 +12,7 @@ import net.minecraft.world.item.Items
 import net.minecraft.world.item.context.BlockPlaceContext
 import net.minecraft.world.level.*
 import net.minecraft.world.level.block.Block
+import net.minecraft.world.level.block.BonemealSource
 import net.minecraft.world.level.block.CropBlock
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.StateDefinition
@@ -28,7 +28,6 @@ import org.nguh.nguhcraft.item.NguhItems
 class GrapeCropBlock(Settings: Properties) : CropBlock(Settings) {
     init { registerDefaultState(defaultBlockState().setValue(STICK_LOGGED, true)) }
 
-    override fun codec() = CODEC
     override fun getBaseSeedId() = NguhItems.GRAPE_SEEDS
     override fun getAgeProperty() = AGE
     override fun getMaxAge() = MAX_AGE
@@ -42,8 +41,8 @@ class GrapeCropBlock(Settings: Properties) : CropBlock(Settings) {
     override fun isRandomlyTicking(St: BlockState) =
         super.isRandomlyTicking(St) && IsStickLogged(St)
 
-    override fun isValidBonemealTarget(L: LevelReader, Pos: BlockPos, St: BlockState) =
-        super.isValidBonemealTarget(L, Pos, St) && IsStickLogged(St)
+    override fun isValidBonemealTarget(L: LevelReader, Pos: BlockPos, St: BlockState, source: BonemealSource) =
+        super.isValidBonemealTarget(L, Pos, St, source) && IsStickLogged(St)
 
     override fun useItemOn(
         S: ItemStack,
@@ -53,7 +52,7 @@ class GrapeCropBlock(Settings: Properties) : CropBlock(Settings) {
         PE: Player,
         Hand: InteractionHand,
         BHR: BlockHitResult
-    ): InteractionResult? {
+    ): InteractionResult {
         if (S.`is`(Items.STICK) && !IsStickLogged(St)) {
             L.setBlockAndUpdate(Pos, St.setValue(STICK_LOGGED, true))
             L.playSound(
@@ -94,11 +93,10 @@ class GrapeCropBlock(Settings: Properties) : CropBlock(Settings) {
     companion object {
         const val MAX_AGE: Int = 4
         @JvmField val AGE: IntegerProperty = BlockStateProperties.AGE_4
-        val CODEC: MapCodec<GrapeCropBlock> = simpleCodec(::GrapeCropBlock)
         val STICK_LOGGED: BooleanProperty = BooleanProperty.create("sticklogged")
-        private val FLAT_SHAPE: VoxelShape? = column(16.0, 0.0, 2.0)
-        private val SMALL_SHAPE: VoxelShape? = cube(9.5, 16.0, 9.5)
-        private val BIG_SHAPE: VoxelShape? = cube(16.0)
+        private val FLAT_SHAPE: VoxelShape = column(16.0, 0.0, 2.0)
+        private val SMALL_SHAPE: VoxelShape = cube(9.5, 16.0, 9.5)
+        private val BIG_SHAPE: VoxelShape = cube(16.0)
 
         fun IsStickLogged(St: BlockState): Boolean = St.getValue(STICK_LOGGED)
 
@@ -145,13 +143,11 @@ class GrapeCropBlock(Settings: Properties) : CropBlock(Settings) {
 }
 
 class PeanutCropBlock(settings: Properties) : CropBlock(settings) {
-    override fun codec() = CODEC
     override fun getBaseSeedId() = NguhItems.PEANUTS
     override fun getShape(St: BlockState, L: BlockGetter, Pos: BlockPos, Ctx: CollisionContext) =
         SHAPES_BY_AGE[this.getAge(St)]
 
     companion object {
-        val CODEC: MapCodec<PeanutCropBlock> = simpleCodec(::PeanutCropBlock)
         private val SHAPE_HEIGHTS = arrayOf(2, 4, 5, 9, 11, 14, 14, 14)
         private val SHAPES_BY_AGE = boxes(7) { column(16.0, 0.0, SHAPE_HEIGHTS[it].toDouble()) }
     }

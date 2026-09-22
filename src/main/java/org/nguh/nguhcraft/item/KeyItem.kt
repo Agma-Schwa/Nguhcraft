@@ -71,7 +71,7 @@ class KeyItem : Item(
 
         private val KEY_PREFIX = Component.literal("Id: ").withStyle(ChatFormatting.YELLOW)
 
-        private object Accessor : DoubleBlockCombiner.Combiner<ChestBlockEntity, ChestBlockEntity?> {
+        private object Accessor : DoubleBlockCombiner.Combiner<ChestBlockEntity, ChestBlockEntity> {
             override fun acceptDouble(
                 Left: ChestBlockEntity,
                 Right: ChestBlockEntity
@@ -81,7 +81,7 @@ class KeyItem : Item(
             }
 
             override fun acceptSingle(BE: ChestBlockEntity) = BE
-            override fun acceptNone() = null
+            override fun acceptNone(): ChestBlockEntity = throw IllegalStateException("No chest block entity found")
         }
 
         /** Create an instance with the specified key. */

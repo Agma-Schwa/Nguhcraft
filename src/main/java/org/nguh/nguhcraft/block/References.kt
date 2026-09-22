@@ -2,7 +2,7 @@ package org.nguh.nguhcraft.block
 
 import net.minecraft.core.registries.Registries
 import net.minecraft.resources.ResourceKey
-import net.minecraft.resources.ResourceLocation
+import net.minecraft.resources.Identifier
 import org.nguh.nguhcraft.Nguhcraft.Companion.Id
 
 /**
@@ -15,6 +15,6 @@ import org.nguh.nguhcraft.Nguhcraft.Companion.Id
  * that need to be referenced in the NguhBlocks class initialiser.
  */
 object References {
-    val APPLE_ITEM = ResourceKey.create(Registries.ITEM, ResourceLocation.withDefaultNamespace("apple"))!!
+    val APPLE_ITEM = ResourceKey.create(Registries.ITEM, Identifier.withDefaultNamespace("apple"))!!
     val CHERRY_ITEM = ResourceKey.create(Registries.ITEM, Id("cherry"))!!
 }

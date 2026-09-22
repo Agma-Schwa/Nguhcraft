@@ -297,7 +297,7 @@ object Commands {
             val Orth = if (Dir.axis == Direction.Axis.X) Direction.NORTH else Direction.WEST
             val Pos = SP.blockPosition().mutable().move(Dir, 2).move(Orth, -7)
             for (D in EventDifficulty.entries) {
-                val E = Type.Spawn(SP.level(), Pos.move(Orth, 2).bottomCenter, D)
+                val E = Type.Spawn(SP.level(), Vec3.atBottomCenterOf(Pos.move(Orth, 2)), D)
                 if (E is LivingEntity) E.getAttribute(Attributes.MOVEMENT_SPEED)?.baseValue = 0.0
                 E?.isSilent = true
             }
@@ -384,7 +384,7 @@ object Commands {
             Component.literal("\n  - ")
                 .append(Component.literal(H.Name).withStyle(ChatFormatting.AQUA))
                 .append(" in ")
-                .append(Component.literal(H.World.location().path.toString()).withColor(Constants.Lavender))
+                .append(Component.literal(H.World.identifier().path.toString()).withColor(Constants.Lavender))
                 .append(" at [")
                 .append(Component.literal("${H.Pos.x}").withStyle(ChatFormatting.GRAY))
                 .append(", ")
@@ -629,7 +629,7 @@ object Commands {
                 S.Success(Component.literal("Created region ")
                     .append(Component.literal(Name).withStyle(ChatFormatting.AQUA))
                     .append(" in world ")
-                    .append(Component.literal(W.dimension().location().path.toString()).withColor(Constants.Lavender))
+                    .append(Component.literal(W.dimension().identifier().path.toString()).withColor(Constants.Lavender))
                     .append(" with bounds [")
                     .append(Component.literal("${R.MinX}").withStyle(ChatFormatting.GRAY))
                     .append(", ")
@@ -678,13 +678,13 @@ object Commands {
             val Regions = ProtectionManager.GetRegions(W)
             if (Regions.isEmpty()) {
                 S.Reply(Component.literal("No regions defined in world ")
-                    .append(Component.literal(W.dimension().location().path.toString()).withColor(Constants.Lavender))
+                    .append(Component.literal(W.dimension().identifier().path.toString()).withColor(Constants.Lavender))
                 )
                 return 0
             }
 
             val List = Component.literal("Regions in world ")
-                .append(Component.literal(W.dimension().location().path.toString()).withColor(Constants.Lavender))
+                .append(Component.literal(W.dimension().identifier().path.toString()).withColor(Constants.Lavender))
                 .append(":")
 
             for (R in Regions) {
@@ -789,7 +789,7 @@ object Commands {
 
             try {
                 val Data = DataParam?.copy() ?: CompoundTag()
-                Data.putString("id", EntityType.key().location().toString()) // See SummonCommand::summon()
+                Data.putString("id", EntityType.key().identifier().toString()) // See SummonCommand::summon()
                 val Spawn = EntitySpawnManager.ServerSpawn(W, Pos, Id, Data)
                 S.server.EntitySpawnManager.Add(Spawn)
                 S.Success("Added spawn $Spawn")
@@ -868,7 +868,7 @@ object Commands {
             Component.empty()
                 .append(Component.literal(W.Name).withStyle(ChatFormatting.AQUA))
                 .append(" in ")
-                .append(Component.literal(W.World.location().path.toString()).withColor(Constants.Lavender))
+                .append(Component.literal(W.World.identifier().path.toString()).withColor(Constants.Lavender))
                 .append(" at [")
                 .append(Component.literal("${W.X.toInt()}").withStyle(ChatFormatting.GRAY))
                 .append(", ")

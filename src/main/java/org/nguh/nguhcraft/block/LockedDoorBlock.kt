@@ -1,6 +1,5 @@
 package org.nguh.nguhcraft.block
 
-import com.mojang.serialization.MapCodec
 import net.minecraft.world.level.block.*
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.item.context.BlockPlaceContext
@@ -99,9 +98,7 @@ class LockedDoorBlock(S: Properties) : DoorBlock(BlockSetType.IRON, S), EntityBl
         return InteractionResult.SUCCESS
     }
 
-    override fun codec() = CODEC
     companion object {
-        val CODEC: MapCodec<LockedDoorBlock> = simpleCodec(::LockedDoorBlock)
         val LOCKED: BooleanProperty = BooleanProperty.create("nguhcraft_locked") // Property to render a locked door.
     }
 }

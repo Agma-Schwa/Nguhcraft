@@ -87,7 +87,7 @@ object Vanish {
         // players, and the resulting packet may have to be different for each
         // player.
         return ClientboundPlayerInfoUpdatePacket.createPlayerInitializing(
-            l.map { S.playerList.getPlayer(it.profileId) }
+            l.mapNotNull { S.playerList.getPlayer(it.profileId) }
         )
     }
 

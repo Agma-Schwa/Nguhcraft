@@ -1,8 +1,7 @@
 package org.nguh.nguhcraft.item
 
-import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents
-import net.fabricmc.fabric.api.registry.CompostingChanceRegistry
-import net.minecraft.Util
+import net.fabricmc.fabric.api.creativetab.v1.CreativeModeTabEvents
+import net.minecraft.util.Util
 import net.minecraft.client.data.models.ItemModelGenerators
 import net.minecraft.client.data.models.model.ModelTemplate
 import net.minecraft.client.data.models.model.ModelTemplates
@@ -14,7 +13,7 @@ import net.minecraft.core.registries.Registries
 import net.minecraft.data.worldgen.BootstrapContext
 import net.minecraft.network.chat.Component
 import net.minecraft.resources.ResourceKey
-import net.minecraft.resources.ResourceLocation
+import net.minecraft.resources.Identifier
 import net.minecraft.sounds.SoundEvent
 import net.minecraft.sounds.SoundEvents
 import net.minecraft.tags.TagKey
@@ -22,7 +21,6 @@ import net.minecraft.world.food.FoodProperties
 import net.minecraft.world.item.*
 import net.minecraft.world.item.component.Consumable
 import net.minecraft.world.item.component.Consumables
-import net.minecraft.world.item.crafting.CustomRecipe.Serializer
 import net.minecraft.world.item.equipment.ArmorMaterial
 import net.minecraft.world.item.equipment.ArmorType
 import net.minecraft.world.item.equipment.EquipmentAsset
@@ -30,6 +28,7 @@ import net.minecraft.world.item.equipment.EquipmentAssets
 import net.minecraft.world.item.equipment.trim.TrimPattern
 import net.minecraft.world.level.ItemLike
 import net.minecraft.world.level.block.Block
+import net.minecraft.world.level.storage.loot.providers.number.ints.ContextIntProviders
 import org.nguh.nguhcraft.Nguhcraft.Companion.Id
 import org.nguh.nguhcraft.Nguhcraft.Companion.RKey
 import org.nguh.nguhcraft.Utils
@@ -180,20 +179,17 @@ object NguhItems {
 
     val AMETHYST_SHOVEL = CreateItem(
         Id("amethyst_shovel"),
-        { ShovelItem(AMETHYST_TOOL_MATERIAL, 3.0F, -2.4F, it) },
-        Item.Properties().fireResistant().rarity(Rarity.EPIC)
+        Item.Properties().fireResistant().rarity(Rarity.EPIC).shovel(AMETHYST_TOOL_MATERIAL, 3.0F, -2.4F)
     )
 
     val AMETHYST_AXE = CreateItem(
         Id("amethyst_axe"),
-        { AxeItem(AMETHYST_TOOL_MATERIAL, 8.0F, -2.4F, it) },
-        Item.Properties().fireResistant().rarity(Rarity.EPIC)
+        Item.Properties().fireResistant().rarity(Rarity.EPIC).axe(AMETHYST_TOOL_MATERIAL, 8.0F, -2.4F)
     )
 
     val AMETHYST_HOE = CreateItem(
         Id("amethyst_hoe"),
-        { HoeItem(AMETHYST_TOOL_MATERIAL, 0.0F, 0.0F, it) },
-        Item.Properties().fireResistant().rarity(Rarity.EPIC)
+        Item.Properties().fireResistant().rarity(Rarity.EPIC).hoe(AMETHYST_TOOL_MATERIAL, 0.0F, 0.0F)
     )
 
     // =========================================================================
@@ -202,17 +198,17 @@ object NguhItems {
     var GRAPE_SEEDS = CreateItem(
         Id("grape_seeds"),
         { BlockItem(NguhBlocks.GRAPE_CROP, it) },
-        Item.Properties().useItemDescriptionPrefix()
+        Item.Properties().useItemDescriptionPrefix().compostable(ContextIntProviders.COMPOSTABLE_LOW)
     )
 
     var GRAPES = CreateItem(
         Id("grapes"),
-        Item.Properties().food(FoodProperties(1, 0.1F, false))
+        Item.Properties().food(FoodProperties(1, 0.1F, false)).compostable(ContextIntProviders.COMPOSTABLE_LOW_MEDIUM)
     )
 
     var GRAPE_LEAF = CreateItem(
         Id("grape_leaf"),
-        Item.Properties()
+        Item.Properties().compostable(ContextIntProviders.COMPOSTABLE_LOW)
     )
 
     var GRAPE_JUICE = CreateItem(
@@ -241,12 +237,14 @@ object NguhItems {
         Item.Properties()
             .food(FoodProperties(3, 0.3F, false))
             .stacksTo(64)
+            .compostable(ContextIntProviders.COMPOSTABLE_LOW_MEDIUM)
     )
 
     val CHERRY = CreateItem(
         Id("cherry"),
         Item.Properties()
             .food(FoodProperties(2, 0.1F, false))
+            .compostable(ContextIntProviders.COMPOSTABLE_LOW_MEDIUM)
     )
 
     val PBJ_SANDWICH = CreateItem(
@@ -311,8 +309,8 @@ object NguhItems {
     fun BootstrapArmourTrims(R: BootstrapContext<TrimPattern>) {
         for (T in ALL_NGUHCRAFT_ARMOUR_TRIMS) {
             R.register(T.Trim, TrimPattern(
-                T.Trim.location(),
-                Component.translatable(Util.makeDescriptionId("trim_pattern", T.Trim.location())),
+                T.Trim.identifier(),
+                Component.translatable(Util.makeDescriptionId("trim_pattern", T.Trim.identifier())),
                 false
             ))
         }
@@ -343,10 +341,10 @@ object NguhItems {
         Register(AMETHYST_AXE, ModelTemplates.FLAT_HANDHELD_ITEM)
         Register(AMETHYST_HOE, ModelTemplates.FLAT_HANDHELD_ITEM)
 
-        G.generateTrimmableItem(AMETHYST_HELMET, AMETHYST_EQUIPMENT_ASSET_KEY, ItemModelGenerators.TRIM_PREFIX_HELMET, false)
-        G.generateTrimmableItem(AMETHYST_CHESTPLATE, AMETHYST_EQUIPMENT_ASSET_KEY, ItemModelGenerators.TRIM_PREFIX_CHESTPLATE, false)
-        G.generateTrimmableItem(AMETHYST_LEGGINGS, AMETHYST_EQUIPMENT_ASSET_KEY, ItemModelGenerators.TRIM_PREFIX_LEGGINGS, false)
-        G.generateTrimmableItem(AMETHYST_BOOTS, AMETHYST_EQUIPMENT_ASSET_KEY, ItemModelGenerators.TRIM_PREFIX_BOOTS, false)
+        G.generateTrimmableItem(AMETHYST_HELMET, ItemModelGenerators.TRIM_PREFIX_HELMET, false, mapOf())
+        G.generateTrimmableItem(AMETHYST_CHESTPLATE, ItemModelGenerators.TRIM_PREFIX_CHESTPLATE, false, mapOf())
+        G.generateTrimmableItem(AMETHYST_LEGGINGS, ItemModelGenerators.TRIM_PREFIX_LEGGINGS, false, mapOf())
+        G.generateTrimmableItem(AMETHYST_BOOTS, ItemModelGenerators.TRIM_PREFIX_BOOTS, false, mapOf())
 
         Register(GRAPES)
         Register(GRAPE_LEAF)
@@ -363,7 +361,7 @@ object NguhItems {
     }
 
     fun Init() {
-        ItemGroupEvents.modifyEntriesEvent(CreativeModeTabs.FUNCTIONAL_BLOCKS).register {
+        CreativeModeTabEvents.modifyOutputEvent(CreativeModeTabs.FUNCTIONAL_BLOCKS).register {
             it.accept(LOCK)
             it.accept(KEY)
             it.accept(KEY_CHAIN)
@@ -384,22 +382,22 @@ object NguhItems {
             }
         }
 
-        ItemGroupEvents.modifyEntriesEvent(CreativeModeTabs.TOOLS_AND_UTILITIES).register {
+        CreativeModeTabEvents.modifyOutputEvent(CreativeModeTabs.TOOLS_AND_UTILITIES).register {
             it.accept(NGUHROVISION_2024_DISC)
         }
 
-        ItemGroupEvents.modifyEntriesEvent(CreativeModeTabs.INGREDIENTS).register {
+        CreativeModeTabEvents.modifyOutputEvent(CreativeModeTabs.INGREDIENTS).register {
             for (T in ALL_NGUHCRAFT_ARMOUR_TRIMS) it.accept(T)
             it.accept(GRAPE_LEAF)
             it.accept(WARPED_WART)
         }
 
-        ItemGroupEvents.modifyEntriesEvent(CreativeModeTabs.NATURAL_BLOCKS).register {
+        CreativeModeTabEvents.modifyOutputEvent(CreativeModeTabs.NATURAL_BLOCKS).register {
             it.accept(GRAPE_SEEDS)
             it.accept(WARPED_WART)
         }
 
-        ItemGroupEvents.modifyEntriesEvent(CreativeModeTabs.FOOD_AND_DRINKS).register {
+        CreativeModeTabEvents.modifyOutputEvent(CreativeModeTabs.FOOD_AND_DRINKS).register {
             it.accept(GRAPES)
             it.accept(GRAPE_JUICE)
             it.accept(STUFFED_GRAPE_LEAVES)
@@ -413,32 +411,26 @@ object NguhItems {
             it.accept(GLOW_ROLLS)
         }
 
-        KeyLockPairingRecipe.SERIALISER = Registry.register(
+        Registry.register(
             BuiltInRegistries.RECIPE_SERIALIZER,
             Id("crafting_special_key_lock_pairing"),
-            Serializer(::KeyLockPairingRecipe)
+            KeyLockPairingRecipe.SERIALISER
         )
 
-        KeyDuplicationRecipe.SERIALISER = Registry.register(
+        Registry.register(
             BuiltInRegistries.RECIPE_SERIALIZER,
             Id("crafting_special_key_duplication"),
-            Serializer(::KeyDuplicationRecipe)
+            KeyDuplicationRecipe.SERIALISER
         )
-
-        CompostingChanceRegistry.INSTANCE.add(GRAPES, 0.5F)
-        CompostingChanceRegistry.INSTANCE.add(GRAPE_SEEDS, 0.3F)
-        CompostingChanceRegistry.INSTANCE.add(GRAPE_LEAF, 0.3F)
-        CompostingChanceRegistry.INSTANCE.add(PEANUTS, 0.5F)
-        CompostingChanceRegistry.INSTANCE.add(CHERRY, 0.5F)
     }
 
-    private fun CreateItem(Id: ResourceLocation, I: Item): Item =
+    private fun CreateItem(Id: Identifier, I: Item): Item =
         Registry.register(BuiltInRegistries.ITEM, Id, I)
 
-    private fun CreateItem(Id: ResourceLocation, I: (Item.Properties) -> Item, S: Item.Properties): Item =
+    private fun CreateItem(Id: Identifier, I: (Item.Properties) -> Item, S: Item.Properties): Item =
         Registry.register(BuiltInRegistries.ITEM, Id, I(S.setId(Key(Id))))
 
-    private fun CreateItem(Id: ResourceLocation, S: Item.Properties): Item =
+    private fun CreateItem(Id: Identifier, S: Item.Properties): Item =
         Registry.register(BuiltInRegistries.ITEM, Id, Item(S.setId(Key(Id))))
 
     private fun CreateSmithingTemplate(S: String, I: Item.Properties): Item {
@@ -450,5 +442,5 @@ object NguhItems {
         )
     }
 
-    private fun Key(Id: ResourceLocation) = ResourceKey.create(Registries.ITEM, Id)
+    private fun Key(Id: Identifier) = ResourceKey.create(Registries.ITEM, Id)
 }

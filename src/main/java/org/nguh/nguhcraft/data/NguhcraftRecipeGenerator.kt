@@ -236,7 +236,7 @@ class NguhcraftRecipeGenerator(
             NguhBlocks.CALCITE_BRICKS to NguhBlocks.GILDED_CALCITE_BRICKS,
             NguhBlocks.CHISELED_CALCITE to NguhBlocks.GILDED_CHISELED_CALCITE,
             NguhBlocks.CHISELED_CALCITE_BRICKS to NguhBlocks.GILDED_CHISELED_CALCITE_BRICKS
-        )) offerShaped(Gilded, 2, "from_${BuiltInRegistries.BLOCK.getResourceKey(Base).get().location().path.lowercase()}_and_gold_ingot") {
+        )) offerShaped(Gilded, 2, "from_${BuiltInRegistries.BLOCK.getResourceKey(Base).get().identifier().path.lowercase()}_and_gold_ingot") {
             pattern("GC")
             pattern("CG")
             cinput('C', Base)

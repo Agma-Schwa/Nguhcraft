@@ -45,8 +45,8 @@ data class Home(
 
         fun Bed(SP: ServerPlayer) = Home(
             BED_HOME,
-            SP.respawnConfig?.dimension ?: Level.OVERWORLD,
-            SP.respawnConfig?.pos ?: SP.Server.overworld().sharedSpawnPos
+            SP.respawnConfig?.respawnData()?.dimension() ?: Level.OVERWORLD,
+            SP.respawnConfig?.respawnData()?.pos() ?: SP.Server.overworld().levelData.respawnData.pos()
         )
 
         @JvmStatic

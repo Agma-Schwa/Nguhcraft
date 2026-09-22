@@ -9,16 +9,17 @@ import net.fabricmc.loader.api.FabricLoader
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.entity.BlockEntity
 import net.minecraft.world.entity.EntityType
+import net.minecraft.world.entity.EntityTypes
 import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.entity.EntitySpawnReason
 import net.minecraft.world.effect.MobEffect
 import net.minecraft.world.effect.MobEffectInstance
 import net.minecraft.world.entity.monster.piglin.AbstractPiglin
 import net.minecraft.world.entity.monster.Enemy
-import net.minecraft.world.entity.animal.IronGolem
-import net.minecraft.world.entity.npc.Villager
+import net.minecraft.world.entity.animal.golem.IronGolem
+import net.minecraft.world.entity.npc.villager.Villager
 import net.minecraft.world.entity.projectile.ProjectileUtil
-import net.minecraft.world.entity.projectile.ThrownTrident
+import net.minecraft.world.entity.projectile.arrow.ThrownTrident
 import net.minecraft.world.item.ItemStack
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload
 import net.minecraft.network.protocol.game.ClientboundSetSubtitleTextPacket
@@ -148,7 +149,7 @@ object ServerUtils {
         //       at the end of the list (and which expands first if the
         //       world border is increased).
         if (!SW.worldBorder.isWithinBounds(SP.boundingBox)) {
-            SP.Teleport(SW, SW.sharedSpawnPos)
+            SP.Teleport(SW, SW.levelData.respawnData.pos())
             SendTitle(SP, BORDER_TITLE, BORDER_SUBTITLE)
             LOGGER.warn("Player {} tried to leave the border.", SP.Name.string)
         }
@@ -187,7 +188,7 @@ object ServerUtils {
         val B = AABB(Pos).inflate(Distance).expandTowards(0.0, W.height.toDouble(), 0.0)
 
         // Apply the status effect(s) to all villager entities.
-        for (E in W.getEntities(EntityType.VILLAGER, B) { true }) {
+        for (E in W.getEntities(EntityTypes.VILLAGER, B) { true }) {
             E.addEffect(MobEffectInstance(Primary, Duration, Amplifier, true, true))
             if (SeparateSecondary)
                 E.addEffect(MobEffectInstance(Secondary, Duration, 0, true, true))
@@ -352,7 +353,7 @@ object ServerUtils {
     @JvmStatic
     @JvmOverloads
     fun StrikeLightning(W: ServerLevel, Where: Vec3, TE: ThrownTrident? = null, Cosmetic: Boolean = false) {
-        val Lightning = EntityType.LIGHTNING_BOLT.spawn(
+        val Lightning = EntityTypes.LIGHTNING_BOLT.spawn(
             W,
             BlockPos.containing(Where),
             EntitySpawnReason.SPAWN_ITEM_USE
@@ -386,7 +387,7 @@ object ServerUtils {
         if (optional.isEmpty) return null
 
         val Recipe: SmeltingRecipe = optional.get().value()
-        val Smelted: ItemStack = Recipe.assemble(Input, W.registryAccess())
+        val Smelted: ItemStack = Recipe.assemble(Input)
         if (Smelted.isEmpty) return null
         return SmeltingResult(Smelted.copyWithCount(I.count), RoundExp(Recipe.experience()))
     }

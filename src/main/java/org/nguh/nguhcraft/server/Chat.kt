@@ -129,7 +129,7 @@ object Chat {
     */
     @JvmStatic
     fun LogCommandBlock(S: String, SW: ServerLevel, Pos: BlockPos) {
-        val WorldKey = if (SW.dimension() == Level.OVERWORLD) "" else "${SW.dimension().location().path}:"
+        val WorldKey = if (SW.dimension() == Level.OVERWORLD) "" else "${SW.dimension().identifier().path}:"
         BroadcastCommand(SW.server, Component.literal("Command block at $WorldKey[${Pos.toShortString()}]"), S)
         LOGGER.info(
             "[CMD] Command block at {}[{}] issued command /{}",
@@ -204,7 +204,7 @@ object Chat {
     fun SendPrivateMessage(From: ServerPlayer?, Players: Collection<ServerPlayer>, Message: String) {
         if (From != null && !IsIntegratedServer()) {
             if (Discord.IsMuted(From)) {
-                From.displayClientMessage(ERR_MUTED, false)
+                From.sendSystemMessage(ERR_MUTED, false)
                 return
             }
         }

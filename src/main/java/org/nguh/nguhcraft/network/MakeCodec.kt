@@ -16,7 +16,7 @@ import net.minecraft.network.codec.StreamCodec
  *
  *     -> Packet.Write(B)
  */
-fun <PacketType> MakeCodec(
+fun <PacketType : Any> MakeCodec(
     Encoder: PacketType.(RegistryFriendlyByteBuf) -> Unit,
     Decoder: (RegistryFriendlyByteBuf) -> PacketType
 ): StreamCodec<RegistryFriendlyByteBuf, PacketType> = StreamCodec.ofMember(

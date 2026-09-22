@@ -2,13 +2,13 @@ package org.nguh.nguhcraft.block
 
 import com.mojang.serialization.Codec
 import io.netty.buffer.ByteBuf
-import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents
+import net.fabricmc.fabric.api.creativetab.v1.CreativeModeTabEvents
+import net.fabricmc.fabric.api.item.v1.BlockTransformerHelper
 import net.fabricmc.fabric.api.`object`.builder.v1.block.entity.FabricBlockEntityTypeBuilder
 import net.fabricmc.fabric.api.`object`.builder.v1.block.type.BlockSetTypeBuilder
 import net.fabricmc.fabric.api.`object`.builder.v1.block.type.WoodTypeBuilder
 import net.fabricmc.fabric.api.registry.FlammableBlockRegistry
 import net.fabricmc.fabric.api.registry.OxidizableBlocksRegistry
-import net.fabricmc.fabric.api.registry.StrippableBlockRegistry
 import net.minecraft.core.Registry
 import net.minecraft.core.component.DataComponentType
 import net.minecraft.core.particles.ParticleTypes
@@ -1081,11 +1081,11 @@ object NguhBlocks {
     //  Initialisation
     // =========================================================================
     fun Init() {
-        ItemGroupEvents.modifyEntriesEvent(CreativeModeTabs.REDSTONE_BLOCKS).register {
+        CreativeModeTabEvents.modifyOutputEvent(CreativeModeTabs.REDSTONE_BLOCKS).register {
             it.accept(DECORATIVE_HOPPER)
         }
 
-        ItemGroupEvents.modifyEntriesEvent(CreativeModeTabs.BUILDING_BLOCKS).register {
+        CreativeModeTabEvents.modifyOutputEvent(CreativeModeTabs.BUILDING_BLOCKS).register {
             it.accept(LOCKED_DOOR)
             it.accept(COMPRESSED_STONE)
             it.accept(WROUGHT_IRON_BLOCK)
@@ -1105,7 +1105,7 @@ object NguhBlocks {
             it.accept(NGUHROVISION_TROPHY)
         }
 
-        ItemGroupEvents.modifyEntriesEvent(CreativeModeTabs.FUNCTIONAL_BLOCKS).register {
+        CreativeModeTabEvents.modifyOutputEvent(CreativeModeTabs.FUNCTIONAL_BLOCKS).register {
             for (B in CHAINS_AND_LANTERNS.flatten()) it.accept(B)
             it.accept(AZURE_FROGLIGHT)
             it.accept(SANGUINE_FROGLIGHT)
@@ -1138,14 +1138,14 @@ object NguhBlocks {
         Suffix: String,
         Ctor: (BlockBehaviour.Properties) -> Block
     ) = Register(
-        "${BuiltInRegistries.BLOCK.getResourceKey(Parent).get().location().path}_$Suffix",
+        "${BuiltInRegistries.BLOCK.getResourceKey(Parent).get().identifier().path}_$Suffix",
         Ctor,
         BlockBehaviour.Properties.ofLegacyCopy(Parent)
     )
 
     @Suppress("DEPRECATION")
     private fun RegisterStairs(Parent: Block) = Register(
-        "${BuiltInRegistries.BLOCK.getResourceKey(Parent).get().location().path}_stairs",
+        "${BuiltInRegistries.BLOCK.getResourceKey(Parent).get().identifier().path}_stairs",
         { StairBlock(Parent.defaultBlockState(), it) },
         BlockBehaviour.Properties.ofLegacyCopy(Parent)
     )
@@ -1223,13 +1223,13 @@ object NguhBlocks {
         BlockBehaviour.Properties.ofFullCopy(SlabBlock)
     )
 
-    fun RegisterStrippable(L: Block, S: Block) = StrippableBlockRegistry.register(L, S)
+    fun RegisterStrippable(L: Block, S: Block) = BlockTransformerHelper.registerStripping(L, S)
 
     fun RegisterFlammable(b: Block, burn: Int, spread: Int) = FlammableBlockRegistry.getDefaultInstance().add(b, burn, spread)
 
-    fun RegisterWaxable(U: Block, W: Block) = OxidizableBlocksRegistry.registerWaxableBlockPair(U, W)
+    fun RegisterWaxable(U: Block, W: Block) = OxidizableBlocksRegistry.registerWaxable(U, W)
 
-    fun RegisterOxidizable(L: Block, M: Block) = OxidizableBlocksRegistry.registerOxidizableBlockPair(L, M)
+    fun RegisterOxidizable(L: Block, M: Block) = OxidizableBlocksRegistry.registerNextStage(L, M)
 
     fun RegisterCopper(unwaxed: List<Block>, waxed: List<Block>)
     {
