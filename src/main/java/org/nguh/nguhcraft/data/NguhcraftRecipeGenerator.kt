@@ -637,6 +637,6 @@ class NguhcraftRecipeGenerator(
             NguhItems.SLABLET_8 to NguhItems.SLABLET_16,
             NguhItems.SLABLET_16 to Items.PETRIFIED_OAK_SLAB,
         )
-        private val MILK_ITEMS = TagKey.create(Registries.ITEM, Identifier.parse("c:foods/milk"))
+        private val MILK_ITEMS = TagKey.create(Registries.ITEM, Identifier.parse("c:drinks/milk"))
     }
 }
