@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:acacia_planks_from_acacia_log_stonecutting"
+        "recipes": "nguhcraft:acacia_planks_from_acacia_log_stonecutting"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

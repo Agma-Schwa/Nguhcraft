@@ -3,7 +3,7 @@
   "criteria": {
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:tinted_oak_slab_vertical"
+        "recipes": "nguhcraft:tinted_oak_slab_vertical"
       },
       "trigger": "minecraft:recipe_unlocked"
     },

@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:slablet_16_from_slablet_8"
+        "recipes": "nguhcraft:slablet_16_from_slablet_8"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

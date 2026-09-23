@@ -2,7 +2,6 @@
   "type": "minecraft:stonecutting",
   "ingredient": "nguhcraft:pyrite_bricks",
   "result": {
-    "count": 1,
     "id": "nguhcraft:pyrite_bricks_wall"
   }
 }

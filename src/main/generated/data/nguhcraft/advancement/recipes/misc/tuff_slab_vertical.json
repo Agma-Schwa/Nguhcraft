@@ -3,7 +3,7 @@
   "criteria": {
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:tuff_slab_vertical"
+        "recipes": "nguhcraft:tuff_slab_vertical"
       },
       "trigger": "minecraft:recipe_unlocked"
     },

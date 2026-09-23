@@ -2,7 +2,6 @@
   "type": "minecraft:stonecutting",
   "ingredient": "minecraft:bamboo_mosaic",
   "result": {
-    "count": 1,
     "id": "minecraft:bamboo_mosaic_stairs"
   }
 }

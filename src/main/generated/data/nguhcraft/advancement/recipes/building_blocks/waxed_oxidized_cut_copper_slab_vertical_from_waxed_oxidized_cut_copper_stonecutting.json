@@ -3,15 +3,15 @@
   "criteria": {
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:waxed_weathered_cut_copper_slab_vertical_from_weathered_cut_copper_stonecutting"
+        "recipes": "nguhcraft:waxed_oxidized_cut_copper_slab_vertical_from_waxed_oxidized_cut_copper_stonecutting"
       },
       "trigger": "minecraft:recipe_unlocked"
     },
-    "has_weathered_cut_copper": {
+    "has_waxed_oxidized_cut_copper": {
       "conditions": {
         "items": [
           {
-            "items": "minecraft:weathered_cut_copper"
+            "items": "minecraft:waxed_oxidized_cut_copper"
           }
         ]
       },
@@ -21,12 +21,12 @@
   "requirements": [
     [
       "has_the_recipe",
-      "has_weathered_cut_copper"
+      "has_waxed_oxidized_cut_copper"
     ]
   ],
   "rewards": {
     "recipes": [
-      "nguhcraft:waxed_weathered_cut_copper_slab_vertical_from_weathered_cut_copper_stonecutting"
+      "nguhcraft:waxed_oxidized_cut_copper_slab_vertical_from_waxed_oxidized_cut_copper_stonecutting"
     ]
   }
 }

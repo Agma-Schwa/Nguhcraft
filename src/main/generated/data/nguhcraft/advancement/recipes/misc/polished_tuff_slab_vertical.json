@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:polished_tuff_slab_vertical"
+        "recipes": "nguhcraft:polished_tuff_slab_vertical"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

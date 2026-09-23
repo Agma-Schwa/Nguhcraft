@@ -23,7 +23,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:pearlescent_froglight_from_cleansing_froglight_and_amethyst_shard"
+        "recipes": "nguhcraft:pearlescent_froglight_from_cleansing_froglight_and_amethyst_shard"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

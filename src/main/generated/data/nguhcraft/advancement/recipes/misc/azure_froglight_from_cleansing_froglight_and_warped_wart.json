@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:azure_froglight_from_cleansing_froglight_and_warped_wart"
+        "recipes": "nguhcraft:azure_froglight_from_cleansing_froglight_and_warped_wart"
       },
       "trigger": "minecraft:recipe_unlocked"
     },

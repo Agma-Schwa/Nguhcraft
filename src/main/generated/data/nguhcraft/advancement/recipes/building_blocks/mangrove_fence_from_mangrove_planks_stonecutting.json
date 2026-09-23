@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:mangrove_fence_from_mangrove_planks_stonecutting"
+        "recipes": "nguhcraft:mangrove_fence_from_mangrove_planks_stonecutting"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

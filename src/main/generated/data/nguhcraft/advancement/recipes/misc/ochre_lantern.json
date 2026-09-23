@@ -33,7 +33,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:ochre_lantern"
+        "recipes": "nguhcraft:ochre_lantern"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

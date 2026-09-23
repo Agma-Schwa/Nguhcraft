@@ -1,7 +1,7 @@
 {
   "variants": {
     "type=double": {
-      "model": "minecraft:block/exposed_cut_copper"
+      "model": "minecraft:block/waxed_exposed_cut_copper"
     },
     "type=east": {
       "model": "nguhcraft:block/waxed_exposed_cut_copper_slab_vertical",

@@ -3,7 +3,7 @@
   "criteria": {
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:weathered_cut_copper_slab_vertical_from_weathered_cut_copper_stonecutting"
+        "recipes": "nguhcraft:weathered_cut_copper_slab_vertical_from_weathered_cut_copper_stonecutting"
       },
       "trigger": "minecraft:recipe_unlocked"
     },

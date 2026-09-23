@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:sweet_berry_crate"
+        "recipes": "nguhcraft:sweet_berry_crate"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

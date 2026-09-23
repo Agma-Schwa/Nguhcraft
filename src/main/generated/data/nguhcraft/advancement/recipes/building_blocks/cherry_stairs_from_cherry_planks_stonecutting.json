@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:cherry_stairs_from_cherry_planks_stonecutting"
+        "recipes": "nguhcraft:cherry_stairs_from_cherry_planks_stonecutting"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

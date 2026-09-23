@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:deepslate_brick_slab_vertical_from_deepslate_bricks_stonecutting"
+        "recipes": "nguhcraft:deepslate_brick_slab_vertical_from_deepslate_bricks_stonecutting"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

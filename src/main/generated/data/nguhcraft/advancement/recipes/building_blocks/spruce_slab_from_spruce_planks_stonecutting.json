@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:spruce_slab_from_spruce_planks_stonecutting"
+        "recipes": "nguhcraft:spruce_slab_from_spruce_planks_stonecutting"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:grapes"
+        "recipes": "nguhcraft:grapes"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

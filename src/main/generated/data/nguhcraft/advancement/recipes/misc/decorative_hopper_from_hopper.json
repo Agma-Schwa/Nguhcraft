@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:decorative_hopper_from_hopper"
+        "recipes": "nguhcraft:decorative_hopper_from_hopper"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

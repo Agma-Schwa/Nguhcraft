@@ -23,7 +23,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:brocade_light_blue"
+        "recipes": "nguhcraft:brocade_light_blue"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

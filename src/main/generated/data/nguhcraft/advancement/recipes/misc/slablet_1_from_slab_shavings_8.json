@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:slablet_1_from_slab_shavings_8"
+        "recipes": "nguhcraft:slablet_1_from_slab_shavings_8"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

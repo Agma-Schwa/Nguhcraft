@@ -1,6 +1,6 @@
 {
   "parent": "nguhcraft:block/vertical_slab",
   "textures": {
-    "all": "minecraft:block/cut_copper"
+    "all": "minecraft:block/waxed_cut_copper"
   }
 }

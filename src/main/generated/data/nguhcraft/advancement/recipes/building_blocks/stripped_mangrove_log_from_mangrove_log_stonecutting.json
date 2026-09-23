@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:stripped_mangrove_log_from_mangrove_log_stonecutting"
+        "recipes": "nguhcraft:stripped_mangrove_log_from_mangrove_log_stonecutting"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

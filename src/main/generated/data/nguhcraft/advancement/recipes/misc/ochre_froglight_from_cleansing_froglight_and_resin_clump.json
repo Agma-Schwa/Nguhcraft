@@ -23,7 +23,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:ochre_froglight_from_cleansing_froglight_and_resin_clump"
+        "recipes": "nguhcraft:ochre_froglight_from_cleansing_froglight_and_resin_clump"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

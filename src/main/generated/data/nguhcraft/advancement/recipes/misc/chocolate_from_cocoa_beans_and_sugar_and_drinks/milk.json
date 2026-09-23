@@ -11,11 +11,11 @@
       },
       "trigger": "minecraft:inventory_changed"
     },
-    "has_foods/milk": {
+    "has_drinks/milk": {
       "conditions": {
         "items": [
           {
-            "items": "#c:foods/milk"
+            "items": "#c:drinks/milk"
           }
         ]
       },
@@ -33,7 +33,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:chocolate_from_cocoa_beans_and_sugar_and_foods/milk"
+        "recipes": "nguhcraft:chocolate_from_cocoa_beans_and_sugar_and_drinks/milk"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
@@ -43,12 +43,12 @@
       "has_the_recipe",
       "has_cocoa_beans",
       "has_sugar",
-      "has_foods/milk"
+      "has_drinks/milk"
     ]
   ],
   "rewards": {
     "recipes": [
-      "nguhcraft:chocolate_from_cocoa_beans_and_sugar_and_foods/milk"
+      "nguhcraft:chocolate_from_cocoa_beans_and_sugar_and_drinks/milk"
     ]
   }
 }
