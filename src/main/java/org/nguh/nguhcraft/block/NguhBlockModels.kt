@@ -5,8 +5,8 @@ import com.mojang.serialization.MapCodec
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
-import net.fabricmc.fabric.api.client.rendering.v1.BlockRenderLayerMap
-import net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry
+import net.fabricmc.fabric.api.client.rendering.v1.BlockColorRegistry
+import net.minecraft.client.color.block.BlockTintSources
 import net.minecraft.client.data.models.BlockModelGenerators
 import net.minecraft.client.data.models.BlockModelGenerators.plainVariant
 import net.minecraft.client.data.models.blockstates.MultiPartGenerator
@@ -16,15 +16,14 @@ import net.minecraft.client.data.models.model.*
 import net.minecraft.client.data.models.model.ModelLocationUtils.getModelLocation
 import net.minecraft.client.data.models.model.TextureSlot.ALL
 import net.minecraft.client.multiplayer.ClientLevel
-import net.minecraft.client.renderer.BiomeColors
 import net.minecraft.client.renderer.Sheets
-import net.minecraft.client.renderer.chunk.ChunkSectionLayer
 import net.minecraft.client.renderer.item.properties.select.SelectItemModelProperty
 import net.minecraft.client.renderer.special.ChestSpecialRenderer
-import net.minecraft.client.resources.model.Material
+import net.minecraft.client.resources.model.sprite.Material
+import net.minecraft.client.resources.model.sprite.SpriteId
 import net.minecraft.core.Direction
 import net.minecraft.data.BlockFamily
-import net.minecraft.resources.ResourceLocation
+import net.minecraft.resources.Identifier
 import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.item.ItemDisplayContext
 import net.minecraft.world.item.ItemStack
@@ -35,20 +34,19 @@ import net.minecraft.world.level.block.CropBlock
 import net.minecraft.world.level.block.HorizontalDirectionalBlock
 import net.minecraft.world.level.block.state.properties.*
 import org.nguh.nguhcraft.Nguhcraft.Companion.Id
-import org.nguh.nguhcraft.flatten
 import java.util.*
 import java.util.Optional.empty
 
 @Environment(EnvType.CLIENT)
-private fun MakeSprite(S: String) = Material(
+private fun MakeSprite(S: String) = SpriteId(
     Sheets.CHEST_SHEET,
     Id("entity/chest/$S")
 )
 
 @Environment(EnvType.CLIENT)
 class LockedChestVariant(
-    val Locked: Material,
-    val Unlocked: Material
+    val Locked: SpriteId,
+    val Unlocked: SpriteId
 ) {
     constructor(S: String) : this(
         Locked = MakeSprite("${S}_locked"),
@@ -76,9 +74,9 @@ class ChestTextureOverride(
 
     companion object {
         internal val Normal = OverrideVanillaModel(
-            Single = Sheets.CHEST_LOCATION,
-            Left = Sheets.CHEST_LOCATION_LEFT,
-            Right = Sheets.CHEST_LOCATION_RIGHT,
+            Single = Sheets.CHEST_REGULAR.single,
+            Left = Sheets.CHEST_REGULAR.left,
+            Right = Sheets.CHEST_REGULAR.right,
             Key = "chest"
         )
 
@@ -86,9 +84,9 @@ class ChestTextureOverride(
         @Environment(EnvType.CLIENT)
         private val OVERRIDES = mapOf(
             ChestVariant.CHRISTMAS to OverrideVanillaModel(
-                Single = Sheets.CHEST_XMAS_LOCATION,
-                Left = Sheets.CHEST_XMAS_LOCATION_LEFT,
-                Right = Sheets.CHEST_XMAS_LOCATION_RIGHT,
+                Single = Sheets.CHEST_CHRISTMAS.single,
+                Left = Sheets.CHEST_CHRISTMAS.left,
+                Right = Sheets.CHEST_CHRISTMAS.right,
                 Key = "christmas"
             ),
 
@@ -101,9 +99,9 @@ class ChestTextureOverride(
             (CV?.let { OVERRIDES[CV] } ?: Normal).get(CT, Locked)
 
         internal fun OverrideVanillaModel(
-            Single: Material,
-            Left: Material,
-            Right: Material,
+            Single: SpriteId,
+            Left: SpriteId,
+            Right: SpriteId,
             Key: String,
         ) = ChestTextureOverride(
             Single = LockedChestVariant(MakeSprite("${Key}_locked"), Single),
@@ -153,7 +151,17 @@ object NguhBlockModels {
         val VerticalSlab: VerticalSlabBlock,
         val Base: Block,
         val Wood: Boolean = false,
-        val TextureId: ResourceLocation = TextureMapping.getBlockTexture(Base)
+        val TextureId: Material = TextureMapping.getBlockTexture(Base),
+        val ModelBase: Block = Base
+    )
+
+    // Waxed blocks need to reuse their unwaxed counterparts for the model
+    @Environment(EnvType.CLIENT)
+    fun WaxedVSlab(VerticalSlab: VerticalSlabBlock, Waxed: Block, Unwaxed: Block) = VSlab(
+        VerticalSlab,
+        Waxed,
+        TextureId = TextureMapping.getBlockTexture(Unwaxed),
+        ModelBase = Unwaxed
     )
 
     // Thank you, Minecraft, for doing weird nonsense with your block models
@@ -174,7 +182,7 @@ object NguhBlockModels {
         VSlab(NguhBlocks.COBBLED_DEEPSLATE_SLAB_VERTICAL, Blocks.COBBLED_DEEPSLATE),
         VSlab(NguhBlocks.COBBLESTONE_SLAB_VERTICAL, Blocks.COBBLESTONE),
         VSlab(NguhBlocks.CRIMSON_SLAB_VERTICAL, Blocks.CRIMSON_PLANKS, true) ,
-        VSlab(NguhBlocks.CUT_COPPER_SLAB_VERTICAL, Blocks.CUT_COPPER),
+        VSlab(NguhBlocks.CUT_COPPER_SLAB_VERTICAL, Blocks.CUT_COPPER.weathering.unaffected),
         VSlab(NguhBlocks.CUT_RED_SANDSTONE_SLAB_VERTICAL, Blocks.CUT_RED_SANDSTONE),
         VSlab(NguhBlocks.CUT_SANDSTONE_SLAB_VERTICAL, Blocks.CUT_SANDSTONE),
         VSlab(NguhBlocks.DARK_OAK_SLAB_VERTICAL, Blocks.DARK_OAK_PLANKS, true) ,
@@ -183,7 +191,7 @@ object NguhBlockModels {
         VSlab(NguhBlocks.DEEPSLATE_TILE_SLAB_VERTICAL, Blocks.DEEPSLATE_TILES),
         VSlab(NguhBlocks.DIORITE_SLAB_VERTICAL, Blocks.DIORITE),
         VSlab(NguhBlocks.END_STONE_BRICK_SLAB_VERTICAL, Blocks.END_STONE_BRICKS),
-        VSlab(NguhBlocks.EXPOSED_CUT_COPPER_SLAB_VERTICAL, Blocks.EXPOSED_CUT_COPPER),
+        VSlab(NguhBlocks.EXPOSED_CUT_COPPER_SLAB_VERTICAL, Blocks.CUT_COPPER.weathering.exposed),
         VSlab(NguhBlocks.GRANITE_SLAB_VERTICAL, Blocks.GRANITE),
         VSlab(NguhBlocks.JUNGLE_SLAB_VERTICAL, Blocks.JUNGLE_PLANKS, true) ,
         VSlab(NguhBlocks.MANGROVE_SLAB_VERTICAL, Blocks.MANGROVE_PLANKS, true) ,
@@ -192,7 +200,7 @@ object NguhBlockModels {
         VSlab(NguhBlocks.MUD_BRICK_SLAB_VERTICAL, Blocks.MUD_BRICKS),
         VSlab(NguhBlocks.NETHER_BRICK_SLAB_VERTICAL, Blocks.NETHER_BRICKS),
         VSlab(NguhBlocks.OAK_SLAB_VERTICAL, Blocks.OAK_PLANKS, true) ,
-        VSlab(NguhBlocks.OXIDIZED_CUT_COPPER_SLAB_VERTICAL, Blocks.OXIDIZED_CUT_COPPER),
+        VSlab(NguhBlocks.OXIDIZED_CUT_COPPER_SLAB_VERTICAL, Blocks.CUT_COPPER.weathering.oxidized),
         VSlab(NguhBlocks.PALE_OAK_SLAB_VERTICAL, Blocks.PALE_OAK_PLANKS, true) ,
         VSlab(NguhBlocks.POLISHED_ANDESITE_SLAB_VERTICAL, Blocks.POLISHED_ANDESITE),
         VSlab(NguhBlocks.POLISHED_BLACKSTONE_BRICK_SLAB_VERTICAL, Blocks.POLISHED_BLACKSTONE_BRICKS) ,
@@ -218,11 +226,11 @@ object NguhBlockModels {
         VSlab(NguhBlocks.TUFF_BRICK_SLAB_VERTICAL, Blocks.TUFF_BRICKS),
         VSlab(NguhBlocks.TUFF_SLAB_VERTICAL, Blocks.TUFF),
         VSlab(NguhBlocks.WARPED_SLAB_VERTICAL, Blocks.WARPED_PLANKS, true) ,
-        VSlab(NguhBlocks.WAXED_CUT_COPPER_SLAB_VERTICAL, Blocks.CUT_COPPER),
-        VSlab(NguhBlocks.WAXED_EXPOSED_CUT_COPPER_SLAB_VERTICAL, Blocks.EXPOSED_CUT_COPPER),
-        VSlab(NguhBlocks.WAXED_OXIDIZED_CUT_COPPER_SLAB_VERTICAL, Blocks.OXIDIZED_CUT_COPPER),
-        VSlab(NguhBlocks.WAXED_WEATHERED_CUT_COPPER_SLAB_VERTICAL , Blocks.WEATHERED_CUT_COPPER),
-        VSlab(NguhBlocks.WEATHERED_CUT_COPPER_SLAB_VERTICAL, Blocks.WEATHERED_CUT_COPPER),
+        WaxedVSlab(NguhBlocks.WAXED_CUT_COPPER_SLAB_VERTICAL, Blocks.CUT_COPPER.waxed.unaffected, Blocks.CUT_COPPER.weathering.unaffected),
+        WaxedVSlab(NguhBlocks.WAXED_EXPOSED_CUT_COPPER_SLAB_VERTICAL, Blocks.CUT_COPPER.waxed.exposed, Blocks.CUT_COPPER.weathering.exposed),
+        WaxedVSlab(NguhBlocks.WAXED_OXIDIZED_CUT_COPPER_SLAB_VERTICAL, Blocks.CUT_COPPER.waxed.oxidized, Blocks.CUT_COPPER.weathering.oxidized),
+        WaxedVSlab(NguhBlocks.WAXED_WEATHERED_CUT_COPPER_SLAB_VERTICAL, Blocks.CUT_COPPER.waxed.weathered, Blocks.CUT_COPPER.weathering.weathered),
+        VSlab(NguhBlocks.WEATHERED_CUT_COPPER_SLAB_VERTICAL, Blocks.CUT_COPPER.weathering.weathered),
 
         // Custom.
         VSlab(NguhBlocks.CALCITE_BRICK_SLAB_VERTICAL, NguhBlocks.CALCITE_BRICKS),
@@ -308,8 +316,8 @@ object NguhBlockModels {
 
         // Chest variants. Copied from registerChest().
         val Template = ModelTemplates.CHEST_INVENTORY.create(Items.CHEST, TextureMapping.particle(Blocks.OAK_PLANKS), G.modelOutput)
-        val Normal = ItemModelUtils.specialModel(Template, ChestSpecialRenderer.Unbaked(ChestSpecialRenderer.NORMAL_CHEST_TEXTURE))
-        val Christmas = ItemModelUtils.specialModel(Template, ChestSpecialRenderer.Unbaked(ChestSpecialRenderer.GIFT_CHEST_TEXTURE))
+        val Normal = ItemModelUtils.specialModel(Template, ChestSpecialRenderer.Unbaked(ChestSpecialRenderer.REGULAR.single()))
+        val Christmas = ItemModelUtils.specialModel(Template, ChestSpecialRenderer.Unbaked(ChestSpecialRenderer.CHRISTMAS.single()))
         val ChristmasOrNormal = ItemModelUtils.isXmas(Christmas, Normal)
         val PaleOak = ItemModelUtils.specialModel(Template, ChestSpecialRenderer.Unbaked(Id("pale_oak")))
         G.itemModelOutput.accept(Items.CHEST, ItemModelUtils.select(
@@ -321,31 +329,9 @@ object NguhBlockModels {
     }
 
     @Environment(EnvType.CLIENT)
-    fun InitRenderLayers() {
-        ChunkSectionLayer.CUTOUT.let {
-            BlockRenderLayerMap.putBlock(NguhBlocks.LOCKED_DOOR, it)
-            BlockRenderLayerMap.putBlock(NguhBlocks.IRON_GRATE, it)
-            BlockRenderLayerMap.putBlock(NguhBlocks.WROUGHT_IRON_GRATE, it)
-            BlockRenderLayerMap.putBlock(NguhBlocks.GRAPE_CROP, it)
-            BlockRenderLayerMap.putBlock(NguhBlocks.PEANUT_CROP, it)
-            BlockRenderLayerMap.putBlock(NguhBlocks.NGUHROVISION_TROPHY, it)
-            for (B in NguhBlocks.CHAINS_AND_LANTERNS.flatten()) BlockRenderLayerMap.putBlock(B, it)
-        }
-
-        ChunkSectionLayer.CUTOUT_MIPPED.let {
-            BlockRenderLayerMap.putBlock(NguhBlocks.WROUGHT_IRON_BARS, it)
-            BlockRenderLayerMap.putBlock(NguhBlocks.GOLD_BARS, it)
-            for (B in NguhBlocks.BUDDING_LEAVES) BlockRenderLayerMap.putBlock(B, it)
-        }
-    }
-
-    @Environment(EnvType.CLIENT)
     fun InitColorRegistry() {
-        ColorProviderRegistry.BLOCK.register(
-            { _, Getter, Pos, _ ->
-                if (Getter != null && Pos != null) BiomeColors.getAverageFoliageColor(Getter, Pos)
-                else -12012264
-            },
+        BlockColorRegistry.register(
+            listOf(BlockTintSources.foliage()),
             NguhBlocks.BUDDING_OAK_LEAVES,
             NguhBlocks.BUDDING_DARK_OAK_LEAVES
         )
@@ -422,7 +408,7 @@ object NguhBlockModels {
             .with(PropertyDispatch.initial(VerticalSlabBlock.TYPE)
                 .select(
                     VerticalSlabBlock.Type.DOUBLE,
-                    plainVariant(getModelLocation(S.Base))
+                    plainVariant(getModelLocation(S.ModelBase))
                 )
                 .select(
                     VerticalSlabBlock.Type.NORTH,
@@ -459,8 +445,8 @@ object NguhBlockModels {
 
         G.registerSimpleFlatItemModel(Crop.asItem())
         require(AgeProperty.possibleValues.size == AgeIndices.size)
-        val Map1 = Int2ObjectOpenHashMap<ResourceLocation>()
-        val Map2 = Int2ObjectOpenHashMap<ResourceLocation>()
+        val Map1 = Int2ObjectOpenHashMap<Identifier>()
+        val Map2 = Int2ObjectOpenHashMap<Identifier>()
         G.blockStateOutput.accept(MultiVariantGenerator.dispatch(Crop)
             .with(PropertyDispatch.initial(StickLoggedProperty, AgeProperty).generate { StickLogged: Boolean, Age: Int ->
                 val I = AgeIndices[Age]
@@ -468,7 +454,7 @@ object NguhBlockModels {
                     plainVariant(
                         Map1.computeIfAbsent(I) {
                             ModelTemplate(
-                                Optional.of(ResourceLocation.parse("nguhcraft:block/crop_with_stick")),
+                                Optional.of(Identifier.parse("nguhcraft:block/crop_with_stick")),
                                 empty(),
                                 TextureSlot.CROP,
                                 StickSide,
@@ -490,7 +476,7 @@ object NguhBlockModels {
                                     )
                                     .put(
                                         StickTop,
-                                        ResourceLocation.parse("nguhcraft:block/stick_top")
+                                        Material(Identifier.parse("nguhcraft:block/stick_top"))
                                     ),
                                 G.modelOutput
                             )
@@ -519,7 +505,7 @@ object NguhBlockModels {
     fun RegisterCrate(G: BlockModelGenerators, B: Block) {
         val Map = TextureMapping()
             .put(TextureSlot.PARTICLE, TextureMapping.getBlockTexture(B, "_top"))
-            .put(TextureSlot.DOWN, ResourceLocation.parse("nguhcraft:block/crate_bottom"))
+            .put(TextureSlot.DOWN, Material(Identifier.parse("nguhcraft:block/crate_bottom")))
             .put(TextureSlot.UP, TextureMapping.getBlockTexture(B, "_top"))
             .put(TextureSlot.SIDE, TextureMapping.getBlockTexture(B, "_side"))
         G.blockStateOutput.accept(
@@ -538,7 +524,7 @@ object NguhBlockModels {
         Tinted: Boolean,
         Age: Property<Int>
     ) {
-        val Map = Int2ObjectOpenHashMap<ResourceLocation>()
+        val Map = Int2ObjectOpenHashMap<Identifier>()
         G.blockStateOutput.accept(
             MultiVariantGenerator.dispatch(B)
                 .with(PropertyDispatch.initial(Age).generate {
@@ -561,7 +547,7 @@ object NguhBlockModels {
                         }
                     })
                 }
-            )
+                )
         )
     }
 

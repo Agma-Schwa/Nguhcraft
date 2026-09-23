@@ -23,7 +23,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:brocade_black"
+        "recipes": "nguhcraft:brocade_black"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

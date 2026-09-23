@@ -23,7 +23,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:cleansing_froglight_from_froglights_craftable_to_cleansing_and_prismarine_crystals"
+        "recipes": "nguhcraft:cleansing_froglight_from_froglights_craftable_to_cleansing_and_prismarine_crystals"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

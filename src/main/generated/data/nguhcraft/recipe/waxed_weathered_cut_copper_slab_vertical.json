@@ -1,8 +1,7 @@
 {
   "type": "minecraft:crafting_shaped",
-  "category": "misc",
   "key": {
-    "#": "minecraft:weathered_cut_copper"
+    "#": "minecraft:waxed_weathered_cut_copper"
   },
   "pattern": [
     "#",

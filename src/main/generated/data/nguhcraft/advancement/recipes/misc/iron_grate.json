@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:iron_grate"
+        "recipes": "nguhcraft:iron_grate"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

@@ -3,7 +3,7 @@
   "criteria": {
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:warped_fence_gate_from_warped_planks_stonecutting"
+        "recipes": "nguhcraft:warped_fence_gate_from_warped_planks_stonecutting"
       },
       "trigger": "minecraft:recipe_unlocked"
     },

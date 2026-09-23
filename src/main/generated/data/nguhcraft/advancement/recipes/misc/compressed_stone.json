@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:compressed_stone"
+        "recipes": "nguhcraft:compressed_stone"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

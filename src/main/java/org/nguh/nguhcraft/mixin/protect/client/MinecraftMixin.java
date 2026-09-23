@@ -39,7 +39,7 @@ public abstract class MinecraftMixin {
             // Returning true will make the client hallucinate that we did actually
             // break something and stop further processing of this event, without
             // in fact breaking anything.
-            player.swing(InteractionHand.MAIN_HAND);
+            player.swing(InteractionHand.MAIN_HAND, player.getMainHandItem().getAttackAnimation(), false);
             CI.setReturnValue(true);
         }
     }
@@ -76,7 +76,7 @@ public abstract class MinecraftMixin {
         NguhcraftClient.LastInteractedLecternPos = BHR.getBlockPos();
         var Res = ProtectionManager.HandleBlockInteract(
                 CPE,
-                CPE.clientLevel,
+                CPE.level(),
                 BHR.getBlockPos(),
                 CPE.getItemInHand(H)
         );

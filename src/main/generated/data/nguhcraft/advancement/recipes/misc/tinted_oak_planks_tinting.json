@@ -23,7 +23,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:tinted_oak_planks_tinting"
+        "recipes": "nguhcraft:tinted_oak_planks_tinting"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

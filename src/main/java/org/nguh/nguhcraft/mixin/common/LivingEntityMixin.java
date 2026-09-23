@@ -16,7 +16,7 @@ public abstract class LivingEntityMixin {
     * Prevent depth strider from adding drag when riptide is active by simply ignoring it.
     */
     @Redirect(
-        method = "travelInFluid",
+        method = "travelInWater",
         at = @At(
             value = "INVOKE",
             target = "Lnet/minecraft/world/entity/LivingEntity;getAttributeValue(Lnet/minecraft/core/Holder;)D"

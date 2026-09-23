@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:pale_oak_slab_vertical"
+        "recipes": "nguhcraft:pale_oak_slab_vertical"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

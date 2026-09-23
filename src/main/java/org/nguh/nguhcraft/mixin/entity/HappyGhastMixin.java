@@ -2,7 +2,7 @@ package org.nguh.nguhcraft.mixin.entity;
 
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
-import net.minecraft.world.entity.animal.HappyGhast;
+import net.minecraft.world.entity.animal.happyghast.HappyGhast;
 import net.minecraft.core.Holder;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
@@ -19,7 +19,7 @@ public abstract class HappyGhastMixin {
         method = "travel",
         at = @At(
             value = "INVOKE",
-            target = "Lnet/minecraft/world/entity/animal/HappyGhast;getAttributeValue(Lnet/minecraft/core/Holder;)D"
+            target = "Lnet/minecraft/world/entity/animal/happyghast/HappyGhast;getAttributeValue(Lnet/minecraft/core/Holder;)D"
         )
     )
     private double inject$getAttributeValue(HappyGhast G, Holder<Attribute> RE) {

@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:red_nether_brick_slab_vertical_from_red_nether_bricks_stonecutting"
+        "recipes": "nguhcraft:red_nether_brick_slab_vertical_from_red_nether_bricks_stonecutting"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

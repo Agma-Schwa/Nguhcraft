@@ -17,6 +17,7 @@ import org.nguh.nguhcraft.block.ChestVariantProperty
 import org.nguh.nguhcraft.block.NguhBlockModels
 import org.nguh.nguhcraft.client.render.Renderer
 import org.nguh.nguhcraft.client.render.WorldRendering
+import org.nguh.nguhcraft.server.hasPermissions
 
 @Environment(EnvType.CLIENT)
 class NguhcraftClient : ClientModInitializer {
@@ -24,7 +25,6 @@ class NguhcraftClient : ClientModInitializer {
         ClientNetworkHandler.Init()
         Renderer.Init()
         NguhcraftItemGroups.Init()
-        NguhBlockModels.InitRenderLayers()
         NguhBlockModels.InitColorRegistry()
 
         ClientCommandRegistrationCallback.EVENT.register { Dispatcher, _ ->

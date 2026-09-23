@@ -3,7 +3,7 @@
   "criteria": {
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:tinted_oak_planks_from_tinted_oak_wood_stonecutting"
+        "recipes": "nguhcraft:tinted_oak_planks_from_tinted_oak_wood_stonecutting"
       },
       "trigger": "minecraft:recipe_unlocked"
     },

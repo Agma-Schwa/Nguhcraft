@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:pale_oak_planks_from_pale_oak_wood_stonecutting"
+        "recipes": "nguhcraft:pale_oak_planks_from_pale_oak_wood_stonecutting"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

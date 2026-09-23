@@ -3,15 +3,15 @@
   "criteria": {
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:waxed_weathered_cut_copper_slab_vertical"
+        "recipes": "nguhcraft:waxed_weathered_cut_copper_slab_vertical"
       },
       "trigger": "minecraft:recipe_unlocked"
     },
-    "has_weathered_cut_copper": {
+    "has_waxed_weathered_cut_copper": {
       "conditions": {
         "items": [
           {
-            "items": "minecraft:weathered_cut_copper"
+            "items": "minecraft:waxed_weathered_cut_copper"
           }
         ]
       },
@@ -21,7 +21,7 @@
   "requirements": [
     [
       "has_the_recipe",
-      "has_weathered_cut_copper"
+      "has_waxed_weathered_cut_copper"
     ]
   ],
   "rewards": {

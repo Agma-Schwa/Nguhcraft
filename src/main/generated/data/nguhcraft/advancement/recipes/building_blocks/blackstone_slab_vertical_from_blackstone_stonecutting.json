@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:blackstone_slab_vertical_from_blackstone_stonecutting"
+        "recipes": "nguhcraft:blackstone_slab_vertical_from_blackstone_stonecutting"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

@@ -34,6 +34,7 @@ import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.NbtIo
 import net.minecraft.nbt.NbtAccounter
 import net.minecraft.network.chat.CommonComponents
+import net.minecraft.server.players.NameAndId
 import net.minecraft.server.players.UserBanListEntry
 import net.minecraft.commands.CommandSourceStack
 import net.minecraft.server.dedicated.DedicatedServer
@@ -57,6 +58,7 @@ import org.nguh.nguhcraft.network.ClientboundLinkUpdatePacket
 import org.nguh.nguhcraft.server.Broadcast
 import org.nguh.nguhcraft.server.Chat
 import org.nguh.nguhcraft.server.Data
+import org.nguh.nguhcraft.server.hasPermissions
 import org.nguh.nguhcraft.server.Name
 import org.nguh.nguhcraft.server.PlayerByUUID
 import org.nguh.nguhcraft.server.PlayerData
@@ -513,7 +515,7 @@ internal class Discord : ListenerAdapter() {
             UpdateLinkedPlayer(Id) {
                 // Retrieve this now since we won’t be able to find the linked player anymore
                 // after unlinking them.
-                val GP = it.gameProfile
+                val GP = NameAndId(it.gameProfile)
 
                 // Always unlink the player if they’re not on the server anymore.
                 PerformUnlink(it)

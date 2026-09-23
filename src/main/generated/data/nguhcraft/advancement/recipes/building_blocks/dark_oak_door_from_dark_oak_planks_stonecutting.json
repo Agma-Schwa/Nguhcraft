@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:dark_oak_door_from_dark_oak_planks_stonecutting"
+        "recipes": "nguhcraft:dark_oak_door_from_dark_oak_planks_stonecutting"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

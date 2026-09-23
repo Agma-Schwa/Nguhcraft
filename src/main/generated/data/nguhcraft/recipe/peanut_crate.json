@@ -1,6 +1,5 @@
 {
   "type": "minecraft:crafting_shaped",
-  "category": "misc",
   "key": {
     "#": "nguhcraft:peanuts"
   },
@@ -10,7 +9,6 @@
     "###"
   ],
   "result": {
-    "count": 1,
     "id": "nguhcraft:peanut_crate"
   }
 }

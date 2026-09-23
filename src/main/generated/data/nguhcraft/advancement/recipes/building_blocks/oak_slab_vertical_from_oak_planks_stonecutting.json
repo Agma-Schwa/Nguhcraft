@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:oak_slab_vertical_from_oak_planks_stonecutting"
+        "recipes": "nguhcraft:oak_slab_vertical_from_oak_planks_stonecutting"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

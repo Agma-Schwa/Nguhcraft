@@ -1,18 +1,14 @@
 package org.nguh.nguhcraft.block
 
-import com.mojang.serialization.MapCodec
-import com.mojang.serialization.codecs.RecordCodecBuilder
 import net.minecraft.core.BlockPos
 import net.minecraft.core.particles.ColorParticleOption
 import net.minecraft.core.particles.ParticleOptions
 import net.minecraft.core.particles.ParticleTypes
 import net.minecraft.core.registries.BuiltInRegistries
-import net.minecraft.core.registries.Registries
 import net.minecraft.resources.ResourceKey
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.sounds.SoundEvents
 import net.minecraft.sounds.SoundSource
-import net.minecraft.util.ExtraCodecs
 import net.minecraft.util.ParticleUtils
 import net.minecraft.util.RandomSource
 import net.minecraft.world.InteractionResult
@@ -22,8 +18,10 @@ import net.minecraft.world.item.ItemStack
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.LevelReader
 import net.minecraft.world.level.block.Block
+import net.minecraft.world.level.block.BonemealSource
 import net.minecraft.world.level.block.BonemealableBlock
-import net.minecraft.world.level.block.LeavesBlock
+import net.minecraft.world.level.block.FallingParticlesLeavesBlock
+import net.minecraft.world.level.block.sounds.AmbientLeavesBlockSoundPlayer
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.StateDefinition
 import net.minecraft.world.level.block.state.properties.IntegerProperty
@@ -37,7 +35,7 @@ class BuddingLeavesBlock(
     Settings: Properties,
     val BaseBlock: Block,
     val FruitKey: ResourceKey<Item>,
-) : LeavesBlock(ParticleChance, Settings), BonemealableBlock {
+) : FallingParticlesLeavesBlock(ParticleChance, AmbientLeavesBlockSoundPlayer.noAmbientSound(), Settings), BonemealableBlock {
     init { registerDefaultState(defaultBlockState().setValue(AGE, MIN_AGE)) }
 
     // It's important that this is computed at the time of access and not initialisation.
@@ -123,49 +121,33 @@ class BuddingLeavesBlock(
 
     override fun asItem() = BaseBlock.asItem()
 
-    override fun codec() = CODEC
-
     override fun isValidBonemealTarget(
         LR: LevelReader,
         Pos: BlockPos,
-        St: BlockState
+        St: BlockState,
+        source: BonemealSource
     ) = St.getValue(AGE) < MAX_AGE
 
     override fun isBonemealSuccess(
         L: Level,
         RS: RandomSource,
         Pos: BlockPos,
-        St: BlockState
+        St: BlockState,
+        source: BonemealSource
     ) = true
 
     override fun performBonemeal(
         SL: ServerLevel,
         RS: RandomSource,
         Pos: BlockPos,
-        St: BlockState
+        St: BlockState,
+        source: BonemealSource
     ) {
         val NewAge = min(St.getValue(AGE) + 1, MAX_AGE)
         SL.setBlock(Pos, St.setValue(AGE, NewAge), UPDATE_CLIENTS)
     }
 
     companion object {
-        val CODEC: MapCodec<BuddingLeavesBlock> = RecordCodecBuilder.mapCodec {
-            it.group(
-                ExtraCodecs.floatRange(0.0f, 1.0f)
-                    .fieldOf("leaf_particle_chance")
-                    .forGetter(BuddingLeavesBlock::leafParticleChance),
-                ParticleTypes.CODEC.fieldOf("leaf_particle")
-                    .forGetter(BuddingLeavesBlock::ParticleEffect),
-                propertiesCodec(),
-                BuiltInRegistries.BLOCK.byNameCodec()
-                    .fieldOf("base")
-                    .forGetter(BuddingLeavesBlock::BaseBlock),
-                ResourceKey.codec(Registries.ITEM)
-                    .fieldOf("fruit")
-                    .forGetter(BuddingLeavesBlock::FruitKey),
-            ).apply(it, ::BuddingLeavesBlock)
-        }
-
         // Age = 0  is just a regular leaves block.
         const val MIN_AGE = 1
         const val MAX_AGE = 4

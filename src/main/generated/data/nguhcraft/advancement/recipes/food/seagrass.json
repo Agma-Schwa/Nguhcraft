@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:seagrass"
+        "recipes": "nguhcraft:seagrass"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

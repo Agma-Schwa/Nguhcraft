@@ -1,7 +1,9 @@
 package org.nguh.nguhcraft.server
 
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking
+import net.minecraft.commands.CommandSourceStack
 import net.minecraft.world.entity.Entity
+import net.minecraft.world.entity.player.Player
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload
 import net.minecraft.network.protocol.Packet
@@ -9,6 +11,10 @@ import net.minecraft.network.chat.CommonComponents
 import net.minecraft.server.MinecraftServer
 import net.minecraft.server.level.ServerPlayer
 import net.minecraft.server.level.ServerLevel
+import net.minecraft.server.permissions.LevelBasedPermissionSet
+import net.minecraft.server.permissions.Permission
+import net.minecraft.server.permissions.PermissionSet
+import net.minecraft.server.permissions.Permissions
 import net.minecraft.network.chat.Component
 import net.minecraft.core.BlockPos
 import net.minecraft.world.phys.Vec3
@@ -18,6 +24,30 @@ import org.nguh.nguhcraft.network.ClientFlags
 import org.nguh.nguhcraft.network.ClientboundSyncFlagPacket
 import org.nguh.nguhcraft.set
 import java.util.*
+
+/** Map an integer operator level onto the new permission system. */
+fun PermissionForLevel(Level: Int): Permission = when {
+    Level >= 4 -> Permissions.COMMANDS_OWNER
+    Level == 3 -> Permissions.COMMANDS_ADMIN
+    Level == 2 -> Permissions.COMMANDS_GAMEMASTER
+    else -> Permissions.COMMANDS_MODERATOR
+}
+
+/** Compatibility function for the old integer permission check. */
+fun CommandSourceStack.hasPermission(Level: Int): Boolean = permissions().hasPermission(PermissionForLevel(Level))
+
+/** Compatibility function for the old integer permission check. */
+fun Player.hasPermissions(Level: Int): Boolean = permissions().hasPermission(PermissionForLevel(Level))
+
+/** Build a PermissionSet equivalent to the old integer permission check. */
+fun PermissionSetForLevel(Level: Int): PermissionSet = LevelBasedPermissionSet.forLevel(
+    when {
+        Level >= 4 -> net.minecraft.server.permissions.PermissionLevel.OWNERS
+        Level == 3 -> net.minecraft.server.permissions.PermissionLevel.ADMINS
+        Level == 2 -> net.minecraft.server.permissions.PermissionLevel.GAMEMASTERS
+        else -> net.minecraft.server.permissions.PermissionLevel.MODERATORS
+    }
+)
 
 fun CreateUpdateBlockEntityUpdatePacket(Update: CompoundTag.() -> Unit) = Nbt {
     Update()
@@ -108,7 +138,7 @@ fun MinecraftServer.BroadcastToOperators(Msg: Component, Except: ServerPlayer? =
 
     for (P in playerList.players)
         if (P != Except && P.Data.IsSubscribedToConsole && P.hasPermissions(4))
-            P.displayClientMessage(Decorated, false)
+            P.sendSystemMessage(Decorated, false)
 }
 
 /** Get a player by Name. */
@@ -143,4 +173,4 @@ fun ServerPlayer.SetClientFlag(F: ClientFlags, V: Boolean) {
  * ends up being that of 'Entity', so we get bogus ‘server can be
  * null’ warnings everywhere if we use that.
  */
-val ServerPlayer.Server get(): MinecraftServer = this.server!!
+val ServerPlayer.Server get(): MinecraftServer = this.level().server

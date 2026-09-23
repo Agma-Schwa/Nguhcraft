@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:polished_calcite_slab"
+        "recipes": "nguhcraft:polished_calcite_slab"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

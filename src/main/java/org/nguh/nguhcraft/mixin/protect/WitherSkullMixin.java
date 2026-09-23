@@ -1,7 +1,7 @@
 package org.nguh.nguhcraft.mixin.protect;
 
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.entity.projectile.WitherSkull;
+import net.minecraft.world.entity.projectile.hurtingprojectile.WitherSkull;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.BlockGetter;

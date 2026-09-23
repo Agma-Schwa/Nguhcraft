@@ -23,7 +23,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:brocade_magenta"
+        "recipes": "nguhcraft:brocade_magenta"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

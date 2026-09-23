@@ -4,6 +4,7 @@ import com.mojang.logging.LogUtils
 import com.mojang.serialization.Codec
 import com.mojang.serialization.codecs.RecordCodecBuilder
 import net.minecraft.world.entity.EntityType
+import net.minecraft.world.entity.EntitySpawnRequest
 import net.minecraft.world.entity.EquipmentSlot
 import net.minecraft.world.entity.EntitySpawnReason
 import net.minecraft.world.entity.Mob
@@ -28,6 +29,7 @@ import org.nguh.nguhcraft.Write
 import org.nguh.nguhcraft.network.ClientboundSyncSpawnsPacket
 import org.nguh.nguhcraft.server.Data
 import org.nguh.nguhcraft.server.Manager
+import org.nguh.nguhcraft.server.hasPermissions
 import java.util.*
 
 class EntitySpawnManager(val S: MinecraftServer) : Manager() {
@@ -37,7 +39,7 @@ class EntitySpawnManager(val S: MinecraftServer) : Manager() {
         val SpawnPos: Vec3,
         val Id: String,
     ) {
-        override fun toString() = "$Id in ${World.location()} at $SpawnPos"
+        override fun toString() = "$Id in ${World.identifier()} at $SpawnPos"
         companion object {
             val PACKET_CODEC = StreamCodec.composite(
                 ResourceKey.streamCodec(Registries.DIMENSION),
@@ -110,7 +112,7 @@ class EntitySpawnManager(val S: MinecraftServer) : Manager() {
             //        come up w/ our custom format (use the one from the event branch)
             //        for defining entity spawns.
             Sp.Entity = Optional.empty()
-            val NewEntity = EntityType.loadEntityRecursive(Sp.Nbt.copy(), SW, EntitySpawnReason.SPAWNER) {
+            val NewEntity = EntityType.loadEntityRecursive(Sp.Nbt.copy(), SW, EntitySpawnRequest(EntitySpawnReason.SPAWNER, false)) {
                 it.Data.ManagedBySpawnPos = true
                 it.snapTo(Sp.SpawnPos, 0.0f, 0.0f)
                 it

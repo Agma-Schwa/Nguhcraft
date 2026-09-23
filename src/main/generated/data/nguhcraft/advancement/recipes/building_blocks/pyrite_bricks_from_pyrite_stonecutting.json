@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:pyrite_bricks_from_pyrite_stonecutting"
+        "recipes": "nguhcraft:pyrite_bricks_from_pyrite_stonecutting"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

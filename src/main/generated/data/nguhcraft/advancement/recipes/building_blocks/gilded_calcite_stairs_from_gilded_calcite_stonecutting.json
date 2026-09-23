@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:gilded_calcite_stairs_from_gilded_calcite_stonecutting"
+        "recipes": "nguhcraft:gilded_calcite_stairs_from_gilded_calcite_stonecutting"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

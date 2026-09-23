@@ -11,7 +11,7 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 @Mixin(ClientBundleTooltip.class)
 public abstract class ClientBundleTooltipMixin {
     /** Render the key/lock’s ID. Do this even for actual bundles. */
-    @Redirect(method = "drawSelectedItemTooltip", at = @At(
+    @Redirect(method = "extractSelectedItemTooltip", at = @At(
         value = "INVOKE",
         target = "Lnet/minecraft/world/item/ItemStack;getStyledHoverName()Lnet/minecraft/network/chat/Component;"
     ))

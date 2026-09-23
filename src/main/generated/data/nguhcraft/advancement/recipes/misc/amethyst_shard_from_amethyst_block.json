@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:amethyst_shard_from_amethyst_block"
+        "recipes": "nguhcraft:amethyst_shard_from_amethyst_block"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

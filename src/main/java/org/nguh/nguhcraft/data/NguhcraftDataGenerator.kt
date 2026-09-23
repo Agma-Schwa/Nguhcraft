@@ -5,27 +5,32 @@ import net.fabricmc.api.Environment
 import net.fabricmc.fabric.api.client.datagen.v1.provider.FabricModelProvider
 import net.fabricmc.fabric.api.datagen.v1.DataGeneratorEntrypoint
 import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator
-import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput
-import net.fabricmc.fabric.api.datagen.v1.provider.FabricBlockLootTableProvider
+import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput
+import net.fabricmc.fabric.api.datagen.v1.provider.FabricBlockLootSubProvider
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricDynamicRegistryProvider
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricRecipeProvider
-import net.fabricmc.fabric.api.datagen.v1.provider.FabricTagProvider
-import net.minecraft.advancements.critereon.StatePropertiesPredicate
+import net.fabricmc.fabric.api.datagen.v1.provider.FabricTagsProvider
+import net.minecraft.advancements.Advancement
+import net.minecraft.advancements.predicates.StatePropertiesPredicate
 import net.minecraft.client.data.models.BlockModelGenerators
 import net.minecraft.client.data.models.ItemModelGenerators
 import net.minecraft.client.resources.model.EquipmentClientInfo
 import net.minecraft.core.HolderLookup
 import net.minecraft.core.RegistrySetBuilder
 import net.minecraft.core.component.DataComponents
+import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.core.registries.Registries
+import net.minecraft.data.worldgen.BootstrapContext
 import net.minecraft.data.CachedOutput
 import net.minecraft.data.DataProvider
 import net.minecraft.data.PackOutput
-import net.minecraft.data.recipes.RecipeOutput
+import net.minecraft.data.tags.TagAppender
 import net.minecraft.resources.ResourceKey
 import net.minecraft.tags.*
+import net.minecraft.world.item.crafting.Recipe
 import net.minecraft.world.damagesource.DamageType
-import net.minecraft.world.entity.decoration.PaintingVariant
+import net.minecraft.world.entity.decoration.painting.PaintingVariant
+import net.minecraft.world.item.Item
 import net.minecraft.world.item.Items
 import net.minecraft.world.item.enchantment.Enchantments
 import net.minecraft.world.item.equipment.EquipmentAsset
@@ -39,9 +44,9 @@ import net.minecraft.world.level.storage.loot.entries.LootItem
 import net.minecraft.world.level.storage.loot.functions.ApplyBonusCount
 import net.minecraft.world.level.storage.loot.functions.CopyComponentsFunction
 import net.minecraft.world.level.storage.loot.functions.SetItemCountFunction
-import net.minecraft.world.level.storage.loot.predicates.LootItemBlockStatePropertyCondition
-import net.minecraft.world.level.storage.loot.providers.number.ConstantValue
-import net.minecraft.world.level.storage.loot.providers.number.UniformGenerator
+import net.minecraft.world.level.storage.loot.parameters.LootContextParams
+import net.minecraft.world.level.storage.loot.predicates.MatchBlock
+import net.minecraft.world.level.storage.loot.providers.number.ints.ContextIntProviders
 import org.nguh.nguhcraft.NguhDamageTypes
 import org.nguh.nguhcraft.NguhPaintings
 import org.nguh.nguhcraft.Nguhcraft.Companion.Id
@@ -49,56 +54,61 @@ import org.nguh.nguhcraft.block.*
 import org.nguh.nguhcraft.item.NguhItems
 import java.util.concurrent.CompletableFuture
 
+// Helpers to convert old calls to the new equivalent
+private fun TagAppender<Block>.add(B: Block) = add(BuiltInRegistries.BLOCK.getResourceKey(B).orElseThrow())
+private fun TagAppender<Block>.addAll(Bs: Collection<Block>) = addAll(Bs.map { BuiltInRegistries.BLOCK.getResourceKey(it).orElseThrow() })
+private fun TagAppender<Item>.add(I: Item) = add(BuiltInRegistries.ITEM.getResourceKey(I).orElseThrow())
+
 // =========================================================================
 //  Static Registries
 // =========================================================================
 @Environment(EnvType.CLIENT)
 class NguhcraftBlockTagProvider(
-    O: FabricDataOutput,
+    O: FabricPackOutput,
     RF: CompletableFuture<HolderLookup.Provider>
-) : FabricTagProvider.BlockTagProvider(O, RF) {
+) : FabricTagsProvider.BlockTagsProvider(O, RF) {
     override fun addTags(WL: HolderLookup.Provider) {
-        valueLookupBuilder(BlockTags.MINEABLE_WITH_PICKAXE).let { T ->
+        builder(BlockTags.MINEABLE_WITH_PICKAXE).let { T ->
             for (B in NguhBlocks.PICKAXE_MINEABLE) T.add(B)
             for (B in NguhBlockModels.VERTICAL_SLABS.filter { !it.Wood }) T.add(B.VerticalSlab)
         }
 
-        valueLookupBuilder(BlockTags.MINEABLE_WITH_AXE).addAll(NguhBlocks.CRATES)
-        valueLookupBuilder(BlockTags.WOOL).addAll(NguhBlocks.ALL_BROCADE_BLOCKS.toList())
+        builder(BlockTags.MINEABLE_WITH_AXE).addAll(NguhBlocks.CRATES)
+        builder(BlockTags.WOOL).addAll(NguhBlocks.ALL_BROCADE_BLOCKS.toList())
 
         // Block tags for miscellaneous custom blocks.
-        valueLookupBuilder(BlockTags.PLANKS).add(NguhBlocks.TINTED_OAK_PLANKS)
-        valueLookupBuilder(BlockTags.DOORS).add(NguhBlocks.LOCKED_DOOR)
-        valueLookupBuilder(BlockTags.WOODEN_SLABS)
+        builder(BlockTags.PLANKS).add(NguhBlocks.TINTED_OAK_PLANKS)
+        builder(BlockTags.DOORS).add(NguhBlocks.LOCKED_DOOR)
+        builder(BlockTags.WOODEN_SLABS)
             .add(NguhBlocks.TINTED_OAK_SLAB)
             .let {
                 for (B in NguhBlockModels.VERTICAL_SLABS.filter { it.Wood })
                     it.add(B.VerticalSlab)
             }
 
-        valueLookupBuilder(BlockTags.WOODEN_STAIRS).add(NguhBlocks.TINTED_OAK_STAIRS)
-        valueLookupBuilder(BlockTags.WOODEN_FENCES).add(NguhBlocks.TINTED_OAK_FENCE)
-        valueLookupBuilder(BlockTags.LOGS_THAT_BURN)
+        builder(BlockTags.WOODEN_STAIRS).add(NguhBlocks.TINTED_OAK_STAIRS)
+        builder(BlockTags.WOODEN_FENCES).add(NguhBlocks.TINTED_OAK_FENCE)
+        builder(BlockItemTags.LOGS_THAT_BURN.block())
             .add(NguhBlocks.TINTED_OAK_LOG)
             .add(NguhBlocks.TINTED_OAK_WOOD)
             .add(NguhBlocks.STRIPPED_TINTED_OAK_LOG)
             .add(NguhBlocks.STRIPPED_TINTED_OAK_WOOD)
-        valueLookupBuilder(BlockTags.FENCE_GATES).add(NguhBlocks.TINTED_OAK_FENCE_GATE)
-        valueLookupBuilder(BlockTags.WOODEN_DOORS).add(NguhBlocks.TINTED_OAK_DOOR)
-        valueLookupBuilder(BlockTags.WOODEN_TRAPDOORS).add(NguhBlocks.TINTED_OAK_TRAPDOOR)
-        valueLookupBuilder(BlockTags.WOODEN_PRESSURE_PLATES).add(NguhBlocks.TINTED_OAK_PRESSURE_PLATE)
-        valueLookupBuilder(BlockTags.WOODEN_BUTTONS).add(NguhBlocks.TINTED_OAK_BUTTON)
-        valueLookupBuilder(BlockTags.LEAVES)
+        builder(BlockTags.FENCE_GATES).add(NguhBlocks.TINTED_OAK_FENCE_GATE)
+        builder(BlockTags.WOODEN_DOORS).add(NguhBlocks.TINTED_OAK_DOOR)
+        builder(BlockTags.WOODEN_TRAPDOORS).add(NguhBlocks.TINTED_OAK_TRAPDOOR)
+        builder(BlockTags.WOODEN_PRESSURE_PLATES).add(NguhBlocks.TINTED_OAK_PRESSURE_PLATE)
+        builder(BlockTags.WOODEN_BUTTONS).add(NguhBlocks.TINTED_OAK_BUTTON)
+        builder(BlockTags.LEAVES)
             .add(NguhBlocks.BUDDING_OAK_LEAVES)
             .add(NguhBlocks.BUDDING_DARK_OAK_LEAVES)
             .add(NguhBlocks.BUDDING_CHERRY_LEAVES)
 
         // Block tags for crops.
-        valueLookupBuilder(BlockTags.CROPS).add(NguhBlocks.GRAPE_CROP).add(NguhBlocks.PEANUT_CROP)
-        valueLookupBuilder(BlockTags.MAINTAINS_FARMLAND).add(NguhBlocks.GRAPE_CROP).add(NguhBlocks.PEANUT_CROP)
+        builder(BlockTags.CROPS).add(NguhBlocks.GRAPE_CROP).add(NguhBlocks.PEANUT_CROP)
+        builder(BlockTags.MAINTAINS_FARMLAND).add(NguhBlocks.GRAPE_CROP).add(NguhBlocks.PEANUT_CROP)
 
         // Block tag for bonemealing flowers.
-        valueLookupBuilder(NguhBlocks.CAN_DUPLICATE_WITH_BONEMEAL)
+        builder(NguhBlocks.CAN_DUPLICATE_WITH_BONEMEAL)
             .add(Blocks.DANDELION)
             .add(Blocks.POPPY)
             .add(Blocks.BLUE_ORCHID)
@@ -112,14 +122,14 @@ class NguhcraftBlockTagProvider(
             .add(Blocks.CORNFLOWER)
             .add(Blocks.LILY_OF_THE_VALLEY)
 
-        valueLookupBuilder(NguhBlocks.CAN_RANDOM_TICK_WITH_BONEMEAL)
+        builder(NguhBlocks.CAN_RANDOM_TICK_WITH_BONEMEAL)
             .addAll(NguhBlocks.BUDDING_LEAVES_TO_LEAVES.values)
 
         // Add blocks from families.
-        val Fences = valueLookupBuilder(BlockTags.FENCES)
-        val Walls = valueLookupBuilder(BlockTags.WALLS)
-        val Stairs = valueLookupBuilder(BlockTags.STAIRS)
-        val Slabs = valueLookupBuilder(BlockTags.SLABS)
+        val Fences = builder(BlockTags.FENCES)
+        val Walls = builder(BlockTags.WALLS)
+        val Stairs = builder(BlockTags.STAIRS)
+        val Slabs = builder(BlockTags.SLABS)
         for (B in NguhBlocks.ALL_VARIANT_FAMILIES) {
             B.Fence?.let { Fences.add(it) }
             B.Slab?.let { Slabs.add(it) }
@@ -134,9 +144,9 @@ class NguhcraftBlockTagProvider(
 
 @Environment(EnvType.CLIENT)
 class NguhcraftDamageTypeTagProvider(
-    O: FabricDataOutput,
+    O: FabricPackOutput,
     RF: CompletableFuture<HolderLookup.Provider>
-) : FabricTagProvider<DamageType>(O, Registries.DAMAGE_TYPE, RF) {
+) : FabricTagsProvider<DamageType>(O, Registries.DAMAGE_TYPE, RF) {
     override fun addTags(WL: HolderLookup.Provider) {
         // Damage types that bypass most resistances.
         AddBypassDamageTypesTo(DamageTypeTags.BYPASSES_ARMOR)
@@ -166,7 +176,7 @@ class NguhcraftDamageTypeTagProvider(
 }
 
 class NguhcraftEquipmentAssetProvider(
-    O: FabricDataOutput,
+    O: FabricPackOutput,
     RF: CompletableFuture<HolderLookup.Provider>
 ) : DataProvider {
     val Resolver = O.createPathProvider(PackOutput.Target.RESOURCE_PACK, "equipment")
@@ -181,57 +191,57 @@ class NguhcraftEquipmentAssetProvider(
     override fun run(W: CachedOutput): CompletableFuture<*> {
         val Map = mutableMapOf<ResourceKey<EquipmentAsset>, EquipmentClientInfo>()
         Bootstrap { K, M -> if (Map.putIfAbsent(K, M) != null) throw IllegalStateException("Duplicate key: $K") }
-        return DataProvider.saveAll(W, EquipmentClientInfo.CODEC, Resolver::json, Map)
+        return DataProvider.saveAll(W, EquipmentClientInfo.CODEC, Resolver, Map.mapKeys { it.key.identifier() })
     }
 
     override fun getName() = "Nguhcraft Equipment Asset Definitions"
 }
 
 class NguhcraftItemTagProvider(
-    O: FabricDataOutput,
+    O: FabricPackOutput,
     RF: CompletableFuture<HolderLookup.Provider>
-) : FabricTagProvider.ItemTagProvider(O, RF) {
+) : FabricTagsProvider.ItemTagsProvider(O, RF) {
     override fun addTags(WL: HolderLookup.Provider) {
-        valueLookupBuilder(ItemTags.HEAD_ARMOR).add(NguhItems.AMETHYST_HELMET)
-        valueLookupBuilder(ItemTags.CHEST_ARMOR).add(NguhItems.AMETHYST_CHESTPLATE)
-        valueLookupBuilder(ItemTags.LEG_ARMOR).add(NguhItems.AMETHYST_LEGGINGS)
-        valueLookupBuilder(ItemTags.FOOT_ARMOR).add(NguhItems.AMETHYST_BOOTS)
-        valueLookupBuilder(ItemTags.TRIMMABLE_ARMOR)
+        builder(ItemTags.HEAD_ARMOR).add(NguhItems.AMETHYST_HELMET)
+        builder(ItemTags.CHEST_ARMOR).add(NguhItems.AMETHYST_CHESTPLATE)
+        builder(ItemTags.LEG_ARMOR).add(NguhItems.AMETHYST_LEGGINGS)
+        builder(ItemTags.FOOT_ARMOR).add(NguhItems.AMETHYST_BOOTS)
+        builder(ItemTags.TRIMMABLE_ARMOR)
             .add(NguhItems.AMETHYST_HELMET)
             .add(NguhItems.AMETHYST_CHESTPLATE)
             .add(NguhItems.AMETHYST_LEGGINGS)
             .add(NguhItems.AMETHYST_BOOTS)
 
-        valueLookupBuilder(NguhItems.REPAIRS_AMETHYST_ARMOUR)
+        builder(NguhItems.REPAIRS_AMETHYST_ARMOUR)
             .add(Items.AMETHYST_CLUSTER)
 
-        valueLookupBuilder(ItemTags.SWORDS).add(NguhItems.AMETHYST_SWORD)
-        valueLookupBuilder(ItemTags.SHOVELS).add(NguhItems.AMETHYST_SHOVEL)
-        valueLookupBuilder(ItemTags.PICKAXES).add(NguhItems.AMETHYST_PICKAXE)
-        valueLookupBuilder(ItemTags.AXES).add(NguhItems.AMETHYST_AXE)
-        valueLookupBuilder(ItemTags.HOES).add(NguhItems.AMETHYST_HOE)
+        builder(ItemTags.SWORDS).add(NguhItems.AMETHYST_SWORD)
+        builder(ItemTags.SHOVELS).add(NguhItems.AMETHYST_SHOVEL)
+        builder(ItemTags.PICKAXES).add(NguhItems.AMETHYST_PICKAXE)
+        builder(ItemTags.AXES).add(NguhItems.AMETHYST_AXE)
+        builder(ItemTags.HOES).add(NguhItems.AMETHYST_HOE)
 
-        valueLookupBuilder(ItemTags.LOGS_THAT_BURN)
+        builder(ItemTags.LOGS_THAT_BURN)
             .add(NguhBlocks.TINTED_OAK_LOG.asItem())
             .add(NguhBlocks.TINTED_OAK_WOOD.asItem())
             .add(NguhBlocks.STRIPPED_TINTED_OAK_LOG.asItem())
             .add(NguhBlocks.STRIPPED_TINTED_OAK_WOOD.asItem())
 
-        valueLookupBuilder(ItemTags.PLANKS)
+        builder(ItemTags.PLANKS)
             .add(NguhBlocks.TINTED_OAK_PLANKS.asItem())
 
-        valueLookupBuilder(NguhItems.TINTED_LOGS)
+        builder(NguhItems.TINTED_LOGS)
             .add(NguhBlocks.TINTED_OAK_LOG.asItem())
             .add(NguhBlocks.TINTED_OAK_WOOD.asItem())
             .add(NguhBlocks.STRIPPED_TINTED_OAK_LOG.asItem())
             .add(NguhBlocks.STRIPPED_TINTED_OAK_WOOD.asItem())
 
-        valueLookupBuilder(ItemTags.CHICKEN_FOOD).add(NguhItems.GRAPE_SEEDS)
-        valueLookupBuilder(ItemTags.FOX_FOOD).add(NguhItems.GRAPES)
-        valueLookupBuilder(ItemTags.PARROT_FOOD).add(NguhItems.GRAPE_SEEDS).add(NguhItems.PEANUTS)
-        valueLookupBuilder(ItemTags.PARROT_POISONOUS_FOOD).add(NguhItems.CHOCOLATE)
+        builder(ItemTags.CHICKEN_FOOD).add(NguhItems.GRAPE_SEEDS)
+        builder(ItemTags.FOX_FOOD).add(NguhItems.GRAPES)
+        builder(ItemTags.PARROT_FOOD).add(NguhItems.GRAPE_SEEDS).add(NguhItems.PEANUTS)
+        builder(ItemTags.PARROT_POISONOUS_FOOD).add(NguhItems.CHOCOLATE)
 
-        valueLookupBuilder(NguhItems.FROGLIGHTS_CRAFTABLE_TO_CLEANSING)
+        builder(NguhItems.FROGLIGHTS_CRAFTABLE_TO_CLEANSING)
             .add(Blocks.OCHRE_FROGLIGHT.asItem())
             .add(Blocks.VERDANT_FROGLIGHT.asItem())
             .add(Blocks.PEARLESCENT_FROGLIGHT.asItem())
@@ -242,9 +252,9 @@ class NguhcraftItemTagProvider(
 
 @Environment(EnvType.CLIENT)
 class NguhcraftLootTableProvider(
-    O: FabricDataOutput,
+    O: FabricPackOutput,
     RL: CompletableFuture<HolderLookup.Provider>
-) : FabricBlockLootTableProvider(O, RL) {
+) : FabricBlockLootSubProvider(O, RL) {
     override fun generate() {
         NguhBlocks.DROPS_SELF.forEach { dropSelf(it) }
         add(NguhBlocks.LOCKED_DOOR) { B: Block -> createDoorTable(B) }
@@ -254,9 +264,9 @@ class NguhcraftLootTableProvider(
         for (V in NguhBlockModels.VERTICAL_SLABS)
             add(V.VerticalSlab, ::VerticalSlabDrops)
 
-        val GrapeCropHasMaxAge = LootItemBlockStatePropertyCondition
-            .hasBlockStateProperties(NguhBlocks.GRAPE_CROP)
-            .setProperties(StatePropertiesPredicate.Builder.properties()
+        val GrapeCropHasMaxAge = MatchBlock.blockMatches(
+            blocks, NguhBlocks.GRAPE_CROP,
+            StatePropertiesPredicate.Builder.properties()
                 .hasProperty(GrapeCropBlock.AGE, GrapeCropBlock.MAX_AGE)
             )
 
@@ -267,15 +277,15 @@ class NguhcraftLootTableProvider(
             NguhItems.GRAPE_SEEDS,
             GrapeCropHasMaxAge
         ).withPool(LootPool.lootPool().setRolls(
-            UniformGenerator.between(0.0F, 1.0F)).add(
+            ContextIntProviders.between(0, 1)).add(
             LootItem.lootTableItem(NguhItems.GRAPE_LEAF))
             .`when`(GrapeCropHasMaxAge)
         ).withPool(LootPool.lootPool().setRolls(
-            ConstantValue.exactly(1.0F)).add(
+            ContextIntProviders.exactly(1)).add(
             LootItem.lootTableItem(Items.STICK))
-            .`when`(LootItemBlockStatePropertyCondition
-                .hasBlockStateProperties(NguhBlocks.GRAPE_CROP)
-                .setProperties(StatePropertiesPredicate.Builder.properties()
+            .`when`(MatchBlock.blockMatches(
+                blocks, NguhBlocks.GRAPE_CROP,
+                StatePropertiesPredicate.Builder.properties()
                     .hasProperty(GrapeCropBlock.STICK_LOGGED, true)
                 )
             )
@@ -285,9 +295,9 @@ class NguhcraftLootTableProvider(
             NguhBlocks.PEANUT_CROP,
             NguhItems.PEANUTS,
             NguhItems.PEANUTS,
-            LootItemBlockStatePropertyCondition
-                .hasBlockStateProperties(NguhBlocks.PEANUT_CROP)
-                .setProperties(StatePropertiesPredicate.Builder.properties()
+            MatchBlock.blockMatches(
+                blocks, NguhBlocks.PEANUT_CROP,
+                StatePropertiesPredicate.Builder.properties()
                     .hasProperty(CropBlock.AGE, CropBlock.MAX_AGE)
                 )
         ))
@@ -302,9 +312,9 @@ class NguhcraftLootTableProvider(
         add(Blocks.CHEST) { B -> LootTable.lootTable()
             .withPool(applyExplosionCondition(
                 B,
-                LootPool.lootPool().setRolls(ConstantValue.exactly(1.0F))
+                LootPool.lootPool().setRolls(ContextIntProviders.exactly(1))
                     .add(LootItem.lootTableItem(B)
-                        .apply(CopyComponentsFunction.copyComponents(CopyComponentsFunction.Source.BLOCK_ENTITY)
+                        .apply(CopyComponentsFunction.copyComponentsFromBlockEntity(LootContextParams.BLOCK_ENTITY)
                             .include(DataComponents.CUSTOM_NAME)
                             .include(NguhBlocks.CHEST_VARIANT_COMPONENT)
                         )
@@ -316,15 +326,15 @@ class NguhcraftLootTableProvider(
 
     fun VerticalSlabDrops(Drop: Block) = LootTable.lootTable().withPool(
         LootPool.lootPool()
-            .setRolls(ConstantValue.exactly(1.0F))
+            .setRolls(ContextIntProviders.exactly(1))
             .add(
                 applyExplosionDecay(
                     Drop,
                     LootItem.lootTableItem(Drop)
                         .apply(
-                            SetItemCountFunction.setCount(ConstantValue.exactly(2.0F))
-                                .`when`(LootItemBlockStatePropertyCondition.hasBlockStateProperties(Drop)
-                                    .setProperties(StatePropertiesPredicate.Builder.properties().hasProperty(
+                            SetItemCountFunction.setCount(ContextIntProviders.exactly(2))
+                                .`when`(MatchBlock.blockMatches(blocks, Drop,
+                                    StatePropertiesPredicate.Builder.properties().hasProperty(
                                         VerticalSlabBlock.TYPE,
                                         VerticalSlabBlock.Type.DOUBLE))
                                 )
@@ -334,18 +344,18 @@ class NguhcraftLootTableProvider(
     )
 
     fun BuddingLeavesDrops(B: BuddingLeavesBlock, sapling: Block): LootTable.Builder {
-        val Fortune = registries.lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.FORTUNE)
+        val Fortune = enchantments.getOrThrow(Enchantments.FORTUNE)
         return createLeavesDrops(B, sapling, *SaplingDropChances)
                 .withPool(
                     LootPool.lootPool()
                         .`when`(
-                            LootItemBlockStatePropertyCondition.hasBlockStateProperties(B).setProperties(
+                            MatchBlock.blockMatches(blocks, B,
                                 StatePropertiesPredicate.Builder.properties()
                                     .hasProperty(BuddingLeavesBlock.AGE, BuddingLeavesBlock.MAX_AGE)
                             )
                         )
                         .add(LootItem.lootTableItem(B.Fruit))
-                        .apply(SetItemCountFunction.setCount(ConstantValue.exactly(1.0F)))
+                        .apply(SetItemCountFunction.setCount(ContextIntProviders.exactly(1)))
                         .apply(ApplyBonusCount.addUniformBonusCount(Fortune))
                 )
     }
@@ -356,7 +366,7 @@ class NguhcraftLootTableProvider(
 }
 
 @Environment(EnvType.CLIENT)
-class NguhcraftModelGenerator(O: FabricDataOutput) : FabricModelProvider(O) {
+class NguhcraftModelGenerator(O: FabricPackOutput) : FabricModelProvider(O) {
     override fun generateBlockStateModels(G: BlockModelGenerators) {
         NguhBlockModels.BootstrapModels(G)
     }
@@ -368,9 +378,9 @@ class NguhcraftModelGenerator(O: FabricDataOutput) : FabricModelProvider(O) {
 
 @Environment(EnvType.CLIENT)
 class NguhcraftPaintingVariantTagProvider(
-    O: FabricDataOutput,
+    O: FabricPackOutput,
     RF: CompletableFuture<HolderLookup.Provider>
-) : FabricTagProvider<PaintingVariant>(O, Registries.PAINTING_VARIANT, RF) {
+) : FabricTagsProvider<PaintingVariant>(O, Registries.PAINTING_VARIANT, RF) {
     override fun addTags(WL: HolderLookup.Provider) {
         builder(PaintingVariantTags.PLACEABLE).let { for (P in NguhPaintings.PLACEABLE) it.add(P) }
     }
@@ -378,13 +388,14 @@ class NguhcraftPaintingVariantTagProvider(
 
 @Environment(EnvType.CLIENT)
 class NguhcraftRecipeProvider(
-    O: FabricDataOutput,
+    O: FabricPackOutput,
     RL: CompletableFuture<HolderLookup.Provider>
 ) : FabricRecipeProvider(O, RL) {
     override fun createRecipeProvider(
         WL: HolderLookup.Provider,
-        E: RecipeOutput
-    ) = NguhcraftRecipeGenerator(WL, E)
+        Recipes: BootstrapContext<Recipe<*>>,
+        Advancements: BootstrapContext<Advancement>
+    ) = NguhcraftRecipeGenerator(WL, Recipes, Advancements)
     override fun getName() = "Nguhcraft Recipe Provider"
 }
 
@@ -392,7 +403,7 @@ class NguhcraftRecipeProvider(
 //  Dynamic Registries
 // =========================================================================
 class NguhcraftDynamicRegistryProvider(
-    O: FabricDataOutput,
+    O: FabricPackOutput,
     RF: CompletableFuture<HolderLookup.Provider>
 ) : FabricDynamicRegistryProvider(O, RF) {
     override fun configure(

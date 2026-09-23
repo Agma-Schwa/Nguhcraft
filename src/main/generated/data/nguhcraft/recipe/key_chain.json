@@ -1,6 +1,5 @@
 {
   "type": "minecraft:crafting_shaped",
-  "category": "misc",
   "key": {
     "i": "minecraft:iron_nugget"
   },
@@ -10,7 +9,6 @@
     " i "
   ],
   "result": {
-    "count": 1,
     "id": "nguhcraft:key_chain"
   }
 }

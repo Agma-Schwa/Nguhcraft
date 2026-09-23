@@ -120,7 +120,7 @@ public abstract class LeavesBlockMixin {
 
     @Unique private int CountBuddingNeighbors(ServerLevel SW, BlockPos Pos) {
         var Count = 0;
-        for (var Neighbour : BlockPos.withinManhattan(Pos, 1, 1, 1)) {
+        for (var Neighbour : BlockPos.withinBoxByManhattanDistance(Pos, 1, 1, 1)) {
             if (Pos.equals(Neighbour)) continue;
             if (SW.getBlockState(Neighbour).getBlock() instanceof BuddingLeavesBlock) Count++;
         }

@@ -12,7 +12,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(Feature.class)
-public abstract class FeatureMixin {
+public interface FeatureMixin {
     /**
      * Prevent features from replacing protected blocks.
      * <p>

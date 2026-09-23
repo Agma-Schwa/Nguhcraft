@@ -1,6 +1,5 @@
 {
   "type": "minecraft:crafting_shaped",
-  "category": "misc",
   "key": {
     "i": "minecraft:iron_ingot"
   },
@@ -10,7 +9,6 @@
     " i "
   ],
   "result": {
-    "count": 1,
     "id": "nguhcraft:decorative_hopper"
   }
 }
