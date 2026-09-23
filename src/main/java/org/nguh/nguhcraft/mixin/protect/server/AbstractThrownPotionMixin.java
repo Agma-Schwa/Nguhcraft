@@ -1,8 +1,8 @@
 package org.nguh.nguhcraft.mixin.protect.server;
 
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.projectile.AbstractThrownPotion;
-import net.minecraft.world.entity.projectile.ThrowableItemProjectile;
+import net.minecraft.world.entity.projectile.throwableitemprojectile.AbstractThrownPotion;
+import net.minecraft.world.entity.projectile.throwableitemprojectile.ThrowableItemProjectile;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import org.nguh.nguhcraft.protect.ProtectionManager;
@@ -17,7 +17,7 @@ public abstract class AbstractThrownPotionMixin extends ThrowableItemProjectile 
         super(entityType, world);
     }
 
-    @Inject(method = "dowseFire", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "douseFire", at = @At("HEAD"), cancellable = true)
     private void inject$extinguishFire(BlockPos Pos, CallbackInfo CI) {
         if (ProtectionManager.IsProtectedBlock(level(), Pos))
             CI.cancel();

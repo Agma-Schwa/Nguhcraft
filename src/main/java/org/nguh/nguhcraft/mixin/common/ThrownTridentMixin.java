@@ -1,12 +1,15 @@
 package org.nguh.nguhcraft.mixin.common;
 
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
-import net.minecraft.world.entity.projectile.AbstractArrow;
-import net.minecraft.world.entity.projectile.ThrownTrident;
+import net.minecraft.world.entity.projectile.arrow.AbstractArrow;
+import net.minecraft.world.entity.projectile.arrow.ThrownTrident;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
@@ -73,19 +76,24 @@ public abstract class ThrownTridentMixin extends AbstractArrow implements Triden
     }
 
     /** Implement Channeling II. */
-    @Inject(
+    @WrapOperation(
         method = "onHitEntity(Lnet/minecraft/world/phys/EntityHitResult;)V",
-        cancellable = true,
         at = @At(
             value = "INVOKE",
-            target = "Lnet/minecraft/world/entity/projectile/ThrownTrident;setDeltaMovement(Lnet/minecraft/world/phys/Vec3;)V",
-            ordinal = 0,
-            shift = At.Shift.AFTER
+            target = "Lnet/minecraft/world/entity/projectile/arrow/ThrownTrident;playSound(Lnet/minecraft/sounds/SoundEvent;FF)V",
+            ordinal = 0
         )
     )
-    private void inject$onEntityHit(EntityHitResult EHR, CallbackInfo CI) {
-        TridentUtils.ActOnEntityHit((ThrownTrident) (Object) this, EHR);
-        CI.cancel();
+    private void inject$onEntityHit(
+        ThrownTrident Self,
+        SoundEvent SE,
+        float Volume,
+        float Pitch,
+        Operation<Void> Op,
+        EntityHitResult EHR
+    ) {
+        // This plays the hit sound itself (thunder if we strike lightning).
+        TridentUtils.ActOnEntityHit(Self, EHR);
     }
 
 
@@ -95,7 +103,7 @@ public abstract class ThrownTridentMixin extends AbstractArrow implements Triden
         cancellable = true,
         at = @At(
             value = "INVOKE",
-            target = "Lnet/minecraft/world/entity/projectile/ThrownTrident;getOwner()Lnet/minecraft/world/entity/Entity;",
+            target = "Lnet/minecraft/world/entity/projectile/arrow/ThrownTrident;getOwner()Lnet/minecraft/world/entity/Entity;",
             ordinal = 0
         )
     )

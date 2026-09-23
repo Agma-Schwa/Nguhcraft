@@ -52,22 +52,6 @@ public abstract class BaseContainerBlockEntityMixin extends BlockEntity implemen
     @Override public @NotNull Component Nguhcraft$GetName() { return getDisplayName(); }
 
     /**
-     * Disallow legacy locks.
-     * <p>
-     * This is used to implement the member function of the same name (which we
-     * also replace); BeaconBlockEntity also uses it for some ungodly reason, so
-     * we replace it there as well.
-     * @author Sirraide
-     * @reason See above.
-     */
-    @Overwrite
-    public static boolean canUnlock(Player PE, LockCode L, Component ContainerName) {
-        throw new IllegalStateException(
-            "Nguhcraft: Function 'checkUnlocked' should have been replaced (container: '%s')".formatted(ContainerName.getString())
-        );
-    }
-
-    /**
      * Redirect lock check to use our custom locks.
      * @author Sirraide
      * @reason See above.

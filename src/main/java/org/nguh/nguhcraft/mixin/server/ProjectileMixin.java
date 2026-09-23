@@ -59,7 +59,7 @@ public abstract class ProjectileMixin extends Entity implements ProjectileEntity
     @Inject(method = "onHitEntity", at = @At("TAIL"))
     private void inject$onHit(EntityHitResult EHR, CallbackInfo CI) {
         // FIXME: Could use DamageTags.BYPASSES_COOLDOWN for this.
-        if (IsHypershotArrow) EHR.getEntity().invulnerableTime = 0;
+        if (IsHypershotArrow) EHR.getEntity().setInvulnerableTime(0);
     }
 
     /** Implement the homing enchantment. */

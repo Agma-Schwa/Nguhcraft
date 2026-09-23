@@ -1,10 +1,10 @@
 package org.nguh.nguhcraft.mixin.client.render;
 
 import net.minecraft.client.renderer.RenderPipelines;
-import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.Gui;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.Hud;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.nguh.nguhcraft.Utils;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
@@ -14,10 +14,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import static org.nguh.nguhcraft.Nguhcraft.Id;
 
-@Mixin(Gui.class)
-public abstract class GuiMixin {
-    @Unique private static final ResourceLocation ARMOR_GOLD_FULL_TEXTURE = Id("hud/armour_gold_full");
-    @Unique private static final ResourceLocation ARMOR_GOLD_HALF_TEXTURE = Id("hud/armour_gold_half");
+@Mixin(Hud.class)
+public abstract class HudMixin {
+    @Unique private static final Identifier ARMOR_GOLD_FULL_TEXTURE = Id("hud/armour_gold_full");
+    @Unique private static final Identifier ARMOR_GOLD_HALF_TEXTURE = Id("hud/armour_gold_half");
 
     /**
     * Don’t render the hunger bar if the saturation enchantment is maxed out.
@@ -27,8 +27,8 @@ public abstract class GuiMixin {
     * there is no point in rendering the hunger bar since it conveys no useful
     * information.
     */
-    @Inject(method = "renderFood", at = @At("HEAD"), cancellable = true)
-    private void inject$renderFood(GuiGraphics Ctx, Player P, int Top, int Right, CallbackInfo CI) {
+    @Inject(method = "extractFood", at = @At("HEAD"), cancellable = true)
+    private void inject$renderFood(GuiGraphicsExtractor Ctx, Player P, int Top, int Right, CallbackInfo CI) {
         var HM = P.getFoodData();
 
         // Always render the food level if the bar isn’t full.
@@ -40,8 +40,8 @@ public abstract class GuiMixin {
     }
 
     /** Render more than 20 armour points, up to a maximum of 40. */
-    @Inject(method = "renderArmor", at = @At("TAIL"))
-    private static void inject$renderArmor(GuiGraphics Ctx, Player P, int Ht, int J, int K, int Wd, CallbackInfo CI) {
+    @Inject(method = "extractArmor", at = @At("TAIL"))
+    private static void inject$renderArmor(GuiGraphicsExtractor Ctx, Player P, int Ht, int J, int K, int Wd, CallbackInfo CI) {
         var Armour = P.getArmorValue() - 20;
         if (Armour > 0) {
             var Y = Ht - (J - 1) * K - 10;

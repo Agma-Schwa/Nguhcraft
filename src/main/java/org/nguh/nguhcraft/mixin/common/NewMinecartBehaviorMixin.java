@@ -4,11 +4,12 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.PoweredRailBlock;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.vehicle.AbstractMinecart;
-import net.minecraft.world.entity.vehicle.NewMinecartBehavior;
-import net.minecraft.world.entity.vehicle.MinecartBehavior;
+import net.minecraft.world.entity.vehicle.minecart.AbstractMinecart;
+import net.minecraft.world.entity.vehicle.minecart.NewMinecartBehavior;
+import net.minecraft.world.entity.vehicle.minecart.MinecartBehavior;
 import net.minecraft.world.phys.Vec3;
-import net.minecraft.world.level.GameRules;
+import net.minecraft.world.level.gamerules.GameRule;
+import net.minecraft.world.level.gamerules.GameRules;
 import org.nguh.nguhcraft.entity.MinecartUtils;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
@@ -46,7 +47,7 @@ public abstract class NewMinecartBehaviorMixin extends MinecartBehavior {
         method = "calculateSlopeSpeed",
         at = @At(
             value = "INVOKE",
-            target = "Lnet/minecraft/world/entity/vehicle/AbstractMinecart;isInWater()Z"
+            target = "Lnet/minecraft/world/entity/vehicle/minecart/AbstractMinecart;isInWater()Z"
         )
     )
     private boolean inject$applySlopeVelocity(AbstractMinecart M) { return false; }
@@ -56,7 +57,7 @@ public abstract class NewMinecartBehaviorMixin extends MinecartBehavior {
         method = "calculateTrackSpeed",
         at = @At(
             value = "FIELD",
-            target = "Lnet/minecraft/world/entity/vehicle/NewMinecartBehavior$TrackIteration;hasBoosted:Z",
+            target = "Lnet/minecraft/world/entity/vehicle/minecart/NewMinecartBehavior$TrackIteration;hasBoosted:Z",
             ordinal = 0
         )
     )
@@ -80,7 +81,7 @@ public abstract class NewMinecartBehaviorMixin extends MinecartBehavior {
         method = "getMaxSpeed",
         at = @At(
             value = "INVOKE",
-            target = "Lnet/minecraft/world/entity/vehicle/AbstractMinecart;isInWater()Z"
+            target = "Lnet/minecraft/world/entity/vehicle/minecart/AbstractMinecart;isInWater()Z"
         )
     )
     private boolean inject$getMaxSpeed$0(AbstractMinecart M) { return false; }
@@ -90,15 +91,15 @@ public abstract class NewMinecartBehaviorMixin extends MinecartBehavior {
         method = "getMaxSpeed",
         at = @At(
             value = "INVOKE",
-            target = "Lnet/minecraft/world/level/GameRules;getInt(Lnet/minecraft/world/level/GameRules$Key;)I"
+            target = "Lnet/minecraft/world/level/gamerules/GameRules;get(Lnet/minecraft/world/level/gamerules/GameRule;)Ljava/lang/Object;"
         )
     )
-    private int inject$getMaxSpeed$1(GameRules I, GameRules.Key<GameRules.IntegerValue> R) {
+    private Object inject$getMaxSpeed$1(GameRules I, GameRule<Integer> R) {
         // Note ‘getControllingPassenger()’ is only valid for e.g. boats where the
         // player is actually in control; this is not the case for minecarts, so use
         // ‘getFirstPassenger()’ instead.
         return minecart.getFirstPassenger() instanceof Player
-            ? I.getInt(R)
+            ? I.get(R)
             : DEFAULT_SPEED_PER_SEC;
     }
 
