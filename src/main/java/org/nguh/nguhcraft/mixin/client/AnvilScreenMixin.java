@@ -8,6 +8,6 @@ import org.spongepowered.asm.mixin.injection.ModifyConstant;
 
 @Mixin(AnvilScreen.class)
 public abstract class AnvilScreenMixin {
-    @ModifyConstant(method = "renderLabels", constant = @Constant(intValue = 40, ordinal = 0))
+    @ModifyConstant(method = "extractLabels", constant = @Constant(intValue = 40, ordinal = 0))
     private int inject$updateResult$1(int i) { return Constants.ANVIL_LIMIT; }
 }

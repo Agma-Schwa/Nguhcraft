@@ -65,7 +65,7 @@ object ClientNetworkHandler {
                 .append(Message)
         }
 
-        Execute { Client().chatListener.handleSystemMessage(Message, false) }
+        Execute { Client().gui.chatListener().handleSystemMessage(Message, false) }
     }
 
     /**
@@ -148,7 +148,7 @@ object ClientNetworkHandler {
     }
 
     /** Register a packet handler. */
-    private fun <T : CustomPacketPayload?> Register(ID: CustomPacketPayload.Type<T>, Handler: (T) -> Unit) {
+    private fun <T : CustomPacketPayload> Register(ID: CustomPacketPayload.Type<T>, Handler: (T) -> Unit) {
         ClientPlayNetworking.registerGlobalReceiver(ID) { Payload, _ -> Handler(Payload) }
     }
 }

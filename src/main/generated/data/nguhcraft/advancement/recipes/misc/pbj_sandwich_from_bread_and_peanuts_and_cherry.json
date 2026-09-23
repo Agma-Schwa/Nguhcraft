@@ -33,7 +33,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:pbj_sandwich_from_bread_and_peanuts_and_cherry"
+        "recipes": "nguhcraft:pbj_sandwich_from_bread_and_peanuts_and_cherry"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

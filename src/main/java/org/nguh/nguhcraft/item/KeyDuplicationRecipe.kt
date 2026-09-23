@@ -1,15 +1,16 @@
 package org.nguh.nguhcraft.item
 
+import com.mojang.serialization.MapCodec
+import net.minecraft.network.RegistryFriendlyByteBuf
+import net.minecraft.network.codec.StreamCodec
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.crafting.RecipeSerializer
 import net.minecraft.world.item.crafting.CustomRecipe
-import net.minecraft.world.item.crafting.CraftingBookCategory
 import net.minecraft.world.item.crafting.CraftingInput
-import net.minecraft.core.HolderLookup
 import net.minecraft.core.NonNullList
 import net.minecraft.world.level.Level
 
-class KeyDuplicationRecipe(C: CraftingBookCategory) : CustomRecipe(C) {
+class KeyDuplicationRecipe : CustomRecipe() {
     /** Get the paired key and check that there is an unpaired one. */
     private fun GetPairedKey(Input: CraftingInput): ItemStack? {
         var Paired: ItemStack? = null
@@ -37,7 +38,7 @@ class KeyDuplicationRecipe(C: CraftingBookCategory) : CustomRecipe(C) {
         return GetPairedKey(Input) != null
     }
 
-    override fun assemble(Input: CraftingInput, L: HolderLookup.Provider): ItemStack {
+    override fun assemble(Input: CraftingInput): ItemStack {
         val Paired = GetPairedKey(Input) ?: return ItemStack.EMPTY
         return Paired.copyWithCount(1)
     }
@@ -55,5 +56,11 @@ class KeyDuplicationRecipe(C: CraftingBookCategory) : CustomRecipe(C) {
     }
 
     override fun getSerializer() = SERIALISER
-    companion object { lateinit var SERIALISER: RecipeSerializer<KeyDuplicationRecipe> }
+
+    companion object {
+        val INSTANCE = KeyDuplicationRecipe()
+        val MAP_CODEC: MapCodec<KeyDuplicationRecipe> = MapCodec.unit(INSTANCE)
+        val STREAM_CODEC: StreamCodec<RegistryFriendlyByteBuf, KeyDuplicationRecipe> = StreamCodec.unit(INSTANCE)
+        val SERIALISER: RecipeSerializer<KeyDuplicationRecipe> = RecipeSerializer(MAP_CODEC, STREAM_CODEC)
+    }
 }

@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:deepslate_tile_slab_vertical"
+        "recipes": "nguhcraft:deepslate_tile_slab_vertical"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

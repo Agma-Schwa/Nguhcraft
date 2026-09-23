@@ -2,6 +2,7 @@ package org.nguh.nguhcraft.mixin.discord.server;
 
 import com.mojang.authlib.GameProfile;
 import net.minecraft.network.Connection;
+import net.minecraft.server.players.NameAndId;
 import net.minecraft.server.players.PlayerList;
 import net.minecraft.server.network.CommonListenerCookie;
 import net.minecraft.server.level.ServerPlayer;
@@ -19,8 +20,8 @@ import java.net.SocketAddress;
 public abstract class PlayerListMixin {
     /** Treat muted users as if they were banned. */
     @Inject(method = "canPlayerLogin", at = @At("HEAD"), cancellable = true)
-    private void inject$checkCanJoin(SocketAddress SA, GameProfile GP, CallbackInfoReturnable<Component> CIR) {
-        var Message = Discord.CheckCanJoin(GP);
+    private void inject$checkCanJoin(SocketAddress SA, NameAndId NI, CallbackInfoReturnable<Component> CIR) {
+        var Message = Discord.CheckCanJoin(new GameProfile(NI.id(), NI.name()));
         if (Message != null) CIR.setReturnValue(Message);
     }
 
@@ -30,7 +31,8 @@ public abstract class PlayerListMixin {
         method = "placeNewPlayer(Lnet/minecraft/network/Connection;Lnet/minecraft/server/level/ServerPlayer;Lnet/minecraft/server/network/CommonListenerCookie;)V",
         at = @At(
             value = "INVOKE",
-            target = "Lnet/minecraft/server/level/ServerPlayer;setServerLevel(Lnet/minecraft/server/level/ServerLevel;)V"
+            target = "Lnet/minecraft/server/level/ServerPlayer;level()Lnet/minecraft/server/level/ServerLevel;",
+            ordinal = 0
         )
     )
     private void inject$onPlayerConnect$0(

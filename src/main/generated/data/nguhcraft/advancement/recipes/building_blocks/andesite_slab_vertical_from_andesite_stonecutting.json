@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:andesite_slab_vertical_from_andesite_stonecutting"
+        "recipes": "nguhcraft:andesite_slab_vertical_from_andesite_stonecutting"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

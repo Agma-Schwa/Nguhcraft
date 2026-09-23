@@ -23,7 +23,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:red_sand_from_clay"
+        "recipes": "nguhcraft:red_sand_from_clay"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

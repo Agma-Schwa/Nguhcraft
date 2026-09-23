@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:azure_nether_bricks"
+        "recipes": "nguhcraft:azure_nether_bricks"
       },
       "trigger": "minecraft:recipe_unlocked"
     },

@@ -2,7 +2,6 @@
   "type": "minecraft:stonecutting",
   "ingredient": "nguhcraft:polished_calcite",
   "result": {
-    "count": 1,
     "id": "nguhcraft:calcite_bricks"
   }
 }

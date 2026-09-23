@@ -3,7 +3,7 @@
   "criteria": {
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:stripped_warped_stem_from_warped_stem_stonecutting"
+        "recipes": "nguhcraft:stripped_warped_stem_from_warped_stem_stonecutting"
       },
       "trigger": "minecraft:recipe_unlocked"
     },

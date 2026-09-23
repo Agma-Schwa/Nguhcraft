@@ -23,7 +23,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:brocade_cyan"
+        "recipes": "nguhcraft:brocade_cyan"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

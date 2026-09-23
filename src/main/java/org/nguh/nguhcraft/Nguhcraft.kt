@@ -9,7 +9,7 @@ import net.minecraft.core.Registry
 import net.minecraft.nbt.NbtAccounter
 import net.minecraft.nbt.NbtIo
 import net.minecraft.resources.ResourceKey
-import net.minecraft.resources.ResourceLocation
+import net.minecraft.resources.Identifier
 import net.minecraft.server.MinecraftServer
 import net.minecraft.util.ProblemReporter
 import net.minecraft.world.level.storage.LevelResource
@@ -30,16 +30,16 @@ class Nguhcraft : ModInitializer {
         Manager.RunStaticInitialisation()
 
         // Clientbound packets.
-        PayloadTypeRegistry.playS2C().register(ClientboundChatPacket.ID, ClientboundChatPacket.CODEC)
-        PayloadTypeRegistry.playS2C().register(ClientboundLinkUpdatePacket.ID, ClientboundLinkUpdatePacket.CODEC)
-        PayloadTypeRegistry.playS2C().register(ClientboundSyncGameRulesPacket.ID, ClientboundSyncGameRulesPacket.CODEC)
-        PayloadTypeRegistry.playS2C().register(ClientboundSyncFlagPacket.ID, ClientboundSyncFlagPacket.CODEC)
-        PayloadTypeRegistry.playS2C().register(ClientboundSyncProtectionMgrPacket.ID, ClientboundSyncProtectionMgrPacket.CODEC)
-        PayloadTypeRegistry.playS2C().register(ClientboundSyncDisplayPacket.ID, ClientboundSyncDisplayPacket.CODEC)
-        PayloadTypeRegistry.playS2C().register(ClientboundSyncSpawnsPacket.ID, ClientboundSyncSpawnsPacket.CODEC)
+        PayloadTypeRegistry.clientboundPlay().register(ClientboundChatPacket.ID, ClientboundChatPacket.CODEC)
+        PayloadTypeRegistry.clientboundPlay().register(ClientboundLinkUpdatePacket.ID, ClientboundLinkUpdatePacket.CODEC)
+        PayloadTypeRegistry.clientboundPlay().register(ClientboundSyncGameRulesPacket.ID, ClientboundSyncGameRulesPacket.CODEC)
+        PayloadTypeRegistry.clientboundPlay().register(ClientboundSyncFlagPacket.ID, ClientboundSyncFlagPacket.CODEC)
+        PayloadTypeRegistry.clientboundPlay().register(ClientboundSyncProtectionMgrPacket.ID, ClientboundSyncProtectionMgrPacket.CODEC)
+        PayloadTypeRegistry.clientboundPlay().register(ClientboundSyncDisplayPacket.ID, ClientboundSyncDisplayPacket.CODEC)
+        PayloadTypeRegistry.clientboundPlay().register(ClientboundSyncSpawnsPacket.ID, ClientboundSyncSpawnsPacket.CODEC)
 
         // Serverbound packets.
-        PayloadTypeRegistry.playC2S().register(ServerboundChatPacket.ID, ServerboundChatPacket.CODEC)
+        PayloadTypeRegistry.serverboundPlay().register(ServerboundChatPacket.ID, ServerboundChatPacket.CODEC)
 
         // Misc.
         Commands.Register()
@@ -49,15 +49,18 @@ class Nguhcraft : ModInitializer {
         ServerNetworkHandler.Init()
 
         ServerLifecycleEvents.SERVER_STARTED.register { LoadServerState(it) }
-        ServerTickEvents.START_WORLD_TICK.register { ServerUtils.TickWorld(it) }
+        ServerTickEvents.START_LEVEL_TICK.register { ServerUtils.TickWorld(it) }
         ServerLifecycleEvents.BEFORE_SAVE.register { it, _, _ -> SaveServerState(it) }
+        ServerLifecycleEvents.SERVER_STOPPED.register { if (LoadedServer === it) LoadedServer = null }
     }
 
     companion object {
         private val LOGGER = LogUtils.getLogger()
         const val MOD_ID = "nguhcraft"
-        @JvmStatic fun Id(S: String): ResourceLocation = ResourceLocation.fromNamespaceAndPath(MOD_ID, S)
-        @JvmStatic fun<T> RKey(Registry: ResourceKey<Registry<T>>, S: String): ResourceKey<T> = ResourceKey.create(Registry, Id(S))
+        @JvmStatic fun Id(S: String): Identifier = Identifier.fromNamespaceAndPath(MOD_ID, S)
+        @Volatile private var LoadedServer: MinecraftServer? = null
+
+        @JvmStatic fun<T : Any> RKey(Registry: ResourceKey<Registry<T>>, S: String): ResourceKey<T> = ResourceKey.create(Registry, Id(S))
 
         private fun LoadServerState(S: MinecraftServer) {
             LOGGER.info("[SETUP] Setting up server state")
@@ -78,6 +81,7 @@ class Nguhcraft : ModInitializer {
                 LOGGER.warn("Nguhcraft: Failed to load persistent state; using defaults: ${E.message}")
             }
 
+            LoadedServer = S
             LOGGER.info("[SETUP] Done")
         }
 
@@ -86,6 +90,13 @@ class Nguhcraft : ModInitializer {
         }
 
         private fun SaveServerState(S: MinecraftServer) {
+            // Apparently Minecraft now saves the server during startup, before we have loaded our data, so we need to
+            // skip saving if we haven't loaded our stuff yet, as not to overwrite with empty data.
+            if (LoadedServer !== S) {
+                LOGGER.info("Not saving server state: state has not been loaded yet")
+                return
+            }
+
             LOGGER.info("Saving server state")
             try {
                 ProblemReporter.ScopedCollector(NguhErrorReporter(), LOGGER).use {

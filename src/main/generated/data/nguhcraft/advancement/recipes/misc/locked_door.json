@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:locked_door"
+        "recipes": "nguhcraft:locked_door"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

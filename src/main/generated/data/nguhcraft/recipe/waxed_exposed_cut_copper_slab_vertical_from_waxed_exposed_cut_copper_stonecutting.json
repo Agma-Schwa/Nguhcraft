@@ -1,6 +1,6 @@
 {
   "type": "minecraft:stonecutting",
-  "ingredient": "minecraft:exposed_cut_copper",
+  "ingredient": "minecraft:waxed_exposed_cut_copper",
   "result": {
     "count": 2,
     "id": "nguhcraft:waxed_exposed_cut_copper_slab_vertical"

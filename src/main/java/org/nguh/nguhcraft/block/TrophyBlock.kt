@@ -1,6 +1,5 @@
 package org.nguh.nguhcraft.block
 
-import com.mojang.serialization.MapCodec
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.world.item.context.BlockPlaceContext
@@ -14,8 +13,6 @@ import net.minecraft.world.phys.shapes.Shapes
 import net.minecraft.world.phys.shapes.VoxelShape
 
 class TrophyBlock(S: Properties) : HorizontalDirectionalBlock(S) {
-    override fun codec(): MapCodec<TrophyBlock> = CODEC
-
     override fun getShape(
         St: BlockState,
         W: BlockGetter,
@@ -39,8 +36,6 @@ class TrophyBlock(S: Properties) : HorizontalDirectionalBlock(S) {
     override fun createBlockStateDefinition(builder: StateDefinition.Builder<Block, BlockState>) { builder.add(FACING) }
 
     companion object{
-        val CODEC: MapCodec<TrophyBlock> = simpleCodec(::TrophyBlock)
-
         val SHAPE = Shapes.or(
             column(12.0, 0.0, 1.0),
             column(10.0, 1.0, 2.0),

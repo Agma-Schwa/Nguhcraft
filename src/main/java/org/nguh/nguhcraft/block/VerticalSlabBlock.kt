@@ -1,7 +1,5 @@
 package org.nguh.nguhcraft.block
 
-import com.mojang.serialization.MapCodec
-import com.mojang.serialization.codecs.RecordCodecBuilder
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.server.level.ServerLevel
@@ -62,7 +60,6 @@ open class VerticalSlabBlock(S: Properties) : Block(S), SimpleWaterloggedBlock {
         B.add(TYPE, WATERLOGGED)
     }
 
-    override fun codec(): MapCodec<out VerticalSlabBlock?> = CODEC
     override fun useShapeForLightOcclusion(St : BlockState) =
         St.getValue(TYPE) != Type.DOUBLE
 
@@ -135,7 +132,6 @@ open class VerticalSlabBlock(S: Properties) : Block(S), SimpleWaterloggedBlock {
 
 
     companion object {
-        val CODEC: MapCodec<VerticalSlabBlock> = simpleCodec(::VerticalSlabBlock)
         val WATERLOGGED = BlockStateProperties.WATERLOGGED
         val TYPE = EnumProperty.create(
             "type",
@@ -167,8 +163,6 @@ open class VerticalSlabBlock(S: Properties) : Block(S), SimpleWaterloggedBlock {
 
 class WeatheringCopperVerticalSlabBlock(val weatheredState: WeatheringCopper.WeatherState, S: Properties): VerticalSlabBlock(S), WeatheringCopper {
 
-    override fun codec(): MapCodec<WeatheringCopperVerticalSlabBlock> = CODEC
-
     override fun getAge() = this.weatheredState
 
     override fun randomTick(
@@ -181,15 +175,4 @@ class WeatheringCopperVerticalSlabBlock(val weatheredState: WeatheringCopper.Wea
     }
 
     override fun isRandomlyTicking(blockState: BlockState) = WeatheringCopper.getNext(blockState.block).isPresent
-
-    companion object {
-        val CODEC: MapCodec<WeatheringCopperVerticalSlabBlock> = RecordCodecBuilder.mapCodec { 
-            it.group(
-                WeatheringCopper.WeatherState.CODEC.fieldOf("weathering_state").forGetter(
-                    WeatheringCopperVerticalSlabBlock::getAge
-                ), 
-                propertiesCodec() 
-            ).apply(it, ::WeatheringCopperVerticalSlabBlock)
-        }
-    }
 }

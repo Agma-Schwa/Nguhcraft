@@ -1,6 +1,5 @@
 package org.nguh.nguhcraft.block
 
-import com.mojang.serialization.MapCodec
 import net.minecraft.world.level.block.*
 import net.minecraft.world.level.pathfinder.PathComputationType
 import net.minecraft.world.item.context.BlockPlaceContext
@@ -30,7 +29,6 @@ import java.util.function.Function
 * All of the logic is basically inherited from HopperBlock.
 */
 class DecorativeHopperBlock(settings: Properties) : Block(settings) {
-    public override fun codec() = CODEC
     init {
         registerDefaultState(
             stateDefinition.any()
@@ -93,7 +91,6 @@ class DecorativeHopperBlock(settings: Properties) : Block(settings) {
     override fun isPathfindable(state: BlockState, type: PathComputationType) = false
 
     companion object {
-        val CODEC: MapCodec<DecorativeHopperBlock> = simpleCodec(::DecorativeHopperBlock)
         private val Hopper get() = Blocks.HOPPER as HopperBlockAcessor
     }
 }

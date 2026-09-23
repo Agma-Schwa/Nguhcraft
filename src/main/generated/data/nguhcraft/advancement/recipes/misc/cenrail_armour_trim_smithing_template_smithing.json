@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:cenrail_armour_trim_smithing_template_smithing"
+        "recipes": "nguhcraft:cenrail_armour_trim_smithing_template_smithing"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

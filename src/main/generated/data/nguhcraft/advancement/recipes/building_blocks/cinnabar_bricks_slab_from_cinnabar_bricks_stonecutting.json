@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:cinnabar_bricks_slab_from_cinnabar_bricks_stonecutting"
+        "recipes": "nguhcraft:cinnabar_bricks_slab_from_cinnabar_bricks_stonecutting"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

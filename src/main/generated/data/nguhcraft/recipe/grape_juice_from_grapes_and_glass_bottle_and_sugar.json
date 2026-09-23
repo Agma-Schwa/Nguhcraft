@@ -1,13 +1,11 @@
 {
   "type": "minecraft:crafting_shapeless",
-  "category": "misc",
   "ingredients": [
     "nguhcraft:grapes",
     "minecraft:glass_bottle",
     "minecraft:sugar"
   ],
   "result": {
-    "count": 1,
     "id": "nguhcraft:grape_juice"
   }
 }

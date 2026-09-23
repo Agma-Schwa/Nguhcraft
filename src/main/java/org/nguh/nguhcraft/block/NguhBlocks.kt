@@ -2,13 +2,13 @@ package org.nguh.nguhcraft.block
 
 import com.mojang.serialization.Codec
 import io.netty.buffer.ByteBuf
-import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents
+import net.fabricmc.fabric.api.creativetab.v1.CreativeModeTabEvents
+import net.fabricmc.fabric.api.item.v1.BlockTransformerHelper
 import net.fabricmc.fabric.api.`object`.builder.v1.block.entity.FabricBlockEntityTypeBuilder
 import net.fabricmc.fabric.api.`object`.builder.v1.block.type.BlockSetTypeBuilder
 import net.fabricmc.fabric.api.`object`.builder.v1.block.type.WoodTypeBuilder
 import net.fabricmc.fabric.api.registry.FlammableBlockRegistry
 import net.fabricmc.fabric.api.registry.OxidizableBlocksRegistry
-import net.fabricmc.fabric.api.registry.StrippableBlockRegistry
 import net.minecraft.core.Registry
 import net.minecraft.core.component.DataComponentType
 import net.minecraft.core.particles.ParticleTypes
@@ -104,97 +104,97 @@ object NguhBlocks {
     val BROCADE_WHITE = Register(
         "brocade_white",
         ::Block,
-        BlockBehaviour.Properties.ofFullCopy(Blocks.WHITE_WOOL)
+        BlockBehaviour.Properties.ofFullCopy(Blocks.WOOL.white)
     )
 
     val BROCADE_LIGHT_GREY = Register(
         "brocade_light_grey",
         ::Block,
-        BlockBehaviour.Properties.ofFullCopy(Blocks.LIGHT_GRAY_WOOL)
+        BlockBehaviour.Properties.ofFullCopy(Blocks.WOOL.lightGray)
     )
 
     val BROCADE_GREY = Register(
         "brocade_grey",
         ::Block,
-        BlockBehaviour.Properties.ofFullCopy(Blocks.GRAY_WOOL)
+        BlockBehaviour.Properties.ofFullCopy(Blocks.WOOL.gray)
     )
 
     val BROCADE_BLACK = Register(
         "brocade_black",
         ::Block,
-        BlockBehaviour.Properties.ofFullCopy(Blocks.BLACK_WOOL)
+        BlockBehaviour.Properties.ofFullCopy(Blocks.WOOL.black)
     )
 
     val BROCADE_BROWN = Register(
         "brocade_brown",
         ::Block,
-        BlockBehaviour.Properties.ofFullCopy(Blocks.BROWN_WOOL)
+        BlockBehaviour.Properties.ofFullCopy(Blocks.WOOL.brown)
     )
 
     val BROCADE_RED = Register(
         "brocade_red",
         ::Block,
-        BlockBehaviour.Properties.ofFullCopy(Blocks.RED_WOOL)
+        BlockBehaviour.Properties.ofFullCopy(Blocks.WOOL.red)
     )
 
     val BROCADE_ORANGE = Register(
         "brocade_orange",
         ::Block,
-        BlockBehaviour.Properties.ofFullCopy(Blocks.ORANGE_WOOL)
+        BlockBehaviour.Properties.ofFullCopy(Blocks.WOOL.orange)
     )
 
     val BROCADE_YELLOW = Register(
         "brocade_yellow",
         ::Block,
-        BlockBehaviour.Properties.ofFullCopy(Blocks.YELLOW_WOOL)
+        BlockBehaviour.Properties.ofFullCopy(Blocks.WOOL.yellow)
     )
 
     val BROCADE_LIME = Register(
         "brocade_lime",
         ::Block,
-        BlockBehaviour.Properties.ofFullCopy(Blocks.LIME_WOOL)
+        BlockBehaviour.Properties.ofFullCopy(Blocks.WOOL.lime)
     )
 
     val BROCADE_GREEN = Register(
         "brocade_green",
         ::Block,
-        BlockBehaviour.Properties.ofFullCopy(Blocks.GREEN_WOOL)
+        BlockBehaviour.Properties.ofFullCopy(Blocks.WOOL.green)
     )
 
     val BROCADE_CYAN = Register(
         "brocade_cyan",
         ::Block,
-        BlockBehaviour.Properties.ofFullCopy(Blocks.CYAN_WOOL)
+        BlockBehaviour.Properties.ofFullCopy(Blocks.WOOL.cyan)
     )
 
     val BROCADE_LIGHT_BLUE = Register(
         "brocade_light_blue",
         ::Block,
-        BlockBehaviour.Properties.ofFullCopy(Blocks.LIGHT_BLUE_WOOL)
+        BlockBehaviour.Properties.ofFullCopy(Blocks.WOOL.lightBlue)
     )
 
     val BROCADE_BLUE = Register(
         "brocade_blue",
         ::Block,
-        BlockBehaviour.Properties.ofFullCopy(Blocks.BLUE_WOOL)
+        BlockBehaviour.Properties.ofFullCopy(Blocks.WOOL.blue)
     )
 
     val BROCADE_PURPLE = Register(
         "brocade_purple",
         ::Block,
-        BlockBehaviour.Properties.ofFullCopy(Blocks.PURPLE_WOOL)
+        BlockBehaviour.Properties.ofFullCopy(Blocks.WOOL.purple)
     )
 
     val BROCADE_MAGENTA = Register(
         "brocade_magenta",
         ::Block,
-        BlockBehaviour.Properties.ofFullCopy(Blocks.MAGENTA_WOOL)
+        BlockBehaviour.Properties.ofFullCopy(Blocks.WOOL.magenta)
     )
 
     val BROCADE_PINK = Register(
         "brocade_pink",
         ::Block,
-        BlockBehaviour.Properties.ofFullCopy(Blocks.PINK_WOOL)
+        BlockBehaviour.Properties.ofFullCopy(Blocks.WOOL.pink)
     )
 
     val ALL_BROCADE_BLOCKS = arrayOf(
@@ -232,7 +232,7 @@ object NguhBlocks {
             .mapColor(MapColor.GOLD)
             .requiresCorrectToolForDrops().strength(5.0f, 3600000.0F)
             .noOcclusion()
-            .pushReaction(PushReaction.IGNORE)
+            .pushReaction(PushReaction.IGNORE_ENTITY)
     )
 
     val WROUGHT_IRON_BLOCK = Register(
@@ -332,7 +332,7 @@ object NguhBlocks {
 			.instrument(NoteBlockInstrument.BELL)
 			.sound(SoundType.METAL)
             .instabreak()
-            .pushReaction(PushReaction.DESTROY)
+            .pushReaction(PushReaction.POPPED)
     ) { B, S -> BlockItem(B, S.stacksTo(1).rarity(Rarity.EPIC)) }
 
     // =========================================================================
@@ -372,7 +372,7 @@ object NguhBlocks {
     val OCHRE_CHAIN = Register(
         "ochre_chain",
         ::ChainBlock,
-        BlockBehaviour.Properties.ofFullCopy(Blocks.CHAIN)
+        BlockBehaviour.Properties.ofFullCopy(Blocks.IRON_CHAIN)
             .mapColor(MapColor.COLOR_GRAY)
     )
 
@@ -386,7 +386,7 @@ object NguhBlocks {
     val PEARLESCENT_CHAIN = Register(
         "pearlescent_chain",
         ::ChainBlock,
-        BlockBehaviour.Properties.ofFullCopy(Blocks.CHAIN)
+        BlockBehaviour.Properties.ofFullCopy(Blocks.IRON_CHAIN)
             .mapColor(MapColor.COLOR_GRAY)
     )
 
@@ -400,7 +400,7 @@ object NguhBlocks {
     val VERDANT_CHAIN = Register(
         "verdant_chain",
         ::ChainBlock,
-        BlockBehaviour.Properties.ofFullCopy(Blocks.CHAIN)
+        BlockBehaviour.Properties.ofFullCopy(Blocks.IRON_CHAIN)
             .mapColor(MapColor.COLOR_GRAY)
     )
 
@@ -414,7 +414,7 @@ object NguhBlocks {
     val AZURE_CHAIN = Register(
         "azure_chain",
         ::ChainBlock,
-        BlockBehaviour.Properties.ofFullCopy(Blocks.CHAIN)
+        BlockBehaviour.Properties.ofFullCopy(Blocks.IRON_CHAIN)
             .mapColor(MapColor.COLOR_GRAY)
     )
 
@@ -666,10 +666,10 @@ object NguhBlocks {
         ::GrapeCropBlock,
         BlockBehaviour.Properties.of()
             .mapColor(MapColor.PLANT)
-            .noCollission()
+            .noCollision()
             .randomTicks()
             .instabreak()
-            .pushReaction(PushReaction.PUSH_ONLY)
+            .pushReaction(PushReaction.PUSH)
             .sound(SoundType.CROP)
     )
 
@@ -974,7 +974,7 @@ object NguhBlocks {
     val COBBLED_DEEPSLATE_SLAB_VERTICAL = RegisterVSlab("cobbled_deepslate", Blocks.COBBLED_DEEPSLATE_SLAB)
     val COBBLESTONE_SLAB_VERTICAL = RegisterVSlab("cobblestone", Blocks.COBBLESTONE_SLAB)
     val CRIMSON_SLAB_VERTICAL = RegisterVSlab("crimson", Blocks.CRIMSON_SLAB)
-    val CUT_COPPER_SLAB_VERTICAL = RegisterCopperVSlab("cut_copper", Blocks.CUT_COPPER_SLAB, WeatheringCopper.WeatherState.UNAFFECTED)
+    val CUT_COPPER_SLAB_VERTICAL = RegisterCopperVSlab("cut_copper", Blocks.CUT_COPPER_SLAB.weathering.unaffected, WeatheringCopper.WeatherState.UNAFFECTED)
     val CUT_RED_SANDSTONE_SLAB_VERTICAL = RegisterVSlab("cut_red_sandstone", Blocks.CUT_RED_SANDSTONE_SLAB)
     val CUT_SANDSTONE_SLAB_VERTICAL = RegisterVSlab("cut_sandstone", Blocks.CUT_SANDSTONE_SLAB)
     val DARK_OAK_SLAB_VERTICAL = RegisterVSlab("dark_oak", Blocks.DARK_OAK_SLAB)
@@ -983,7 +983,7 @@ object NguhBlocks {
     val DEEPSLATE_TILE_SLAB_VERTICAL = RegisterVSlab("deepslate_tile", Blocks.DEEPSLATE_TILE_SLAB)
     val DIORITE_SLAB_VERTICAL = RegisterVSlab("diorite", Blocks.DIORITE_SLAB)
     val END_STONE_BRICK_SLAB_VERTICAL = RegisterVSlab("end_stone_brick", Blocks.END_STONE_BRICK_SLAB)
-    val EXPOSED_CUT_COPPER_SLAB_VERTICAL = RegisterCopperVSlab("exposed_cut_copper", Blocks.EXPOSED_CUT_COPPER_SLAB, WeatheringCopper.WeatherState.EXPOSED)
+    val EXPOSED_CUT_COPPER_SLAB_VERTICAL = RegisterCopperVSlab("exposed_cut_copper", Blocks.CUT_COPPER_SLAB.weathering.exposed, WeatheringCopper.WeatherState.EXPOSED)
     val GRANITE_SLAB_VERTICAL = RegisterVSlab("granite", Blocks.GRANITE_SLAB)
     val JUNGLE_SLAB_VERTICAL = RegisterVSlab("jungle", Blocks.JUNGLE_SLAB)
     val MANGROVE_SLAB_VERTICAL = RegisterVSlab("mangrove", Blocks.MANGROVE_SLAB)
@@ -992,7 +992,7 @@ object NguhBlocks {
     val MUD_BRICK_SLAB_VERTICAL = RegisterVSlab("mud_brick", Blocks.MUD_BRICK_SLAB)
     val NETHER_BRICK_SLAB_VERTICAL = RegisterVSlab("nether_brick", Blocks.NETHER_BRICK_SLAB)
     val OAK_SLAB_VERTICAL = RegisterVSlab("oak", Blocks.OAK_SLAB)
-    val OXIDIZED_CUT_COPPER_SLAB_VERTICAL = RegisterCopperVSlab("oxidized_cut_copper", Blocks.OXIDIZED_CUT_COPPER_SLAB, WeatheringCopper.WeatherState.OXIDIZED)
+    val OXIDIZED_CUT_COPPER_SLAB_VERTICAL = RegisterCopperVSlab("oxidized_cut_copper", Blocks.CUT_COPPER_SLAB.weathering.oxidized, WeatheringCopper.WeatherState.OXIDIZED)
     val PALE_OAK_SLAB_VERTICAL = RegisterVSlab("pale_oak", Blocks.PALE_OAK_SLAB)
     val POLISHED_ANDESITE_SLAB_VERTICAL = RegisterVSlab("polished_andesite", Blocks.POLISHED_ANDESITE_SLAB)
     val POLISHED_BLACKSTONE_BRICK_SLAB_VERTICAL = RegisterVSlab("polished_blackstone_brick", Blocks.POLISHED_BLACKSTONE_BRICK_SLAB)
@@ -1018,11 +1018,11 @@ object NguhBlocks {
     val TUFF_BRICK_SLAB_VERTICAL = RegisterVSlab("tuff_brick", Blocks.TUFF_BRICK_SLAB)
     val TUFF_SLAB_VERTICAL = RegisterVSlab("tuff", Blocks.TUFF_SLAB)
     val WARPED_SLAB_VERTICAL = RegisterVSlab("warped", Blocks.WARPED_SLAB)
-    val WAXED_CUT_COPPER_SLAB_VERTICAL = RegisterVSlab("waxed_cut_copper", Blocks.WAXED_CUT_COPPER_SLAB)
-    val WAXED_EXPOSED_CUT_COPPER_SLAB_VERTICAL = RegisterVSlab("waxed_exposed_cut_copper", Blocks.WAXED_EXPOSED_CUT_COPPER_SLAB)
-    val WAXED_OXIDIZED_CUT_COPPER_SLAB_VERTICAL = RegisterVSlab("waxed_oxidized_cut_copper", Blocks.WAXED_OXIDIZED_CUT_COPPER_SLAB)
-    val WAXED_WEATHERED_CUT_COPPER_SLAB_VERTICAL = RegisterVSlab("waxed_weathered_cut_copper", Blocks.WAXED_WEATHERED_CUT_COPPER_SLAB)
-    val WEATHERED_CUT_COPPER_SLAB_VERTICAL = RegisterCopperVSlab("weathered_cut_copper", Blocks.WEATHERED_CUT_COPPER_SLAB, WeatheringCopper.WeatherState.WEATHERED)
+    val WAXED_CUT_COPPER_SLAB_VERTICAL = RegisterVSlab("waxed_cut_copper", Blocks.CUT_COPPER_SLAB.waxed.unaffected)
+    val WAXED_EXPOSED_CUT_COPPER_SLAB_VERTICAL = RegisterVSlab("waxed_exposed_cut_copper", Blocks.CUT_COPPER_SLAB.waxed.exposed)
+    val WAXED_OXIDIZED_CUT_COPPER_SLAB_VERTICAL = RegisterVSlab("waxed_oxidized_cut_copper", Blocks.CUT_COPPER_SLAB.waxed.oxidized)
+    val WAXED_WEATHERED_CUT_COPPER_SLAB_VERTICAL = RegisterVSlab("waxed_weathered_cut_copper", Blocks.CUT_COPPER_SLAB.waxed.weathered)
+    val WEATHERED_CUT_COPPER_SLAB_VERTICAL = RegisterCopperVSlab("weathered_cut_copper", Blocks.CUT_COPPER_SLAB.weathering.weathered, WeatheringCopper.WeatherState.WEATHERED)
 
     // =========================================================================
     // Tags
@@ -1081,11 +1081,11 @@ object NguhBlocks {
     //  Initialisation
     // =========================================================================
     fun Init() {
-        ItemGroupEvents.modifyEntriesEvent(CreativeModeTabs.REDSTONE_BLOCKS).register {
+        CreativeModeTabEvents.modifyOutputEvent(CreativeModeTabs.REDSTONE_BLOCKS).register {
             it.accept(DECORATIVE_HOPPER)
         }
 
-        ItemGroupEvents.modifyEntriesEvent(CreativeModeTabs.BUILDING_BLOCKS).register {
+        CreativeModeTabEvents.modifyOutputEvent(CreativeModeTabs.BUILDING_BLOCKS).register {
             it.accept(LOCKED_DOOR)
             it.accept(COMPRESSED_STONE)
             it.accept(WROUGHT_IRON_BLOCK)
@@ -1105,7 +1105,7 @@ object NguhBlocks {
             it.accept(NGUHROVISION_TROPHY)
         }
 
-        ItemGroupEvents.modifyEntriesEvent(CreativeModeTabs.FUNCTIONAL_BLOCKS).register {
+        CreativeModeTabEvents.modifyOutputEvent(CreativeModeTabs.FUNCTIONAL_BLOCKS).register {
             for (B in CHAINS_AND_LANTERNS.flatten()) it.accept(B)
             it.accept(AZURE_FROGLIGHT)
             it.accept(SANGUINE_FROGLIGHT)
@@ -1138,14 +1138,14 @@ object NguhBlocks {
         Suffix: String,
         Ctor: (BlockBehaviour.Properties) -> Block
     ) = Register(
-        "${BuiltInRegistries.BLOCK.getResourceKey(Parent).get().location().path}_$Suffix",
+        "${BuiltInRegistries.BLOCK.getResourceKey(Parent).get().identifier().path}_$Suffix",
         Ctor,
         BlockBehaviour.Properties.ofLegacyCopy(Parent)
     )
 
     @Suppress("DEPRECATION")
     private fun RegisterStairs(Parent: Block) = Register(
-        "${BuiltInRegistries.BLOCK.getResourceKey(Parent).get().location().path}_stairs",
+        "${BuiltInRegistries.BLOCK.getResourceKey(Parent).get().identifier().path}_stairs",
         { StairBlock(Parent.defaultBlockState(), it) },
         BlockBehaviour.Properties.ofLegacyCopy(Parent)
     )
@@ -1223,13 +1223,13 @@ object NguhBlocks {
         BlockBehaviour.Properties.ofFullCopy(SlabBlock)
     )
 
-    fun RegisterStrippable(L: Block, S: Block) = StrippableBlockRegistry.register(L, S)
+    fun RegisterStrippable(L: Block, S: Block) = BlockTransformerHelper.registerStripping(L, S)
 
     fun RegisterFlammable(b: Block, burn: Int, spread: Int) = FlammableBlockRegistry.getDefaultInstance().add(b, burn, spread)
 
-    fun RegisterWaxable(U: Block, W: Block) = OxidizableBlocksRegistry.registerWaxableBlockPair(U, W)
+    fun RegisterWaxable(U: Block, W: Block) = OxidizableBlocksRegistry.registerWaxable(U, W)
 
-    fun RegisterOxidizable(L: Block, M: Block) = OxidizableBlocksRegistry.registerOxidizableBlockPair(L, M)
+    fun RegisterOxidizable(L: Block, M: Block) = OxidizableBlocksRegistry.registerNextStage(L, M)
 
     fun RegisterCopper(unwaxed: List<Block>, waxed: List<Block>)
     {

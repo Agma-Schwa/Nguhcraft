@@ -1,6 +1,6 @@
 package org.nguh.nguhcraft.server
 
-import net.fabricmc.fabric.api.networking.v1.PacketByteBufs
+import net.fabricmc.fabric.api.networking.v1.FriendlyByteBufs
 import net.fabricmc.fabric.api.networking.v1.ServerLoginConnectionEvents
 import net.fabricmc.fabric.api.networking.v1.ServerLoginNetworking
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking
@@ -62,7 +62,7 @@ object ServerNetworkHandler {
 
     fun Init() {
         ServerLoginConnectionEvents.QUERY_START.register(ServerLoginConnectionEvents.QueryStart { _, _, Sender, Syn ->
-            Sender.sendPacket(VersionCheck.ID, PacketByteBufs.empty())
+            Sender.sendPacket(VersionCheck.ID, FriendlyByteBufs.empty())
         })
 
         ServerLoginNetworking.registerGlobalReceiver(VersionCheck.ID) lambda@{ _, H, Understood, Buf, _, _ ->
@@ -89,7 +89,7 @@ object ServerNetworkHandler {
         if (SP.hasDisconnected()) return false
 
         // Check for illegal characters.
-        if (Incoming.any { !StringUtil.isAllowedChatCharacter(it) }) {
+        if (Incoming.any { !StringUtil.isAllowedChatCharacter(it.code) }) {
             SP.connection.disconnect(ERR_ILLEGAL_CHARS)
             return false
         }

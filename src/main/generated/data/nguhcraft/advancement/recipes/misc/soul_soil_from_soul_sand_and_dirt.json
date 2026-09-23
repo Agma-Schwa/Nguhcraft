@@ -23,7 +23,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:soul_soil_from_soul_sand_and_dirt"
+        "recipes": "nguhcraft:soul_soil_from_soul_sand_and_dirt"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

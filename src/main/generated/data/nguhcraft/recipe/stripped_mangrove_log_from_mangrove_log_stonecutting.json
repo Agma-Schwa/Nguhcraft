@@ -2,7 +2,6 @@
   "type": "minecraft:stonecutting",
   "ingredient": "minecraft:mangrove_log",
   "result": {
-    "count": 1,
     "id": "minecraft:stripped_mangrove_log"
   }
 }

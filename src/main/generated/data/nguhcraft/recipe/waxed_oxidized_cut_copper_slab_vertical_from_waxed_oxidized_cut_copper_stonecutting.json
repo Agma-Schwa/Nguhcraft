@@ -1,6 +1,6 @@
 {
   "type": "minecraft:stonecutting",
-  "ingredient": "minecraft:oxidized_cut_copper",
+  "ingredient": "minecraft:waxed_oxidized_cut_copper",
   "result": {
     "count": 2,
     "id": "nguhcraft:waxed_oxidized_cut_copper_slab_vertical"

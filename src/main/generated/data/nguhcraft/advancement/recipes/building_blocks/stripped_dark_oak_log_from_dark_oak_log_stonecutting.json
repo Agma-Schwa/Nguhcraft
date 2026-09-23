@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:stripped_dark_oak_log_from_dark_oak_log_stonecutting"
+        "recipes": "nguhcraft:stripped_dark_oak_log_from_dark_oak_log_stonecutting"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

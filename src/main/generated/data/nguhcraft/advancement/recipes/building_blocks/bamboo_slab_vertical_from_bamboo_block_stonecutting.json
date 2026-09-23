@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:bamboo_slab_vertical_from_bamboo_block_stonecutting"
+        "recipes": "nguhcraft:bamboo_slab_vertical_from_bamboo_block_stonecutting"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

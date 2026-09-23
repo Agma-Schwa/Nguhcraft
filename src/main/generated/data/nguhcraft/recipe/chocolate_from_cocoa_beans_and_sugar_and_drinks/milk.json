@@ -1,15 +1,13 @@
 {
   "type": "minecraft:crafting_shapeless",
-  "category": "misc",
   "ingredients": [
     "minecraft:cocoa_beans",
     "minecraft:cocoa_beans",
     "minecraft:cocoa_beans",
     "minecraft:sugar",
-    "#c:foods/milk"
+    "#c:drinks/milk"
   ],
   "result": {
-    "count": 1,
     "id": "nguhcraft:chocolate"
   }
 }

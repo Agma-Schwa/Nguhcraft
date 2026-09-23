@@ -2,7 +2,7 @@ package org.nguh.nguhcraft.client
 
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
-import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup
+import net.fabricmc.fabric.api.creativetab.v1.FabricCreativeModeTab
 import net.minecraft.ChatFormatting
 import net.minecraft.core.Holder
 import net.minecraft.core.Registry
@@ -49,13 +49,13 @@ import java.util.Optional
 
 @Environment(EnvType.CLIENT)
 object NguhcraftItemGroups {
-    private val TREASURES_ITEM_GROUP: CreativeModeTab = FabricItemGroup.builder()
+    private val TREASURES_ITEM_GROUP: CreativeModeTab = FabricCreativeModeTab.builder()
         .icon { ItemStack(Items.PETRIFIED_OAK_SLAB) }
         .title(Component.translatable("itemGroup.nguhcraft.treasures"))
         .displayItems { Ctx, Entries -> AddAllTreasures(Ctx, Entries) }
         .build()
 
-    private val FARMING_ITEM_GROUP: CreativeModeTab = FabricItemGroup.builder()
+    private val FARMING_ITEM_GROUP: CreativeModeTab = FabricCreativeModeTab.builder()
         .icon { ItemStack(NguhItems.GRAPES) }
         .title(Component.translatable("itemGroup.nguhcraft.farming"))
         .displayItems { Ctx, Entries -> AddAllFarmingItems(Ctx, Entries) }
@@ -188,7 +188,7 @@ object NguhcraftItemGroups {
         )
 
         /** Set a component on this item stack. */
-        fun <T> set(type: DataComponentType<in T>, value: T? = null)
+        fun <T : Any> set(type: DataComponentType<in T>, value: T? = null)
                 = apply { it.set(type, value) }
 
         /** Make this item stack unbreakable. */

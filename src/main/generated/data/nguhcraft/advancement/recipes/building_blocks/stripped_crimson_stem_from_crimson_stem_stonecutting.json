@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:stripped_crimson_stem_from_crimson_stem_stonecutting"
+        "recipes": "nguhcraft:stripped_crimson_stem_from_crimson_stem_stonecutting"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

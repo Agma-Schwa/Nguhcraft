@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:gold_bars"
+        "recipes": "nguhcraft:gold_bars"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

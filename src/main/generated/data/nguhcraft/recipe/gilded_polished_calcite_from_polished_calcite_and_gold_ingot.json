@@ -1,6 +1,5 @@
 {
   "type": "minecraft:crafting_shaped",
-  "category": "misc",
   "key": {
     "C": "nguhcraft:polished_calcite",
     "G": "minecraft:gold_ingot"

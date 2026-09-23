@@ -3,7 +3,7 @@
   "criteria": {
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:wrought_iron_grate"
+        "recipes": "nguhcraft:wrought_iron_grate"
       },
       "trigger": "minecraft:recipe_unlocked"
     },
