@@ -3,7 +3,7 @@ plugins {
     id 'maven-publish'
     id 'org.jetbrains.kotlin.jvm' version '2.3.0'
     id "org.jetbrains.kotlin.plugin.serialization" version "2.0.20-Beta1"
-    id "com.github.johnrengelman.shadow" version "8.1.1"
+    id "com.gradleup.shadow" version "9.6.1"
 }
 
 version = project.mod_version
@@ -96,7 +96,7 @@ java {
 
 jar {
     from("LICENSE") {
-        rename { "${it}_${project.archivesBaseName}"}
+        rename { "${it}_${project.name}"}
     }
 }
 
@@ -104,7 +104,7 @@ jar {
 publishing {
     publications {
         create("mavenJava", MavenPublication) {
-            artifactId = project.archives_base_name
+            artifactId = project.name
             from components.java
         }
     }
