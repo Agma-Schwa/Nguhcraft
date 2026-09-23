@@ -51,12 +51,15 @@ class Nguhcraft : ModInitializer {
         ServerLifecycleEvents.SERVER_STARTED.register { LoadServerState(it) }
         ServerTickEvents.START_LEVEL_TICK.register { ServerUtils.TickWorld(it) }
         ServerLifecycleEvents.BEFORE_SAVE.register { it, _, _ -> SaveServerState(it) }
+        ServerLifecycleEvents.SERVER_STOPPED.register { if (LoadedServer === it) LoadedServer = null }
     }
 
     companion object {
         private val LOGGER = LogUtils.getLogger()
         const val MOD_ID = "nguhcraft"
         @JvmStatic fun Id(S: String): Identifier = Identifier.fromNamespaceAndPath(MOD_ID, S)
+        @Volatile private var LoadedServer: MinecraftServer? = null
+
         @JvmStatic fun<T : Any> RKey(Registry: ResourceKey<Registry<T>>, S: String): ResourceKey<T> = ResourceKey.create(Registry, Id(S))
 
         private fun LoadServerState(S: MinecraftServer) {
@@ -78,6 +81,7 @@ class Nguhcraft : ModInitializer {
                 LOGGER.warn("Nguhcraft: Failed to load persistent state; using defaults: ${E.message}")
             }
 
+            LoadedServer = S
             LOGGER.info("[SETUP] Done")
         }
 
@@ -86,6 +90,13 @@ class Nguhcraft : ModInitializer {
         }
 
         private fun SaveServerState(S: MinecraftServer) {
+            // Apparently Minecraft now saves the server during startup, before we have loaded our data, so we need to
+            // skip saving if we haven't loaded our stuff yet, as not to overwrite with empty data.
+            if (LoadedServer !== S) {
+                LOGGER.info("Not saving server state: state has not been loaded yet")
+                return
+            }
+
             LOGGER.info("Saving server state")
             try {
                 ProblemReporter.ScopedCollector(NguhErrorReporter(), LOGGER).use {

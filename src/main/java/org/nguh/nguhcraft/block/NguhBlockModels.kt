@@ -74,9 +74,9 @@ class ChestTextureOverride(
 
     companion object {
         internal val Normal = OverrideVanillaModel(
-            Single = MakeSprite("normal"),
-            Left = MakeSprite("normal_left"),
-            Right = MakeSprite("normal_right"),
+            Single = Sheets.CHEST_REGULAR.single,
+            Left = Sheets.CHEST_REGULAR.left,
+            Right = Sheets.CHEST_REGULAR.right,
             Key = "chest"
         )
 
@@ -84,9 +84,9 @@ class ChestTextureOverride(
         @Environment(EnvType.CLIENT)
         private val OVERRIDES = mapOf(
             ChestVariant.CHRISTMAS to OverrideVanillaModel(
-                Single = MakeSprite("christmas"),
-                Left = MakeSprite("christmas_left"),
-                Right = MakeSprite("christmas_right"),
+                Single = Sheets.CHEST_CHRISTMAS.single,
+                Left = Sheets.CHEST_CHRISTMAS.left,
+                Right = Sheets.CHEST_CHRISTMAS.right,
                 Key = "christmas"
             ),
 
@@ -151,7 +151,17 @@ object NguhBlockModels {
         val VerticalSlab: VerticalSlabBlock,
         val Base: Block,
         val Wood: Boolean = false,
-        val TextureId: Material = TextureMapping.getBlockTexture(Base)
+        val TextureId: Material = TextureMapping.getBlockTexture(Base),
+        val ModelBase: Block = Base
+    )
+
+    // Waxed blocks need to reuse their unwaxed counterparts for the model
+    @Environment(EnvType.CLIENT)
+    fun WaxedVSlab(VerticalSlab: VerticalSlabBlock, Waxed: Block, Unwaxed: Block) = VSlab(
+        VerticalSlab,
+        Waxed,
+        TextureId = TextureMapping.getBlockTexture(Unwaxed),
+        ModelBase = Unwaxed
     )
 
     // Thank you, Minecraft, for doing weird nonsense with your block models
@@ -216,10 +226,10 @@ object NguhBlockModels {
         VSlab(NguhBlocks.TUFF_BRICK_SLAB_VERTICAL, Blocks.TUFF_BRICKS),
         VSlab(NguhBlocks.TUFF_SLAB_VERTICAL, Blocks.TUFF),
         VSlab(NguhBlocks.WARPED_SLAB_VERTICAL, Blocks.WARPED_PLANKS, true) ,
-        VSlab(NguhBlocks.WAXED_CUT_COPPER_SLAB_VERTICAL, Blocks.CUT_COPPER.waxed.unaffected),
-        VSlab(NguhBlocks.WAXED_EXPOSED_CUT_COPPER_SLAB_VERTICAL, Blocks.CUT_COPPER.waxed.exposed),
-        VSlab(NguhBlocks.WAXED_OXIDIZED_CUT_COPPER_SLAB_VERTICAL, Blocks.CUT_COPPER.waxed.oxidized),
-        VSlab(NguhBlocks.WAXED_WEATHERED_CUT_COPPER_SLAB_VERTICAL , Blocks.CUT_COPPER.waxed.weathered),
+        WaxedVSlab(NguhBlocks.WAXED_CUT_COPPER_SLAB_VERTICAL, Blocks.CUT_COPPER.waxed.unaffected, Blocks.CUT_COPPER.weathering.unaffected),
+        WaxedVSlab(NguhBlocks.WAXED_EXPOSED_CUT_COPPER_SLAB_VERTICAL, Blocks.CUT_COPPER.waxed.exposed, Blocks.CUT_COPPER.weathering.exposed),
+        WaxedVSlab(NguhBlocks.WAXED_OXIDIZED_CUT_COPPER_SLAB_VERTICAL, Blocks.CUT_COPPER.waxed.oxidized, Blocks.CUT_COPPER.weathering.oxidized),
+        WaxedVSlab(NguhBlocks.WAXED_WEATHERED_CUT_COPPER_SLAB_VERTICAL, Blocks.CUT_COPPER.waxed.weathered, Blocks.CUT_COPPER.weathering.weathered),
         VSlab(NguhBlocks.WEATHERED_CUT_COPPER_SLAB_VERTICAL, Blocks.CUT_COPPER.weathering.weathered),
 
         // Custom.
@@ -398,7 +408,7 @@ object NguhBlockModels {
             .with(PropertyDispatch.initial(VerticalSlabBlock.TYPE)
                 .select(
                     VerticalSlabBlock.Type.DOUBLE,
-                    plainVariant(getModelLocation(S.Base))
+                    plainVariant(getModelLocation(S.ModelBase))
                 )
                 .select(
                     VerticalSlabBlock.Type.NORTH,
@@ -537,7 +547,7 @@ object NguhBlockModels {
                         }
                     })
                 }
-            )
+                )
         )
     }
 
