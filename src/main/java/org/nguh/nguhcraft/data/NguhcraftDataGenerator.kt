@@ -193,14 +193,14 @@ class NguhcraftEquipmentAssetProvider(
             NguhItems.HOTSPOT_GLASSES_EQUIPMENT_ASSET_KEY,
             EquipmentClientInfo.builder().addHumanoidLayers(Id("hotspot_glasses")).build()
         )
-        for (colour in Constants.colours) {
+        for (Colour in Constants.colours) {
             Add(
-                NguhItems.EARPIECE_EQUIPMENT_ASSET_KEYS.getValue(colour),
-                EquipmentClientInfo.builder().addHumanoidLayers(Id("earpiece_${colour}")).build()
+                NguhItems.EARPIECE_EQUIPMENT_ASSET_KEYS.getValue(Colour),
+                EquipmentClientInfo.builder().addHumanoidLayers(Id("earpiece_${Colour}")).build()
             )
             Add(
-                NguhItems.HEADSET_EQUIPMENT_ASSET_KEYS.getValue(colour),
-                EquipmentClientInfo.builder().addHumanoidLayers(Id("headset_${colour}")).build()
+                NguhItems.HEADSET_EQUIPMENT_ASSET_KEYS.getValue(Colour),
+                EquipmentClientInfo.builder().addHumanoidLayers(Id("headset_${Colour}")).build()
             )
         }
     }
