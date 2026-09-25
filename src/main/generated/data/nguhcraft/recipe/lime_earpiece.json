@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "group": "earpiece",
+  "key": {
+    "n": "minecraft:note_block",
+    "s": "minecraft:stick",
+    "w": "minecraft:lime_wool"
+  },
+  "pattern": [
+    "n ",
+    "sw"
+  ],
+  "result": {
+    "id": "nguhcraft:lime_earpiece"
+  }
+}

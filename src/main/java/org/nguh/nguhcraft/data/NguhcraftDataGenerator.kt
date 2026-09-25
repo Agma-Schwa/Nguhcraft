@@ -36,6 +36,7 @@ import net.minecraft.world.item.enchantment.Enchantments
 import net.minecraft.world.item.equipment.EquipmentAsset
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.Blocks
+import net.minecraft.world.level.block.ColorCollection
 import net.minecraft.world.level.block.CropBlock
 import net.minecraft.world.level.block.SlabBlock
 import net.minecraft.world.level.storage.loot.LootPool
@@ -47,6 +48,8 @@ import net.minecraft.world.level.storage.loot.functions.SetItemCountFunction
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams
 import net.minecraft.world.level.storage.loot.predicates.MatchBlock
 import net.minecraft.world.level.storage.loot.providers.number.ints.ContextIntProviders
+import org.apache.commons.collections4.CollectionUtils.addAll
+import org.nguh.nguhcraft.Constants
 import org.nguh.nguhcraft.NguhDamageTypes
 import org.nguh.nguhcraft.NguhPaintings
 import org.nguh.nguhcraft.Nguhcraft.Companion.Id
@@ -58,6 +61,7 @@ import java.util.concurrent.CompletableFuture
 private fun TagAppender<Block>.add(B: Block) = add(BuiltInRegistries.BLOCK.getResourceKey(B).orElseThrow())
 private fun TagAppender<Block>.addAll(Bs: Collection<Block>) = addAll(Bs.map { BuiltInRegistries.BLOCK.getResourceKey(it).orElseThrow() })
 private fun TagAppender<Item>.add(I: Item) = add(BuiltInRegistries.ITEM.getResourceKey(I).orElseThrow())
+private fun TagAppender<Item>.addAll(Is: Collection<Item>) = addAll(Is.map { add(BuiltInRegistries.ITEM.getResourceKey(it).orElseThrow()) })
 
 // =========================================================================
 //  Static Registries
@@ -186,6 +190,22 @@ class NguhcraftEquipmentAssetProvider(
             NguhItems.AMETHYST_EQUIPMENT_ASSET_KEY,
             EquipmentClientInfo.builder().addHumanoidLayers(Id("amethyst")).build()
         )
+        Add(
+            NguhItems.HOTSPOT_GLASSES_EQUIPMENT_ASSET_KEY,
+            EquipmentClientInfo.builder().addHumanoidLayers(Id("hotspot_glasses")).build()
+        )
+        ColorCollection.VALUES.forEach {
+            Add(
+                NguhItems.EARPIECE_EQUIPMENT_ASSET_KEY.pick(it),
+                EquipmentClientInfo.builder().addHumanoidLayers(Id(it.getName() + "_earpiece")).build()
+            )
+        }
+        ColorCollection.VALUES.forEach {
+            Add(
+                NguhItems.HEADSET_EQUIPMENT_ASSET_KEY.pick(it),
+                EquipmentClientInfo.builder().addHumanoidLayers(Id(it.getName() + "_headset")).build()
+            )
+        }
     }
 
     override fun run(W: CachedOutput): CompletableFuture<*> {
@@ -220,6 +240,10 @@ class NguhcraftItemTagProvider(
         builder(ItemTags.PICKAXES).add(NguhItems.AMETHYST_PICKAXE)
         builder(ItemTags.AXES).add(NguhItems.AMETHYST_AXE)
         builder(ItemTags.HOES).add(NguhItems.AMETHYST_HOE)
+
+        builder(ItemTags.HEAD_ARMOR).add(NguhItems.HOTSPOT_GLASSES)
+        builder(ItemTags.HEAD_ARMOR).addAll(NguhItems.EARPIECE.asList())
+        builder(ItemTags.HEAD_ARMOR).addAll(NguhItems.HEADSET.asList())
 
         builder(ItemTags.LOGS_THAT_BURN)
             .add(NguhBlocks.TINTED_OAK_LOG.asItem())

@@ -1,0 +1,19 @@
+{
+  "layers": {
+    "humanoid": [
+      {
+        "texture": "nguhcraft:pink_headset"
+      }
+    ],
+    "humanoid_baby": [
+      {
+        "texture": "nguhcraft:pink_headset"
+      }
+    ],
+    "humanoid_leggings": [
+      {
+        "texture": "nguhcraft:pink_headset"
+      }
+    ]
+  }
+}
