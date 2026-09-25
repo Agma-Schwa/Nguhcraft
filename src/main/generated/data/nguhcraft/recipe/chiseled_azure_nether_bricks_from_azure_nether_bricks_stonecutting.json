@@ -2,7 +2,6 @@
   "type": "minecraft:stonecutting",
   "ingredient": "nguhcraft:azure_nether_bricks",
   "result": {
-    "count": 1,
     "id": "nguhcraft:chiseled_azure_nether_bricks"
   }
 }

@@ -23,7 +23,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:verdant_froglight_from_cleansing_froglight_and_emerald"
+        "recipes": "nguhcraft:verdant_froglight_from_cleansing_froglight_and_emerald"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

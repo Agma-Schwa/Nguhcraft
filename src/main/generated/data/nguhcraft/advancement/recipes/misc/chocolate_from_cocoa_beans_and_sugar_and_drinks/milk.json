@@ -1,0 +1,54 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_cocoa_beans": {
+      "conditions": {
+        "items": [
+          {
+            "items": "minecraft:cocoa_beans"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_drinks/milk": {
+      "conditions": {
+        "items": [
+          {
+            "items": "#c:drinks/milk"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_sugar": {
+      "conditions": {
+        "items": [
+          {
+            "items": "minecraft:sugar"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipes": "nguhcraft:chocolate_from_cocoa_beans_and_sugar_and_drinks/milk"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_cocoa_beans",
+      "has_sugar",
+      "has_drinks/milk"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "nguhcraft:chocolate_from_cocoa_beans_and_sugar_and_drinks/milk"
+    ]
+  }
+}

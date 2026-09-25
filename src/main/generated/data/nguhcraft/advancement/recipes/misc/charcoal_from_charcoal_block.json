@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:charcoal_from_charcoal_block"
+        "recipes": "nguhcraft:charcoal_from_charcoal_block"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

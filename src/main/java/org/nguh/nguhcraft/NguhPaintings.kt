@@ -1,11 +1,11 @@
 package org.nguh.nguhcraft
 
-import net.minecraft.world.entity.decoration.PaintingVariant
 import net.minecraft.data.worldgen.BootstrapContext
 import net.minecraft.resources.ResourceKey
 import net.minecraft.core.registries.Registries.PAINTING_VARIANT
 import net.minecraft.network.chat.Component
 import net.minecraft.ChatFormatting
+import net.minecraft.world.entity.decoration.painting.PaintingVariant
 import org.nguh.nguhcraft.Nguhcraft.Companion.RKey
 import java.util.Optional
 
@@ -25,9 +25,9 @@ object NguhPaintings {
                 K, PaintingVariant(
                     Width,
                     Height,
-                    K.location(),
-                    Optional.of(Component.translatable(K.location().toLanguageKey("painting", "title")).withStyle(ChatFormatting.YELLOW)),
-                    Optional.of(Component.translatable(K.location().toLanguageKey("painting", "author")).withStyle(ChatFormatting.GRAY))
+                    K.identifier(),
+                    Optional.of(Component.translatable(K.identifier().toLanguageKey("painting", "title")).withStyle(ChatFormatting.YELLOW)),
+                    Optional.of(Component.translatable(K.identifier().toLanguageKey("painting", "author")).withStyle(ChatFormatting.GRAY))
                 )
             )
 

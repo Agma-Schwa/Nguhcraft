@@ -23,7 +23,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:pearlescent_chain"
+        "recipes": "nguhcraft:pearlescent_chain"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

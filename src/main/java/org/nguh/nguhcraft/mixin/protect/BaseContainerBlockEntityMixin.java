@@ -19,16 +19,19 @@ import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.network.chat.Component;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.nguh.nguhcraft.item.KeyItem;
 import org.nguh.nguhcraft.item.LockableBlockEntity;
+import org.nguh.nguhcraft.protect.ProtectionManager;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import static org.nguh.nguhcraft.item.LockableBlockEntityKt.CheckCanOpen;
@@ -52,22 +55,6 @@ public abstract class BaseContainerBlockEntityMixin extends BlockEntity implemen
     @Override public @NotNull Component Nguhcraft$GetName() { return getDisplayName(); }
 
     /**
-     * Disallow legacy locks.
-     * <p>
-     * This is used to implement the member function of the same name (which we
-     * also replace); BeaconBlockEntity also uses it for some ungodly reason, so
-     * we replace it there as well.
-     * @author Sirraide
-     * @reason See above.
-     */
-    @Overwrite
-    public static boolean canUnlock(Player PE, LockCode L, Component ContainerName) {
-        throw new IllegalStateException(
-            "Nguhcraft: Function 'checkUnlocked' should have been replaced (container: '%s')".formatted(ContainerName.getString())
-        );
-    }
-
-    /**
      * Redirect lock check to use our custom locks.
      * @author Sirraide
      * @reason See above.
@@ -76,6 +63,30 @@ public abstract class BaseContainerBlockEntityMixin extends BlockEntity implemen
     public boolean canOpen(Player PE) {
         return CheckCanOpen(this, PE, PE.getMainHandItem());
     }
+
+    /**
+     * We replace all users of this, so it should never be called.
+     * <p>
+     * Currently, this is used by:
+     * - TransportItemsBetweenContainers::isContainerLocked
+     * - BaseContainerBlockEntity::collectImplicitComponents
+     *
+     * @author Sirraide
+     * @reason See above.
+     */
+    @Overwrite
+    public boolean isLocked() {
+        throw new IllegalStateException("BaseContainerBlockEntity::isLocked() should never be called");
+    }
+
+    /**
+     * We send the 'container is locked' message in 'canOpen()', so
+     * this doesn’t need to do anything. It is only ever called after
+     * 'canOpen()', and it would overwrite our custom message if we left
+     * it in place.
+     */
+    @Overwrite
+    public static void sendChestLockedNotifications(Vec3 Pos, Player PE, Component Name) {}
 
     @Inject(method = "loadAdditional", at = @At("TAIL"))
     void inject$readData(ValueInput RV, CallbackInfo CI) {
@@ -102,6 +113,16 @@ public abstract class BaseContainerBlockEntityMixin extends BlockEntity implemen
     void inject$removeFromCopiedStackData(ValueOutput WV, CallbackInfo CI) {
         WV.discard(TAG_NGUHCRAFT_LOCK);
     }
+
+    /** Redirect isLocked() to return 'false' to prevent the vanilla lock from being saved. */
+    @Redirect(
+        method = "collectImplicitComponents",
+        at = @At(
+            value = "INVOKE",
+            target = "Lnet/minecraft/world/level/block/entity/BaseContainerBlockEntity;isLocked()Z"
+        )
+    )
+    private boolean inject$collectImplicitComponents(BaseContainerBlockEntity This) { return false; }
 
     /** Send lock in initial chunk data. */
     @Override

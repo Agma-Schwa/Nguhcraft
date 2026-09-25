@@ -1,13 +1,13 @@
 package org.nguh.nguhcraft.mixin.client.chat;
 
 import com.mojang.authlib.minecraft.TelemetrySession;
-import com.mojang.authlib.yggdrasil.YggdrasilUserApiService;
+import com.mojang.authlib.services.MinecraftServicesUserApiService;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 
 import java.util.concurrent.Executor;
 
-@Mixin(YggdrasilUserApiService.class)
+@Mixin(MinecraftServicesUserApiService.class)
 public abstract class YggdrasilUserApiServiceMixin {
     /**
     * Disable telemetry because why not.

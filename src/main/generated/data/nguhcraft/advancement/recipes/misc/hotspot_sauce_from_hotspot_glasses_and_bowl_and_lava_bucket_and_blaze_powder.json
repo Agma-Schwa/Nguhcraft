@@ -43,7 +43,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:hotspot_sauce_from_hotspot_glasses_and_bowl_and_lava_bucket_and_blaze_powder"
+        "recipes": "nguhcraft:hotspot_sauce_from_hotspot_glasses_and_bowl_and_lava_bucket_and_blaze_powder"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

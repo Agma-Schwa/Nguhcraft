@@ -14,7 +14,7 @@ public abstract class ChatComponentMixin {
         method = {
             "<init>",
             "addMessageToDisplayQueue",
-            "addMessageToQueue(Lnet/minecraft/client/GuiMessage;)V",
+            "addMessageToQueue(Lnet/minecraft/client/multiplayer/chat/GuiMessage;)V",
             "addRecentChat",
         },
         constant = @Constant(intValue = 100)

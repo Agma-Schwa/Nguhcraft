@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:grape_crate"
+        "recipes": "nguhcraft:grape_crate"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

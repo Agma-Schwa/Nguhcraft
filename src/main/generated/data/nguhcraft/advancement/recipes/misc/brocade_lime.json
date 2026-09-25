@@ -23,7 +23,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:brocade_lime"
+        "recipes": "nguhcraft:brocade_lime"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

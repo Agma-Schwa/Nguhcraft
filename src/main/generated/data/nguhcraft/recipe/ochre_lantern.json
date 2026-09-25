@@ -1,6 +1,5 @@
 {
   "type": "minecraft:crafting_shaped",
-  "category": "misc",
   "key": {
     "#": "minecraft:ochre_froglight",
     "A": "minecraft:resin_clump",
@@ -12,7 +11,6 @@
     "NNN"
   ],
   "result": {
-    "count": 1,
     "id": "nguhcraft:ochre_lantern"
   }
 }

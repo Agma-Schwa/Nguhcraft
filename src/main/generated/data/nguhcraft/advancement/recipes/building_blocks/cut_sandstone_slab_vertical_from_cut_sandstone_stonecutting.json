@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:cut_sandstone_slab_vertical_from_cut_sandstone_stonecutting"
+        "recipes": "nguhcraft:cut_sandstone_slab_vertical_from_cut_sandstone_stonecutting"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

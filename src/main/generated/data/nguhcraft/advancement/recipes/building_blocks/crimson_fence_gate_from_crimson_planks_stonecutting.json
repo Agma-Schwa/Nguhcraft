@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:crimson_fence_gate_from_crimson_planks_stonecutting"
+        "recipes": "nguhcraft:crimson_fence_gate_from_crimson_planks_stonecutting"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

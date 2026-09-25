@@ -54,7 +54,7 @@ fun LockableBlockEntity.CheckCanOpen(PE: Player?, Key: ItemStack): Boolean {
 
         fun CheckKeyChain(St: ItemStack, Lock: String) = St.get(DataComponents.BUNDLE_CONTENTS)
             ?.items()
-            ?.any { CheckKey(it, Lock) } == true
+            ?.any { CheckKey(it.create(), Lock) } == true
 
         if (St.`is`(NguhItems.MASTER_KEY)) return true
         if (St.`is`(NguhItems.KEY_CHAIN)) return CheckKeyChain(St, Lock)
@@ -64,8 +64,10 @@ fun LockableBlockEntity.CheckCanOpen(PE: Player?, Key: ItemStack): Boolean {
     if (!IsLocked()) return true
     if (PE != null && ProtectionManager.AlwaysBypassesRegionProtection(PE)) return true
     if (CanOpenImpl(Key, `Nguhcraft$GetLock`()!!)) return true
-    PE?.displayClientMessage(FormatLockedMessage(`Nguhcraft$GetLock`()!!, `Nguhcraft$GetName`()), true)
-    if (PE == null || !PE.level().isClientSide) PE?.playNotifySound(
+    PE?.sendOverlayMessage(FormatLockedMessage(`Nguhcraft$GetLock`()!!, `Nguhcraft$GetName`()))
+    if (PE == null || !PE.level().isClientSide) PE?.level()?.playSound(
+        null,
+        PE,
         SoundEvents.CHEST_LOCKED,
         SoundSource.BLOCKS,
         1.0f,

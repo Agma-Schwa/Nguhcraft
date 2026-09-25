@@ -27,7 +27,7 @@ public abstract class FoodDataMixin {
         if (Total == 0) return;
         if (
             Total >= Utils.MAX_SATURATION_ENCHANTMENT_VALUE ||
-            P.level().random.nextFloat() < Total * .125F
+            P.level().getRandom().nextFloat() < Total * .125F
         ) exhaustionLevel = 0.F;
     }
 }

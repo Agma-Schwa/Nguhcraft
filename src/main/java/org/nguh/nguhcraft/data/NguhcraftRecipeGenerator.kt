@@ -2,6 +2,7 @@ package org.nguh.nguhcraft.data
 
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
+import net.minecraft.advancements.Advancement
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.data.BlockFamilies
@@ -14,13 +15,16 @@ import net.minecraft.world.item.Item
 import net.minecraft.world.level.ItemLike
 import net.minecraft.world.item.Items
 import net.minecraft.data.recipes.RecipeCategory
+import net.minecraft.world.item.crafting.CookingBookCategory
 import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.resources.ResourceKey
 import net.minecraft.core.registries.Registries
 import net.minecraft.core.HolderLookup
-import net.minecraft.resources.ResourceLocation
+import net.minecraft.data.worldgen.BootstrapContext
+import net.minecraft.resources.Identifier
 import net.minecraft.tags.ItemTags
 import net.minecraft.tags.TagKey
+import net.minecraft.world.item.crafting.Recipe
 import org.nguh.nguhcraft.Nguhcraft.Companion.Id
 import org.nguh.nguhcraft.block.*
 import org.nguh.nguhcraft.item.KeyDuplicationRecipe
@@ -31,8 +35,10 @@ import kotlin.collections.iterator
 @Environment(EnvType.CLIENT)
 class NguhcraftRecipeGenerator(
     val WL: HolderLookup.Provider,
-    val E: RecipeOutput
-) : RecipeProvider(WL, E) {
+    recipeOutput: BootstrapContext<Recipe<*>>,
+    advancementOutput: BootstrapContext<Advancement>
+) : RecipeProvider(recipeOutput, advancementOutput) {
+    val E: RecipeOutput = output
     val Lookup = WL.lookupOrThrow(Registries.ITEM)
     val BlockFamily.IsWood get() = this in NguhBlocks.WOOD_VARIANT_FAMILIES
 
@@ -94,7 +100,7 @@ class NguhcraftRecipeGenerator(
             pattern("s s")
             pattern("psp")
             cinput('s', Items.STICK)
-            cinput('p', Items.RED_STAINED_GLASS_PANE)
+            cinput('p', Items.STAINED_GLASS_PANE.red)
         }
 
         offerShapelessRecipe(NguhItems.HOTSPOT_SAUCE, 1, NguhItems.HOTSPOT_GLASSES to 1, Items.BOWL to 1, Items.LAVA_BUCKET to 1, Items.BLAZE_POWDER to 1)
@@ -102,42 +108,42 @@ class NguhcraftRecipeGenerator(
         // =========================================================================
         //  Earpieces
         // =========================================================================
-        offerEarpiece(NguhItems.EARPIECES.getValue("white"), Items.WHITE_WOOL)
-        offerEarpiece(NguhItems.EARPIECES.getValue("light_gray"), Items.LIGHT_GRAY_WOOL)
-        offerEarpiece(NguhItems.EARPIECES.getValue("gray"), Items.GRAY_WOOL)
-        offerEarpiece(NguhItems.EARPIECES.getValue("black"), Items.BLACK_WOOL)
-        offerEarpiece(NguhItems.EARPIECES.getValue("brown"), Items.BROWN_WOOL)
-        offerEarpiece(NguhItems.EARPIECES.getValue("red"), Items.RED_WOOL)
-        offerEarpiece(NguhItems.EARPIECES.getValue("orange"), Items.ORANGE_WOOL)
-        offerEarpiece(NguhItems.EARPIECES.getValue("yellow"), Items.YELLOW_WOOL)
-        offerEarpiece(NguhItems.EARPIECES.getValue("lime"), Items.LIME_WOOL)
-        offerEarpiece(NguhItems.EARPIECES.getValue("green"), Items.GREEN_WOOL)
-        offerEarpiece(NguhItems.EARPIECES.getValue("cyan"), Items.CYAN_WOOL)
-        offerEarpiece(NguhItems.EARPIECES.getValue("light_blue"), Items.LIGHT_BLUE_WOOL)
-        offerEarpiece(NguhItems.EARPIECES.getValue("blue"), Items.BLUE_WOOL)
-        offerEarpiece(NguhItems.EARPIECES.getValue("purple"), Items.PURPLE_WOOL)
-        offerEarpiece(NguhItems.EARPIECES.getValue("magenta"), Items.MAGENTA_WOOL)
-        offerEarpiece(NguhItems.EARPIECES.getValue("pink"), Items.PINK_WOOL)
+        offerEarpiece(NguhItems.EARPIECES.getValue("white"), Items.WOOL.white)
+        offerEarpiece(NguhItems.EARPIECES.getValue("light_gray"), Items.WOOL.lightGray)
+        offerEarpiece(NguhItems.EARPIECES.getValue("gray"), Items.WOOL.gray)
+        offerEarpiece(NguhItems.EARPIECES.getValue("black"), Items.WOOL.black)
+        offerEarpiece(NguhItems.EARPIECES.getValue("brown"), Items.WOOL.brown)
+        offerEarpiece(NguhItems.EARPIECES.getValue("red"), Items.WOOL.red)
+        offerEarpiece(NguhItems.EARPIECES.getValue("orange"), Items.WOOL.orange)
+        offerEarpiece(NguhItems.EARPIECES.getValue("yellow"), Items.WOOL.yellow)
+        offerEarpiece(NguhItems.EARPIECES.getValue("lime"), Items.WOOL.lime)
+        offerEarpiece(NguhItems.EARPIECES.getValue("green"), Items.WOOL.green)
+        offerEarpiece(NguhItems.EARPIECES.getValue("cyan"), Items.WOOL.cyan)
+        offerEarpiece(NguhItems.EARPIECES.getValue("light_blue"), Items.WOOL.lightBlue)
+        offerEarpiece(NguhItems.EARPIECES.getValue("blue"), Items.WOOL.blue)
+        offerEarpiece(NguhItems.EARPIECES.getValue("purple"), Items.WOOL.purple)
+        offerEarpiece(NguhItems.EARPIECES.getValue("magenta"), Items.WOOL.magenta)
+        offerEarpiece(NguhItems.EARPIECES.getValue("pink"), Items.WOOL.pink)
 
         // =========================================================================
         //  Headsets
         // =========================================================================
-        offerHeadset(NguhItems.HEADSETS.getValue("white"), Items.WHITE_WOOL)
-        offerHeadset(NguhItems.HEADSETS.getValue("light_gray"), Items.LIGHT_GRAY_WOOL)
-        offerHeadset(NguhItems.HEADSETS.getValue("gray"), Items.GRAY_WOOL)
-        offerHeadset(NguhItems.HEADSETS.getValue("black"), Items.BLACK_WOOL)
-        offerHeadset(NguhItems.HEADSETS.getValue("brown"), Items.BROWN_WOOL)
-        offerHeadset(NguhItems.HEADSETS.getValue("red"), Items.RED_WOOL)
-        offerHeadset(NguhItems.HEADSETS.getValue("orange"), Items.ORANGE_WOOL)
-        offerHeadset(NguhItems.HEADSETS.getValue("yellow"), Items.YELLOW_WOOL)
-        offerHeadset(NguhItems.HEADSETS.getValue("lime"), Items.LIME_WOOL)
-        offerHeadset(NguhItems.HEADSETS.getValue("green"), Items.GREEN_WOOL)
-        offerHeadset(NguhItems.HEADSETS.getValue("cyan"), Items.CYAN_WOOL)
-        offerHeadset(NguhItems.HEADSETS.getValue("light_blue"), Items.LIGHT_BLUE_WOOL)
-        offerHeadset(NguhItems.HEADSETS.getValue("blue"), Items.BLUE_WOOL)
-        offerHeadset(NguhItems.HEADSETS.getValue("purple"), Items.PURPLE_WOOL)
-        offerHeadset(NguhItems.HEADSETS.getValue("magenta"), Items.MAGENTA_WOOL)
-        offerHeadset(NguhItems.HEADSETS.getValue("pink"), Items.PINK_WOOL)
+        offerHeadset(NguhItems.HEADSETS.getValue("white"), Items.WOOL.white)
+        offerHeadset(NguhItems.HEADSETS.getValue("light_gray"), Items.WOOL.lightGray)
+        offerHeadset(NguhItems.HEADSETS.getValue("gray"), Items.WOOL.gray)
+        offerHeadset(NguhItems.HEADSETS.getValue("black"), Items.WOOL.black)
+        offerHeadset(NguhItems.HEADSETS.getValue("brown"), Items.WOOL.brown)
+        offerHeadset(NguhItems.HEADSETS.getValue("red"), Items.WOOL.red)
+        offerHeadset(NguhItems.HEADSETS.getValue("orange"), Items.WOOL.orange)
+        offerHeadset(NguhItems.HEADSETS.getValue("yellow"), Items.WOOL.yellow)
+        offerHeadset(NguhItems.HEADSETS.getValue("lime"), Items.WOOL.lime)
+        offerHeadset(NguhItems.HEADSETS.getValue("green"), Items.WOOL.green)
+        offerHeadset(NguhItems.HEADSETS.getValue("cyan"), Items.WOOL.cyan)
+        offerHeadset(NguhItems.HEADSETS.getValue("light_blue"), Items.WOOL.lightBlue)
+        offerHeadset(NguhItems.HEADSETS.getValue("blue"), Items.WOOL.blue)
+        offerHeadset(NguhItems.HEADSETS.getValue("purple"), Items.WOOL.purple)
+        offerHeadset(NguhItems.HEADSETS.getValue("magenta"), Items.WOOL.magenta)
+        offerHeadset(NguhItems.HEADSETS.getValue("pink"), Items.WOOL.pink)
 
         // =========================================================================
         // Vanilla Block Decompositions
@@ -250,7 +256,7 @@ class NguhcraftRecipeGenerator(
         offerChainAndLantern(NguhBlocks.VERDANT_CHAIN, NguhBlocks.VERDANT_LANTERN, Items.EMERALD, Items.VERDANT_FROGLIGHT)
         offerChainAndLantern(NguhBlocks.AZURE_CHAIN, NguhBlocks.AZURE_LANTERN, Items.LAPIS_LAZULI, NguhBlocks.AZURE_FROGLIGHT)
 
-        offerShapelessRecipe(Items.HOPPER, 1, NguhBlocks.DECORATIVE_HOPPER to 1, Items.CHEST to 1)
+        offerShapelessRecipe<ItemLike>(Items.HOPPER, 1, NguhBlocks.DECORATIVE_HOPPER to 1, Items.CHEST to 1)
         offerShapelessRecipe(NguhBlocks.DECORATIVE_HOPPER, 1, Items.HOPPER to 1)
         offerShapelessRecipe(Items.CHARCOAL, 9, NguhBlocks.CHARCOAL_BLOCK to 1)
 
@@ -285,7 +291,7 @@ class NguhcraftRecipeGenerator(
             NguhBlocks.CALCITE_BRICKS to NguhBlocks.GILDED_CALCITE_BRICKS,
             NguhBlocks.CHISELED_CALCITE to NguhBlocks.GILDED_CHISELED_CALCITE,
             NguhBlocks.CHISELED_CALCITE_BRICKS to NguhBlocks.GILDED_CHISELED_CALCITE_BRICKS
-        )) offerShaped(Gilded, 2, "from_${BuiltInRegistries.BLOCK.getResourceKey(Base).get().location().path.lowercase()}_and_gold_ingot") {
+        )) offerShaped(Gilded, 2, "from_${BuiltInRegistries.BLOCK.getResourceKey(Base).get().identifier().path.lowercase()}_and_gold_ingot") {
             pattern("GC")
             pattern("CG")
             cinput('C', Base)
@@ -476,8 +482,11 @@ class NguhcraftRecipeGenerator(
             NguhBlocks.SWEET_BERRY_CRATE to Items.SWEET_BERRIES,
             NguhBlocks.GLOW_BERRY_CRATE to Items.GLOW_BERRIES,
             NguhBlocks.SEAGRASS_CRATE to Items.SEAGRASS,
+            NguhBlocks.APPLE_CRATE to Items.APPLE,
+            NguhBlocks.GOLDEN_APPLE_CRATE to Items.GOLDEN_APPLE,
             NguhBlocks.GRAPE_CRATE to NguhItems.GRAPES,
             NguhBlocks.PEANUT_CRATE to NguhItems.PEANUTS,
+            NguhBlocks.CHERRY_CRATE to NguhItems.CHERRY,
         )) nineBlockStorageRecipes(
             RecipeCategory.FOOD,
             Crop,
@@ -488,22 +497,22 @@ class NguhcraftRecipeGenerator(
         // =========================================================================
         //  Brocade Blocks
         // =========================================================================
-        offerBrocade(NguhBlocks.BROCADE_BLACK, Blocks.BLACK_WOOL)
-        offerBrocade(NguhBlocks.BROCADE_BLUE, Blocks.BLUE_WOOL)
-        offerBrocade(NguhBlocks.BROCADE_BROWN, Blocks.BROWN_WOOL)
-        offerBrocade(NguhBlocks.BROCADE_CYAN, Blocks.CYAN_WOOL)
-        offerBrocade(NguhBlocks.BROCADE_GREEN, Blocks.GREEN_WOOL)
-        offerBrocade(NguhBlocks.BROCADE_GREY, Blocks.GRAY_WOOL)
-        offerBrocade(NguhBlocks.BROCADE_LIGHT_BLUE, Blocks.LIGHT_BLUE_WOOL)
-        offerBrocade(NguhBlocks.BROCADE_LIGHT_GREY, Blocks.LIGHT_GRAY_WOOL)
-        offerBrocade(NguhBlocks.BROCADE_LIME, Blocks.LIME_WOOL)
-        offerBrocade(NguhBlocks.BROCADE_MAGENTA, Blocks.MAGENTA_WOOL)
-        offerBrocade(NguhBlocks.BROCADE_ORANGE, Blocks.ORANGE_WOOL)
-        offerBrocade(NguhBlocks.BROCADE_PINK, Blocks.PINK_WOOL)
-        offerBrocade(NguhBlocks.BROCADE_PURPLE, Blocks.PURPLE_WOOL)
-        offerBrocade(NguhBlocks.BROCADE_RED, Blocks.RED_WOOL)
-        offerBrocade(NguhBlocks.BROCADE_WHITE, Blocks.WHITE_WOOL)
-        offerBrocade(NguhBlocks.BROCADE_YELLOW, Blocks.YELLOW_WOOL)
+        offerBrocade(NguhBlocks.BROCADE_BLACK, Blocks.WOOL.black)
+        offerBrocade(NguhBlocks.BROCADE_BLUE, Blocks.WOOL.blue)
+        offerBrocade(NguhBlocks.BROCADE_BROWN, Blocks.WOOL.brown)
+        offerBrocade(NguhBlocks.BROCADE_CYAN, Blocks.WOOL.cyan)
+        offerBrocade(NguhBlocks.BROCADE_GREEN, Blocks.WOOL.green)
+        offerBrocade(NguhBlocks.BROCADE_GREY, Blocks.WOOL.gray)
+        offerBrocade(NguhBlocks.BROCADE_LIGHT_BLUE, Blocks.WOOL.lightBlue)
+        offerBrocade(NguhBlocks.BROCADE_LIGHT_GREY, Blocks.WOOL.lightGray)
+        offerBrocade(NguhBlocks.BROCADE_LIME, Blocks.WOOL.lime)
+        offerBrocade(NguhBlocks.BROCADE_MAGENTA, Blocks.WOOL.magenta)
+        offerBrocade(NguhBlocks.BROCADE_ORANGE, Blocks.WOOL.orange)
+        offerBrocade(NguhBlocks.BROCADE_PINK, Blocks.WOOL.pink)
+        offerBrocade(NguhBlocks.BROCADE_PURPLE, Blocks.WOOL.purple)
+        offerBrocade(NguhBlocks.BROCADE_RED, Blocks.WOOL.red)
+        offerBrocade(NguhBlocks.BROCADE_WHITE, Blocks.WOOL.white)
+        offerBrocade(NguhBlocks.BROCADE_YELLOW, Blocks.WOOL.yellow)
 
         // =========================================================================
         //  Vertical Slabs
@@ -567,8 +576,8 @@ class NguhcraftRecipeGenerator(
         // =========================================================================
         //  Special Recipes
         // =========================================================================
-        SpecialRecipeBuilder.special(::KeyLockPairingRecipe).save(E, "key_lock_pairing")
-        SpecialRecipeBuilder.special(::KeyDuplicationRecipe).save(E, "key_duplication")
+        SpecialRecipeBuilder.special(::KeyLockPairingRecipe).save(output, "key_lock_pairing")
+        SpecialRecipeBuilder.special(::KeyDuplicationRecipe).save(output, "key_duplication")
     }
 
     /** Add a recipe for an earpiece item. */
@@ -676,7 +685,7 @@ class NguhcraftRecipeGenerator(
 
     // Helper function for smelting
     fun offerSmelting(Input: ItemLike, Output: ItemLike, Experience: Float = .2f)
-        = oreSmelting(listOf(Input.asItem()), RecipeCategory.MISC, Output.asItem(), Experience, 200, null)
+        = oreSmelting(listOf(Input.asItem()), RecipeCategory.MISC, CookingBookCategory.MISC, Output.asItem(), Experience, 200, "")
 
     // offerShapelessRecipe() sucks, so this is a better version.
     @Suppress("UNCHECKED_CAST")
@@ -688,7 +697,7 @@ class NguhcraftRecipeGenerator(
             else -> throw IllegalArgumentException("Invalid input type: ${I::class.simpleName}")
         }
 
-        B.save(E, "${getItemName(Output)}_from_${Inputs.joinToString("_and_") { 
+        B.save(E, "${getItemName(Output)}_from_${Inputs.joinToString("_and_") {
             (I, _) -> when (I) {
                 is ItemLike -> getItemName(I)
                 is TagKey<*> -> I.location.path
@@ -705,6 +714,6 @@ class NguhcraftRecipeGenerator(
             NguhItems.SLABLET_8 to NguhItems.SLABLET_16,
             NguhItems.SLABLET_16 to Items.PETRIFIED_OAK_SLAB,
         )
-        private val MILK_ITEMS = TagKey.create(Registries.ITEM, ResourceLocation.parse("c:foods/milk"))
+        private val MILK_ITEMS = TagKey.create(Registries.ITEM, Identifier.parse("c:drinks/milk"))
     }
 }

@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:pyrite_bricks_wall"
+        "recipes": "nguhcraft:pyrite_bricks_wall"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

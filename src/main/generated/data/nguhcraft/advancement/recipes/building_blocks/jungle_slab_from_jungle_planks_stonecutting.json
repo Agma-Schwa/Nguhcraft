@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:jungle_slab_from_jungle_planks_stonecutting"
+        "recipes": "nguhcraft:jungle_slab_from_jungle_planks_stonecutting"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

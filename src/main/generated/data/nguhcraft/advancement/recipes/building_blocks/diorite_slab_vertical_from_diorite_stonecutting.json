@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:diorite_slab_vertical_from_diorite_stonecutting"
+        "recipes": "nguhcraft:diorite_slab_vertical_from_diorite_stonecutting"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

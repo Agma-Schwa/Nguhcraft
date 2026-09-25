@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:wrought_iron_block"
+        "recipes": "nguhcraft:wrought_iron_block"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

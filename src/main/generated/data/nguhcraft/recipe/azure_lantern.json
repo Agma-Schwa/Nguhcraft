@@ -1,6 +1,5 @@
 {
   "type": "minecraft:crafting_shaped",
-  "category": "misc",
   "key": {
     "#": "nguhcraft:azure_froglight",
     "A": "minecraft:lapis_lazuli",
@@ -12,7 +11,6 @@
     "NNN"
   ],
   "result": {
-    "count": 1,
     "id": "nguhcraft:azure_lantern"
   }
 }

@@ -1,4 +1,12 @@
 {
+  "fabric:load_conditions": [
+    {
+      "condition": "fabric:all_mods_loaded",
+      "values": [
+        "farmersdelight"
+      ]
+    }
+  ],
   "parent": "minecraft:recipes/root",
   "criteria": {
     "has_any_ingredient": {
@@ -18,7 +26,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:cherry_pie"
+        "recipes": "nguhcraft:cherry_pie"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

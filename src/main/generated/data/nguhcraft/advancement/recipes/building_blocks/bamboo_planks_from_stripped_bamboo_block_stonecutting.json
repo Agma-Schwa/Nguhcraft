@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:bamboo_planks_from_stripped_bamboo_block_stonecutting"
+        "recipes": "nguhcraft:bamboo_planks_from_stripped_bamboo_block_stonecutting"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:calcite_from_smelting_bone_block"
+        "recipes": "nguhcraft:calcite_from_smelting_bone_block"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

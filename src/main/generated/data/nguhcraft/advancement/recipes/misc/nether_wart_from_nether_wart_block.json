@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:nether_wart_from_nether_wart_block"
+        "recipes": "nguhcraft:nether_wart_from_nether_wart_block"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

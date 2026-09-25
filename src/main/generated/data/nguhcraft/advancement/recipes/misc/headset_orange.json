@@ -33,7 +33,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:headset_orange"
+        "recipes": "nguhcraft:headset_orange"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

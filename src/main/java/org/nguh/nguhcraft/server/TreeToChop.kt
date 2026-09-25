@@ -76,7 +76,7 @@ class TreeToChop private constructor(private val Owner: ServerPlayer, private va
     }
 
     companion object {
-        private val LOG_TO_LEAVES: Map<Block, Array<Block>> = mapOf(
+        val LOG_TO_LEAVES: Map<Block, Array<Block>> = mapOf(
             Blocks.ACACIA_LOG to arrayOf(Blocks.ACACIA_LEAVES),
             Blocks.BIRCH_LOG to arrayOf(Blocks.BIRCH_LEAVES),
             Blocks.CHERRY_LOG to arrayOf(Blocks.CHERRY_LEAVES, NguhBlocks.BUDDING_CHERRY_LEAVES),
@@ -84,8 +84,9 @@ class TreeToChop private constructor(private val Owner: ServerPlayer, private va
             Blocks.JUNGLE_LOG to arrayOf(Blocks.JUNGLE_LEAVES),
             Blocks.MANGROVE_LOG to arrayOf(Blocks.MANGROVE_LEAVES),
             Blocks.OAK_LOG to arrayOf(Blocks.OAK_LEAVES, NguhBlocks.BUDDING_OAK_LEAVES, Blocks.AZALEA_LEAVES, Blocks.FLOWERING_AZALEA_LEAVES),
+            Blocks.PALE_OAK_LOG to arrayOf(Blocks.PALE_OAK_LEAVES),
+            Blocks.POPLAR_LOG to arrayOf(Blocks.YELLOW_POPLAR_LEAVES, Blocks.ORANGE_POPLAR_LEAVES, Blocks.RED_POPLAR_LEAVES),
             Blocks.SPRUCE_LOG to arrayOf(Blocks.SPRUCE_LEAVES),
-            Blocks.PALE_OAK_LOG to arrayOf(Blocks.PALE_OAK_LEAVES)
         )
 
         private val WOOD_TYPES: Map<Block, Array<Block>> = mapOf(
@@ -96,8 +97,9 @@ class TreeToChop private constructor(private val Owner: ServerPlayer, private va
             Blocks.JUNGLE_LOG to arrayOf(Blocks.JUNGLE_LOG),
             Blocks.MANGROVE_LOG to arrayOf(Blocks.MANGROVE_LOG, Blocks.MANGROVE_ROOTS),
             Blocks.OAK_LOG to arrayOf(Blocks.OAK_LOG),
+            Blocks.PALE_OAK_LOG to arrayOf(Blocks.PALE_OAK_LOG),
+            Blocks.POPLAR_LOG to arrayOf(Blocks.POPLAR_LOG),
             Blocks.SPRUCE_LOG to arrayOf(Blocks.SPRUCE_LOG),
-            Blocks.PALE_OAK_LOG to arrayOf(Blocks.PALE_OAK_LOG)
         )
 
         private const val LOG_MARKED_FOR_SCAN = false

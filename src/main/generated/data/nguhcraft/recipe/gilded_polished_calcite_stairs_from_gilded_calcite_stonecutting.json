@@ -2,7 +2,6 @@
   "type": "minecraft:stonecutting",
   "ingredient": "nguhcraft:gilded_calcite",
   "result": {
-    "count": 1,
     "id": "nguhcraft:gilded_polished_calcite_stairs"
   }
 }

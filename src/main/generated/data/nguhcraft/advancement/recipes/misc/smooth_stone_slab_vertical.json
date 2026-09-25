@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:smooth_stone_slab_vertical"
+        "recipes": "nguhcraft:smooth_stone_slab_vertical"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

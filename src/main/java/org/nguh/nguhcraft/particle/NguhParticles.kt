@@ -2,7 +2,7 @@ package org.nguh.nguhcraft.particle
 
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
-import net.fabricmc.fabric.api.client.particle.v1.ParticleFactoryRegistry
+import net.fabricmc.fabric.api.client.particle.v1.ParticleProviderRegistry
 import net.fabricmc.fabric.api.particle.v1.FabricParticleTypes
 import net.minecraft.core.Registry
 import net.minecraft.core.particles.ParticleOptions
@@ -25,9 +25,9 @@ object NguhParticles {
     fun ClientSideInitialisation() {
         fun<T: ParticleOptions> Register(
             particle: ParticleType<T>,
-            provider: ParticleFactoryRegistry.PendingParticleFactory<T>
+            provider: ParticleProviderRegistry.PendingParticleProvider<T>
         ) {
-            ParticleFactoryRegistry.getInstance().register(particle, provider);
+            ParticleProviderRegistry.getInstance().register(particle, provider);
         }
 
         Register(FIRE, { spriteSet -> FireParticleProvider(spriteSet) })

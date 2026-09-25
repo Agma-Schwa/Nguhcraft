@@ -23,7 +23,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:verdant_chain"
+        "recipes": "nguhcraft:verdant_chain"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

@@ -31,7 +31,7 @@ public abstract class PlayerEntityMixin extends LivingEntity {
     }
 
     /** Prevent interactions within a region. */
-    @Inject(method = "canInteractWithBlock", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "isWithinBlockInteractionRange", at = @At("HEAD"), cancellable = true)
     private void inject$canInteractWithBlockAt(
             BlockPos Pos,
             double Range,
