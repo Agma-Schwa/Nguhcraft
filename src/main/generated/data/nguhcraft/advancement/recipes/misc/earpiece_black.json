@@ -33,7 +33,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:earpiece_black"
+        "recipes": "nguhcraft:earpiece_black"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

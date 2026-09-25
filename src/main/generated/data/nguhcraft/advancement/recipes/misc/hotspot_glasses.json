@@ -23,7 +23,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:hotspot_glasses"
+        "recipes": "nguhcraft:hotspot_glasses"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
