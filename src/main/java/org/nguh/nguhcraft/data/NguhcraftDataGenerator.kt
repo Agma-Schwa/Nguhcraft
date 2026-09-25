@@ -47,9 +47,10 @@ import net.minecraft.world.level.storage.loot.functions.SetItemCountFunction
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams
 import net.minecraft.world.level.storage.loot.predicates.MatchBlock
 import net.minecraft.world.level.storage.loot.providers.number.ints.ContextIntProviders
-import net.minecraft.world.level.storage.loot.predicates.LootItemBlockStatePropertyCondition
-import net.minecraft.world.level.storage.loot.providers.number.ConstantValue
-import net.minecraft.world.level.storage.loot.providers.number.UniformGenerator
+import org.apache.commons.collections4.CollectionUtils.addAll
+//import net.minecraft.world.level.storage.loot.predicates.LootItemBlockStatePropertyCondition
+//import net.minecraft.world.level.storage.loot.providers.number.ConstantValue
+//import net.minecraft.world.level.storage.loot.providers.number.UniformGenerator
 import org.nguh.nguhcraft.Constants
 import org.nguh.nguhcraft.NguhDamageTypes
 import org.nguh.nguhcraft.NguhPaintings
@@ -62,6 +63,7 @@ import java.util.concurrent.CompletableFuture
 private fun TagAppender<Block>.add(B: Block) = add(BuiltInRegistries.BLOCK.getResourceKey(B).orElseThrow())
 private fun TagAppender<Block>.addAll(Bs: Collection<Block>) = addAll(Bs.map { BuiltInRegistries.BLOCK.getResourceKey(it).orElseThrow() })
 private fun TagAppender<Item>.add(I: Item) = add(BuiltInRegistries.ITEM.getResourceKey(I).orElseThrow())
+private fun TagAppender<Item>.addAll(Is: Collection<Item>) = addAll(Is.map { add(BuiltInRegistries.ITEM.getResourceKey(it).orElseThrow()) })
 
 // =========================================================================
 //  Static Registries

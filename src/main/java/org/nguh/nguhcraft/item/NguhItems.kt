@@ -18,6 +18,7 @@ import net.minecraft.resources.Identifier
 import net.minecraft.sounds.SoundEvent
 import net.minecraft.sounds.SoundEvents
 import net.minecraft.tags.TagKey
+import net.minecraft.world.effect.MobEffect
 import net.minecraft.world.effect.MobEffectInstance
 import net.minecraft.world.entity.EntityType
 import net.minecraft.world.entity.EquipmentSlot
@@ -27,7 +28,6 @@ import net.minecraft.world.item.*
 import net.minecraft.world.item.component.Consumable
 import net.minecraft.world.item.component.Consumables
 import net.minecraft.world.item.consume_effects.ApplyStatusEffectsConsumeEffect
-import net.minecraft.world.item.crafting.CustomRecipe.Serializer
 import net.minecraft.world.item.equipment.*
 import net.minecraft.world.item.equipment.ArmorMaterial
 import net.minecraft.world.item.equipment.ArmorType
@@ -43,6 +43,7 @@ import org.nguh.nguhcraft.Nguhcraft.Companion.RKey
 import org.nguh.nguhcraft.Utils
 import org.nguh.nguhcraft.block.ChestVariant
 import org.nguh.nguhcraft.block.NguhBlocks
+import org.nguh.nguhcraft.entity.FireBreathingEffect
 import org.nguh.nguhcraft.entity.NguhEffects
 import org.nguh.nguhcraft.tags.NguhTags
 import java.util.*
@@ -215,7 +216,7 @@ object NguhItems {
     // =========================================================================
     val HOTSPOT_GLASSES_EQUIPMENT_ASSET_KEY: ResourceKey<EquipmentAsset> = ResourceKey.create(EquipmentAssets.ROOT_ID, Id("hotspot_glasses"))
 
-    private val holderGetter: HolderGetter<EntityType<*>?> =
+    private val holderGetter: HolderGetter<EntityType<*>> =
         BuiltInRegistries.acquireBootstrapRegistrationLookup(BuiltInRegistries.ENTITY_TYPE)
 
     val HOTSPOT_GLASSES = CreateItem(
@@ -231,7 +232,7 @@ object NguhItems {
                 // Can only equip onto mobs with the tag nguhcraft:can_equip_hotspot_glasses. One would think that there
                 // would be a tag for "mobs that actually render armour that they have equipped" but Mojank has not
                 // provided one.
-                .setAllowedEntities(holderGetter.getOrThrow(NguhTags.CAN_EQUIP_HOTSPOT_GLASSES as TagKey<EntityType<*>?>))
+                .setAllowedEntities(holderGetter.getOrThrow(NguhTags.CAN_EQUIP_HOTSPOT_GLASSES))
                 .setCanBeSheared(true)
                 .setShearingSound(SoundEvents.ARMOR_EQUIP_GENERIC)
                 .build())
