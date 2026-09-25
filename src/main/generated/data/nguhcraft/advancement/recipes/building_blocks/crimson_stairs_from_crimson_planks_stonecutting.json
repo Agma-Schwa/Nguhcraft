@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:crimson_stairs_from_crimson_planks_stonecutting"
+        "recipes": "nguhcraft:crimson_stairs_from_crimson_planks_stonecutting"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

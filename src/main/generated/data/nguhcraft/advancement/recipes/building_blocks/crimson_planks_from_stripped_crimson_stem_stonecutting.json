@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:crimson_planks_from_stripped_crimson_stem_stonecutting"
+        "recipes": "nguhcraft:crimson_planks_from_stripped_crimson_stem_stonecutting"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

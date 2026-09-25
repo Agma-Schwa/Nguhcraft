@@ -14,7 +14,7 @@ import net.minecraft.core.registries.Registries
 import net.minecraft.commands.CommandSourceStack
 import net.minecraft.server.level.ServerPlayer
 import net.minecraft.network.chat.Component
-import net.minecraft.resources.ResourceLocation
+import net.minecraft.resources.Identifier
 import net.minecraft.world.level.Level
 import org.nguh.nguhcraft.client.ClientUtils.Client
 import org.nguh.nguhcraft.event.NguhMobType
@@ -29,6 +29,7 @@ import org.nguh.nguhcraft.server.ProcedureManager
 import org.nguh.nguhcraft.server.Server
 import org.nguh.nguhcraft.server.ServerRegion
 import org.nguh.nguhcraft.server.WarpManager
+import org.nguh.nguhcraft.server.hasPermissions
 import org.nguh.nguhcraft.server.command.Commands.Exn
 import java.util.concurrent.CompletableFuture
 
@@ -186,9 +187,9 @@ class RegionArgumentType : ArgumentType<String> {
         // to the left of it.
         if (":" in SB.remaining) {
             val (W, _) = SB.remaining.split(":", limit = 2)
-            val Key = ResourceKey.create(Registries.DIMENSION, ResourceLocation.withDefaultNamespace(W))
+            val Key = ResourceKey.create(Registries.DIMENSION, Identifier.withDefaultNamespace(W))
             val Regions = P.TryGetRegions(Key) ?: return Suggestions.empty()
-            return SharedSuggestionProvider.suggest(Regions.map { "${Key.location().path}:${it.Name}" }, SB)
+            return SharedSuggestionProvider.suggest(Regions.map { "${Key.identifier().path}:${it.Name}" }, SB)
         }
 
         // Otherwise, suggest all regions in the current world if there is one.
@@ -199,7 +200,7 @@ class RegionArgumentType : ArgumentType<String> {
         // And add the registry keys for any worlds that contain regions.
         fun AddWorldKey(W: ResourceKey<Level>) {
             if (P.TryGetRegions(W)!!.isNotEmpty())
-                Regions.add("${W.location().path}:")
+                Regions.add("${W.identifier().path}:")
         }
 
         AddWorldKey(Level.OVERWORLD)
@@ -211,7 +212,7 @@ class RegionArgumentType : ArgumentType<String> {
     companion object {
         private val NO_SUCH_WORLD = DynamicCommandExceptionType { Component.literal("No such world: $it") }
         private val NO_SUCH_REGION = Dynamic2CommandExceptionType { R, W -> Component.literal(
-            "No region '$R' in world ${(W as Level).dimension().location().path}"
+            "No region '$R' in world ${(W as Level).dimension().identifier().path}"
         ) }
 
         fun Region() = RegionArgumentType()
@@ -222,8 +223,8 @@ class RegionArgumentType : ArgumentType<String> {
             var W = S.level
             if (":" in Name) {
                 val (WorldKey, RegionName) = Name.split(":", limit = 2)
-                val Key = ResourceKey.create(Registries.DIMENSION, ResourceLocation.withDefaultNamespace(WorldKey))
-                W = S.server.getLevel(Key) ?: throw NO_SUCH_WORLD.create(Key.location().path)
+                val Key = ResourceKey.create(Registries.DIMENSION, Identifier.withDefaultNamespace(WorldKey))
+                W = S.server.getLevel(Key) ?: throw NO_SUCH_WORLD.create(Key.identifier().path)
                 Name = RegionName
             }
 

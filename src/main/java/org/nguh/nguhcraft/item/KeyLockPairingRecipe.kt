@@ -1,18 +1,19 @@
 package org.nguh.nguhcraft.item
 
+import com.mojang.serialization.MapCodec
 import net.minecraft.core.component.DataComponents
+import net.minecraft.network.RegistryFriendlyByteBuf
+import net.minecraft.network.codec.StreamCodec
 import net.minecraft.world.LockCode
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.crafting.RecipeSerializer
 import net.minecraft.world.item.crafting.CustomRecipe
-import net.minecraft.world.item.crafting.CraftingBookCategory
 import net.minecraft.world.item.crafting.CraftingInput
-import net.minecraft.core.HolderLookup
 import net.minecraft.core.NonNullList
 import net.minecraft.world.level.Level
 import java.util.*
 
-class KeyLockPairingRecipe(C: CraftingBookCategory) : CustomRecipe(C) {
+class KeyLockPairingRecipe : CustomRecipe() {
     private fun GetKeyAndLocks(Input: CraftingInput): Pair<ItemStack?, Int> {
         var Key: ItemStack? = null
         var Locks = 0
@@ -39,7 +40,7 @@ class KeyLockPairingRecipe(C: CraftingBookCategory) : CustomRecipe(C) {
         return Key.get(KeyItem.COMPONENT)!!
     }
 
-    override fun assemble(Input: CraftingInput, Lookup: HolderLookup.Provider): ItemStack {
+    override fun assemble(Input: CraftingInput): ItemStack {
         // Get the key and lock count and do a sanity check.
         val (Key, Locks) = GetKeyAndLocks(Input)
         if (Key == null || Locks == 0) return ItemStack.EMPTY
@@ -78,5 +79,11 @@ class KeyLockPairingRecipe(C: CraftingBookCategory) : CustomRecipe(C) {
     }
 
     override fun getSerializer() = SERIALISER
-    companion object { lateinit var SERIALISER: RecipeSerializer<KeyLockPairingRecipe> }
+
+    companion object {
+        val INSTANCE = KeyLockPairingRecipe()
+        val MAP_CODEC: MapCodec<KeyLockPairingRecipe> = MapCodec.unit(INSTANCE)
+        val STREAM_CODEC: StreamCodec<RegistryFriendlyByteBuf, KeyLockPairingRecipe> = StreamCodec.unit(INSTANCE)
+        val SERIALISER: RecipeSerializer<KeyLockPairingRecipe> = RecipeSerializer(MAP_CODEC, STREAM_CODEC)
+    }
 }

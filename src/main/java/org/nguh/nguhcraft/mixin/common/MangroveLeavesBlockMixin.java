@@ -2,6 +2,7 @@ package org.nguh.nguhcraft.mixin.common;
 
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.BonemealSource;
 import net.minecraft.world.level.block.MangroveLeavesBlock;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
@@ -17,7 +18,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public abstract class MangroveLeavesBlockMixin {
     /** Allow bonemealing mangrove leaves underwater. */
     @Inject(method = "isValidBonemealTarget", at = @At("HEAD"), cancellable = true)
-    private void inject$isFertilizable(LevelReader W, BlockPos Pos, BlockState St, CallbackInfoReturnable<Boolean> CIR) {
+    private void inject$isFertilizable(LevelReader W, BlockPos Pos, BlockState St, BonemealSource Src, CallbackInfoReturnable<Boolean> CIR) {
         if (W.getBlockState(Pos.below()).is(Blocks.WATER))
             CIR.setReturnValue(true);
     }

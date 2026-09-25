@@ -23,7 +23,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:azure_chain"
+        "recipes": "nguhcraft:azure_chain"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

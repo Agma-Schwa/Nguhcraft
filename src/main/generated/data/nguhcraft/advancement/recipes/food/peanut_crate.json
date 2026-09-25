@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:peanut_crate"
+        "recipes": "nguhcraft:peanut_crate"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

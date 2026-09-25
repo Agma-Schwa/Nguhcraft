@@ -23,7 +23,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:stripped_tinted_oak_wood_tinting"
+        "recipes": "nguhcraft:stripped_tinted_oak_wood_tinting"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

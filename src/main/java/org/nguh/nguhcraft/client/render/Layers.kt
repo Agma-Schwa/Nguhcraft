@@ -1,10 +1,10 @@
 package org.nguh.nguhcraft.client.render
 
-import com.mojang.blaze3d.vertex.VertexFormat
+import com.mojang.renderpearl.api.vertex.VertexFormat
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
 import net.minecraft.client.renderer.RenderPipelines
-import net.minecraft.client.renderer.RenderType.*
+import net.minecraft.client.renderer.rendertype.RenderType.*
 import net.minecraft.util.CommonColors
 import net.minecraft.util.TriState
 import java.util.OptionalDouble

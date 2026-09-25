@@ -33,7 +33,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:grape_juice_from_grapes_and_glass_bottle_and_sugar"
+        "recipes": "nguhcraft:grape_juice_from_grapes_and_glass_bottle_and_sugar"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

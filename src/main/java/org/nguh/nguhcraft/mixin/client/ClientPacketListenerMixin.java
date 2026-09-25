@@ -30,7 +30,6 @@ public abstract class ClientPacketListenerMixin extends ClientCommonPacketListen
         super(client, connection, connectionState);
     }
 
-    @Shadow private boolean seenInsecureChatWarning;
     @Shadow private LastSeenMessagesTracker lastSeenMessages;
     @Shadow private MessageSignatureCache messageSignatureCache;
     @Unique private final ClientDisplayData DisplayData = new ClientDisplayData();

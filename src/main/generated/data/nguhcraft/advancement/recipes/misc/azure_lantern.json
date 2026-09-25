@@ -33,7 +33,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:azure_lantern"
+        "recipes": "nguhcraft:azure_lantern"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

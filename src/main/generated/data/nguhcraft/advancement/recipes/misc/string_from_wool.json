@@ -3,7 +3,7 @@
   "criteria": {
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:string_from_wool"
+        "recipes": "nguhcraft:string_from_wool"
       },
       "trigger": "minecraft:recipe_unlocked"
     },

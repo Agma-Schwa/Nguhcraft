@@ -3,9 +3,9 @@ package org.nguh.nguhcraft.mixin.entity;
 import com.llamalad7.mixinextras.sugar.Local;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.entity.animal.Fox;
-import net.minecraft.world.entity.animal.Fox.FoxEatBerriesGoal;
-import net.minecraft.world.level.GameRules;
+import net.minecraft.world.entity.animal.fox.Fox;
+import net.minecraft.world.entity.animal.fox.Fox.FoxEatBerriesGoal;
+import net.minecraft.world.level.gamerules.GameRules;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.state.BlockState;
@@ -20,7 +20,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(FoxEatBerriesGoal.class)
 public class FoxEatBerriesGoalMixin {
-    @Shadow @Final Fox field_17975;
+    @Shadow @Final Fox this$0;
 
     /**
      * Make foxes want to harvest grapes, and while we’re at it also
@@ -40,10 +40,10 @@ public class FoxEatBerriesGoalMixin {
     @Inject(method = "onReachedTarget", at = @At("TAIL"), cancellable = true)
     private void inject$onReachedTarget(CallbackInfo CI, @Local BlockState St) {
         if (
-            ((ServerLevel)field_17975.level()).getGameRules().getBoolean(GameRules.RULE_MOBGRIEFING) &&
+            ((ServerLevel)this$0.level()).getGameRules().get(GameRules.MOB_GRIEFING) &&
             St.is(NguhBlocks.GRAPE_CROP)
         ) {
-            GrapeCropBlock.OnFoxUse(field_17975);
+            GrapeCropBlock.OnFoxUse(this$0);
             CI.cancel();
         }
     }

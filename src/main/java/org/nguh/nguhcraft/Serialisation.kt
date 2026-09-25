@@ -60,7 +60,7 @@ data class NamedCodec<T>(val Name: String, val Codec: Codec<T>)
 fun<T> Codec<T>.Named(Name: String) = NamedCodec(Name, this)
 
 /** Read a named codec. */
-fun<T> ValueInput.Read(Codec: NamedCodec<T>): Optional<T> = read(Codec.Name, Codec.Codec)
+fun<T : Any> ValueInput.Read(Codec: NamedCodec<T>): Optional<T> = read(Codec.Name, Codec.Codec)
 
 /** Write a named codec. */
 fun<T: Any> ValueOutput.Write(Codec: NamedCodec<T>, Val: T) = store(Codec.Name, Codec.Codec, Val)

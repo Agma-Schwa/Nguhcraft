@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:birch_fence_gate_from_birch_planks_stonecutting"
+        "recipes": "nguhcraft:birch_fence_gate_from_birch_planks_stonecutting"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

@@ -19,7 +19,7 @@ public class EndPortalBlockMixin {
         at = @At("HEAD"),
         cancellable = true
     )
-    private void inject$onEntityCollision(BlockState St, Level W, BlockPos Pos, Entity E, InsideBlockEffectApplier H, CallbackInfo CI) {
+    private void inject$onEntityCollision(BlockState St, Level W, BlockPos Pos, Entity E, InsideBlockEffectApplier H, boolean B, CallbackInfo CI) {
         if (!SyncedGameRule.END_ENABLED.IsSet()) CI.cancel();
     }
 }

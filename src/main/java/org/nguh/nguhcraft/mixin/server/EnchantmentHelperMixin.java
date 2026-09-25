@@ -40,7 +40,7 @@ public abstract class EnchantmentHelperMixin {
             Weapon != null &&
             EnchantLvl(SW, Weapon, Enchantments.CHANNELING) >= 2
         ) {
-            LE.invulnerableTime = 0; // Make sure this can deal damage.
+            LE.setInvulnerableTime(0); // Make sure this can deal damage.
             ServerUtils.StrikeLightning(SW, E.position());
         }
     }

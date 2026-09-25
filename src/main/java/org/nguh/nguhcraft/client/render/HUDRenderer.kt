@@ -3,10 +3,11 @@ package org.nguh.nguhcraft.client.render
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry
-import net.minecraft.client.gui.GuiGraphics
+import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.DeltaTracker
 import net.minecraft.util.CommonColors
 import net.minecraft.core.BlockPos
+import net.minecraft.network.chat.FormattedText
 import org.nguh.nguhcraft.Nguhcraft.Companion.Id
 import org.nguh.nguhcraft.client.ClientUtils.Client
 import org.nguh.nguhcraft.client.NguhcraftClient
@@ -29,7 +30,7 @@ object HUDRenderer {
         HudElementRegistry.attachElementAfter(EL_DISPLAY, EL_VANISHED, ::RenderVanishedMessage)
     }
 
-    private fun RenderActiveDisplay(Ctx: GuiGraphics, RTC: DeltaTracker) {
+    private fun RenderActiveDisplay(Ctx: GuiGraphicsExtractor, RTC: DeltaTracker) {
         val C = Client()
         val D = C.DisplayData ?: return
         if (D.Lines.isEmpty()) return
@@ -49,12 +50,12 @@ object HUDRenderer {
 
         // Render each line of the display.
         for (Line in D.Lines) {
-            Ctx.drawWordWrap(TR, Line, X, Y, MaxWd, CommonColors.WHITE)
+            Ctx.textWithWordWrap(TR, Line, X, Y, MaxWd, CommonColors.WHITE)
             Y += TR.wordWrapHeight(Line, MaxWd)
         }
     }
 
-    private fun RenderRegionName(Ctx: GuiGraphics, RTC: DeltaTracker) {
+    private fun RenderRegionName(Ctx: GuiGraphicsExtractor, RTC: DeltaTracker) {
         if (!RenderRegions) return
 
         // Check if we’re in a region.
@@ -66,7 +67,7 @@ object HUDRenderer {
         val TextToRender = "Region: ${PlayerRegion.Name}"
         val Width = C.font.width(TextToRender)
         val Height = C.font.lineHeight
-        Ctx.drawString(
+        Ctx.text(
             C.font,
             TextToRender,
             Ctx.guiWidth() - PADDING - Width,
@@ -76,14 +77,14 @@ object HUDRenderer {
         )
     }
 
-    private fun RenderVanishedMessage(Ctx: GuiGraphics, RTC: DeltaTracker) {
+    private fun RenderVanishedMessage(Ctx: GuiGraphicsExtractor, RTC: DeltaTracker) {
         if (!NguhcraftClient.Vanished) return
         val TR = Client().font
-        Ctx.drawString(
+        Ctx.text(
             TR,
             VANISH_MSG,
             Ctx.guiWidth() - TR.width(VANISH_MSG) - 5,
-            TR.wordWrapHeight(VANISH_MSG, 10000) - 5,
+            TR.wordWrapHeight(FormattedText.of(VANISH_MSG), 10000) - 5,
             CommonColors.SOFT_YELLOW,
             true
         )

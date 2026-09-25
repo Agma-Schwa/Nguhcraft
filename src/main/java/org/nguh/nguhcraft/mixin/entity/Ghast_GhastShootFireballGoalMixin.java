@@ -2,7 +2,7 @@ package org.nguh.nguhcraft.mixin.entity;
 
 import com.llamalad7.mixinextras.sugar.Local;
 import net.minecraft.world.entity.monster.Ghast;
-import net.minecraft.world.entity.projectile.LargeFireball;
+import net.minecraft.world.entity.projectile.hurtingprojectile.LargeFireball;
 import org.nguh.nguhcraft.entity.GhastModeAccessor;
 import org.nguh.nguhcraft.entity.MachineGunGhastMode;
 import org.spongepowered.asm.mixin.Final;

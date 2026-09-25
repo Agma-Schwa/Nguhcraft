@@ -1,6 +1,5 @@
 {
   "type": "minecraft:crafting_shaped",
-  "category": "misc",
   "key": {
     "A": "minecraft:amethyst_shard",
     "N": "minecraft:iron_nugget"
@@ -11,7 +10,6 @@
     "N"
   ],
   "result": {
-    "count": 1,
     "id": "nguhcraft:pearlescent_chain"
   }
 }

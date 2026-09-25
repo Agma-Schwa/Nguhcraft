@@ -15,7 +15,7 @@ import static org.nguh.nguhcraft.Utils.EnchantLvl;
 @Mixin(Item.class)
 public abstract class ItemMixin {
     /** Implement the ‘arcane’ enchantment / damage type. */
-    @Inject(method = "getDamageSource", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "getItemDamageSource", at = @At("HEAD"), cancellable = true)
     private void inject$getDamageSource(LivingEntity User, CallbackInfoReturnable<DamageSource> CIR) {
         var W = User.level();
         var Weapon = User.getWeaponItem();

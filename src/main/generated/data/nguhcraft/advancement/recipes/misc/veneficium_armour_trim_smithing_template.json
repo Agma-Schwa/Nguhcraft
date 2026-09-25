@@ -3,7 +3,7 @@
   "criteria": {
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:veneficium_armour_trim_smithing_template"
+        "recipes": "nguhcraft:veneficium_armour_trim_smithing_template"
       },
       "trigger": "minecraft:recipe_unlocked"
     },

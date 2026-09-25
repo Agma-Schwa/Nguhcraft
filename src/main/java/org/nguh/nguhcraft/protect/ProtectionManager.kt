@@ -9,8 +9,8 @@ import net.minecraft.world.entity.EntitySpawnReason
 import net.minecraft.world.damagesource.DamageSource
 import net.minecraft.world.entity.decoration.LeashFenceKnotEntity
 import net.minecraft.world.entity.monster.Enemy
-import net.minecraft.world.entity.animal.HappyGhast
-import net.minecraft.world.entity.npc.Villager
+import net.minecraft.world.entity.animal.happyghast.HappyGhast
+import net.minecraft.world.entity.npc.villager.Villager
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.entity.vehicle.VehicleEntity
 import net.minecraft.world.item.BoatItem
@@ -24,6 +24,7 @@ import net.minecraft.tags.DamageTypeTags
 import net.minecraft.server.MinecraftServer
 import net.minecraft.world.InteractionResult
 import net.minecraft.core.BlockPos
+import net.minecraft.world.entity.decoration.Cushion
 import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.shapes.VoxelShape
 import net.minecraft.world.level.Level
@@ -144,6 +145,7 @@ abstract class ProtectionManager(protected val Regions: RegionLists) : Manager()
             is LeashFenceKnotEntity -> R.AllowsLeashing()
             is Villager -> R.AllowsVillagerTrading()
             is Leashable if (PE.mainHandItem isa Items.LEAD) -> R.AllowsLeashing()
+            is Cushion -> true // Always allow sitting on cushions.
             else -> R.AllowsEntityInteraction()
         }
     }
@@ -441,7 +443,7 @@ abstract class ProtectionManager(protected val Regions: RegionLists) : Manager()
 
     /** Get the regions for a world by key. */
     protected fun RegionListFor(Key: ResourceKey<Level>) = TryGetRegionList(Key)
-        ?: throw IllegalArgumentException("No such world: ${Key.location()}")
+        ?: throw IllegalArgumentException("No such world: ${Key.identifier()}")
 
     /**
      * Attempt to get all region in a world.

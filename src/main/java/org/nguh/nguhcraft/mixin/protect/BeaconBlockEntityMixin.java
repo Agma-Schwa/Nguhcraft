@@ -27,10 +27,10 @@ public abstract class BeaconBlockEntityMixin implements LockableBlockEntity {
         method = "createMenu",
         at = @At(
             value = "INVOKE",
-            target = "Lnet/minecraft/world/level/block/entity/BaseContainerBlockEntity;canUnlock(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/LockCode;Lnet/minecraft/network/chat/Component;)Z"
+            target = "Lnet/minecraft/world/LockCode;canUnlock(Lnet/minecraft/world/entity/player/Player;)Z"
         )
     )
-    private boolean inject$createMenu$checkUnlocked(Player PE, LockCode Unused1, Component Unused2) {
+    private boolean inject$createMenu$checkUnlocked(LockCode Unused, Player PE) {
         return CheckCanOpen(this, PE, PE.getMainHandItem());
     }
 }

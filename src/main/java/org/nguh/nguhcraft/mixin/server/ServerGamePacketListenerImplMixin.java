@@ -16,7 +16,6 @@ import org.nguh.nguhcraft.protect.ProtectionManager;
 import org.nguh.nguhcraft.server.ServerNetworkHandler;
 import org.nguh.nguhcraft.server.ServerUtils;
 import org.nguh.nguhcraft.server.accessors.LivingEntityAccessor;
-import org.nguh.nguhcraft.server.accessors.PlayerInteractEntityC2SPacketAccessor;
 import org.slf4j.Logger;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
@@ -80,22 +79,28 @@ public abstract class ServerGamePacketListenerImplMixin extends ServerCommonPack
         cancellable = true,
         at = @At(
             value = "INVOKE",
-            target = "Lnet/minecraft/server/level/ServerPlayer;canInteractWithEntity(Lnet/minecraft/world/phys/AABB;D)Z",
+            target = "Lnet/minecraft/server/level/ServerPlayer;isWithinEntityInteractionRange(Lnet/minecraft/world/phys/AABB;D)Z",
             ordinal = 0
         )
     )
     private void inject$onPlayerInteractEntity(ServerboundInteractPacket Packet, CallbackInfo CI, @Local Entity E) {
-        // Attack.
-        if (((PlayerInteractEntityC2SPacketAccessor) Packet).IsAttack()) {
-            if (!ProtectionManager.AllowEntityAttack(player, E))
-                CI.cancel();
-        }
+        if (!ProtectionManager.AllowEntityInteract(player, E))
+            CI.cancel();
+    }
 
-        // Interaction.
-        else {
-            if (!ProtectionManager.AllowEntityInteract(player, E))
-                CI.cancel();
-        }
+    /** Prevent attacks within a region. */
+    @Inject(
+        method = "handleAttack",
+        cancellable = true,
+        at = @At(
+            value = "INVOKE",
+            target = "Lnet/minecraft/server/level/ServerPlayer;isWithinAttackRange(Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/phys/AABB;D)Z",
+            ordinal = 0
+        )
+    )
+    private void inject$onPlayerAttackEntity(ServerboundAttackPacket Packet, CallbackInfo CI, @Local Entity E) {
+        if (!ProtectionManager.AllowEntityAttack(player, E))
+            CI.cancel();
     }
 
     /**

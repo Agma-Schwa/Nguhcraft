@@ -28,7 +28,7 @@ public abstract class EntityMixin {
 
     /** Handle collisions with regions. */
     @Inject(
-        method = "collectColliders",
+        method = "collectCollidersIgnoringWorldBorder(Lnet/minecraft/world/entity/Entity;Lnet/minecraft/world/level/Level;Ljava/util/List;Lnet/minecraft/world/phys/AABB;)Ljava/util/List;",
         at = @At(
             value = "INVOKE",
             remap = false,

@@ -3,6 +3,7 @@ package org.nguh.nguhcraft.mixin.server;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LightningBolt;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import org.jetbrains.annotations.NotNull;
@@ -17,8 +18,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(Entity.class)
 public abstract class EntityMixin implements NguhcraftEntityData.Access {
-    @Shadow public int invulnerableTime;
-
     @Unique private NguhcraftEntityData Data = new NguhcraftEntityData();
     @Unique private Entity This() { return (Entity) (Object) this; }
 
@@ -29,15 +28,17 @@ public abstract class EntityMixin implements NguhcraftEntityData.Access {
     /**
     * Make it so lightning ignores damage cooldown.
     * <p>
-    * This allows multishot Channeling tridents to function properly; at
+    * This allows multishot Channelling tridents to function properly; at
     * the same time, we don’t want entities to be struck by the same lightning
     * bolt more than once, so also check if an entity has already been damaged
     * once before trying to damage it again.
     */
     @Inject(method = "thunderHit", at = @At("HEAD"), cancellable = true)
-    private void inject$onStruckByLightning(ServerLevel SW, LightningBolt LE, CallbackInfo ci) {
-        if (LE.getHitEntities().anyMatch(E -> E == This())) ci.cancel();
-        invulnerableTime = 0;
+    private void inject$thunderHit(ServerLevel SW, LightningBolt Lightning, CallbackInfo ci) {
+        final var This = This();
+        if (!(This instanceof LivingEntity LE)) return;
+        if (Lightning.getHitEntities().anyMatch(E -> E == This)) ci.cancel();
+        LE.damageCooldownTime = 0;
     }
 
     /** Prevent managed entities from travelling through portals. */

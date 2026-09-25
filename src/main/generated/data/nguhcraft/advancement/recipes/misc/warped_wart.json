@@ -3,7 +3,7 @@
   "criteria": {
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:warped_wart"
+        "recipes": "nguhcraft:warped_wart"
       },
       "trigger": "minecraft:recipe_unlocked"
     },

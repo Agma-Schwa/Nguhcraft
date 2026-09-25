@@ -23,7 +23,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:key"
+        "recipes": "nguhcraft:key"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

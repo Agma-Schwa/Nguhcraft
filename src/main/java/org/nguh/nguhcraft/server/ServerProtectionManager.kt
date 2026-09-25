@@ -80,7 +80,7 @@ class ServerRegion(
 
     /** Append the world and name of this region. */
     fun AppendWorldAndName(MT: MutableComponent): MutableComponent = MT
-        .append(Component.literal(World.location().path.toString()).withColor(Constants.Lavender))
+        .append(Component.literal(World.identifier().path.toString()).withColor(Constants.Lavender))
         .append(":")
         .append(Component.literal(Name).withStyle(ChatFormatting.AQUA))
 
@@ -127,15 +127,13 @@ class ServerRegion(
     fun InvokePlayerTrigger(SP: ServerPlayer, T: RegionTrigger) {
         if (T.Proc.IsEmpty()) return
         val S = CommandSourceStack(
-            SP.server!!,
+            SP.Server,
             SP.position(),
             SP.rotationVector,
             SP.level(),
-            RegionTrigger.PERMISSION_LEVEL,
-            "Region Trigger",
+            PermissionSetForLevel(RegionTrigger.PERMISSION_LEVEL),
             REGION_TRIGGER_TEXT,
-            SP.server!!,
-            null
+            SP.Server
         )
 
         try {
@@ -211,7 +209,7 @@ class RegionTrigger(
     TriggerName: String,
 ) {
     /** The trigger’s procedure. */
-    val Proc = S.ProcedureManager.GetOrCreateManaged("regions/${Parent.World.location().path}/${Parent.Name}/$TriggerName")
+    val Proc = S.ProcedureManager.GetOrCreateManaged("regions/${Parent.World.identifier().path}/${Parent.Name}/$TriggerName")
 
     /** Append a region name to a text element. */
     fun AppendName(MT: MutableComponent): MutableComponent
@@ -278,7 +276,7 @@ class ServerRegionList(
 
             // And the world it’s in.
             Msg.append(" already exists in world ")
-                .append(Component.literal(R.World.location().path.toString())
+                .append(Component.literal(R.World.identifier().path.toString())
                     .withColor(Constants.Lavender))
             throw MalformedRegionException(Msg)
         }

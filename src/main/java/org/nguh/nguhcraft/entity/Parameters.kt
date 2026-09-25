@@ -5,6 +5,7 @@ import net.minecraft.world.item.alchemy.PotionContents
 import net.minecraft.world.item.enchantment.Enchantment
 import net.minecraft.world.item.enchantment.Enchantments
 import net.minecraft.world.entity.EntityType
+import net.minecraft.world.entity.EntityTypes
 import net.minecraft.world.entity.EquipmentSlot
 import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.entity.ai.attributes.Attribute
@@ -355,13 +356,13 @@ object Parameters {
     private val Drowned = Zombie.WithSpecialAll(EquipMainHand(Items.TRIDENT) { it.Enchant(Enchantments.CHANNELING, 2) })
 
     val BY_TYPE = hashMapOf(
-        EntityType.GHAST to Ghast,
-        EntityType.ZOMBIE to Zombie,
-        EntityType.DROWNED to Drowned,
-        EntityType.SKELETON to Skeleton,
-        EntityType.STRAY to Skeleton,
-        EntityType.BOGGED to Skeleton,
-        EntityType.VINDICATOR to Vindicator,
-        EntityType.CREEPER to Creeper,
+        EntityTypes.GHAST to Ghast,
+        EntityTypes.ZOMBIE to Zombie,
+        EntityTypes.DROWNED to Drowned,
+        EntityTypes.SKELETON to Skeleton,
+        EntityTypes.STRAY to Skeleton,
+        EntityTypes.BOGGED to Skeleton,
+        EntityTypes.VINDICATOR to Vindicator,
+        EntityTypes.CREEPER to Creeper,
     )
 }

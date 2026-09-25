@@ -58,8 +58,10 @@ public abstract class ProjectileMixin extends Entity implements ProjectileEntity
     /** Disable damage cooldown if an entity is hit with a hypershot arrow. */
     @Inject(method = "onHitEntity", at = @At("TAIL"))
     private void inject$onHit(EntityHitResult EHR, CallbackInfo CI) {
-        // FIXME: Could use DamageTags.BYPASSES_COOLDOWN for this.
-        if (IsHypershotArrow) EHR.getEntity().invulnerableTime = 0;
+        if (!IsHypershotArrow) return;
+        var E = EHR.getEntity();
+        if (!(E instanceof LivingEntity LE)) return;
+        LE.damageCooldownTime = 0;
     }
 
     /** Implement the homing enchantment. */

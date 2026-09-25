@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:polished_cinnabar_stairs"
+        "recipes": "nguhcraft:polished_cinnabar_stairs"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

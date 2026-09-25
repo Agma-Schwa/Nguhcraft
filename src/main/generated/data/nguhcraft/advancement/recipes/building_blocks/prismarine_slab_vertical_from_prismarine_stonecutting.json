@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:prismarine_slab_vertical_from_prismarine_stonecutting"
+        "recipes": "nguhcraft:prismarine_slab_vertical_from_prismarine_stonecutting"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:honeycomb_from_honeycomb_block"
+        "recipes": "nguhcraft:honeycomb_from_honeycomb_block"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

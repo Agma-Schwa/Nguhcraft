@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:ice_cold_armour_trim_smithing_template_smithing"
+        "recipes": "nguhcraft:ice_cold_armour_trim_smithing_template_smithing"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

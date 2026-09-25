@@ -33,7 +33,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "nguhcraft:cherry_juice_from_cherry_and_glass_bottle_and_sugar"
+        "recipes": "nguhcraft:cherry_juice_from_cherry_and_glass_bottle_and_sugar"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
