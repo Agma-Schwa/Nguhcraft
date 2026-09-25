@@ -48,9 +48,6 @@ import net.minecraft.world.level.storage.loot.parameters.LootContextParams
 import net.minecraft.world.level.storage.loot.predicates.MatchBlock
 import net.minecraft.world.level.storage.loot.providers.number.ints.ContextIntProviders
 import org.apache.commons.collections4.CollectionUtils.addAll
-//import net.minecraft.world.level.storage.loot.predicates.LootItemBlockStatePropertyCondition
-//import net.minecraft.world.level.storage.loot.providers.number.ConstantValue
-//import net.minecraft.world.level.storage.loot.providers.number.UniformGenerator
 import org.nguh.nguhcraft.Constants
 import org.nguh.nguhcraft.NguhDamageTypes
 import org.nguh.nguhcraft.NguhPaintings
