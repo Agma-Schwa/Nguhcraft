@@ -15,8 +15,8 @@ object NguhParticles {
     val FIRE = FabricParticleTypes.simple()
 
     init {
-        fun<T: ParticleOptions> Register(particle: ParticleType<T>, name: String) {
-            Registry.register(BuiltInRegistries.PARTICLE_TYPE, Id(name), particle)
+        fun<T: ParticleOptions> Register(Particle: ParticleType<T>, Name: String) {
+            Registry.register(BuiltInRegistries.PARTICLE_TYPE, Id(Name), Particle)
         }
 
         Register(FIRE, "fire")
@@ -24,12 +24,12 @@ object NguhParticles {
 
     fun Init() {
         fun<T: ParticleOptions> Register(
-            particle: ParticleType<T>,
-            provider: ParticleProviderRegistry.PendingParticleProvider<T>
+            Particle: ParticleType<T>,
+            Provider: ParticleProviderRegistry.PendingParticleProvider<T>
         ) {
-            ParticleProviderRegistry.getInstance().register(particle, provider);
+            ParticleProviderRegistry.getInstance().register(Particle, Provider);
         }
 
-        Register(FIRE, { spriteSet -> FireParticleProvider(spriteSet) })
+        Register(FIRE, { SpriteSet -> FireParticleProvider(SpriteSet) })
     }
 }

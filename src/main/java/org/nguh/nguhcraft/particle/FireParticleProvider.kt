@@ -13,7 +13,7 @@ import net.minecraft.util.RandomSource
 // By using this instead of FlameParticle.Provider we can have fire particles that mostly behave like flame particles
 // but are a bit bigger.
 @Environment(EnvType.CLIENT)
-class FireParticleProvider(private val sprite: SpriteSet) : ParticleProvider<SimpleParticleType> {
+class FireParticleProvider(private val SpriteSet: SpriteSet) : ParticleProvider<SimpleParticleType> {
     override fun createParticle(
         particleOptions: SimpleParticleType,
         clientLevel: ClientLevel,
@@ -25,7 +25,7 @@ class FireParticleProvider(private val sprite: SpriteSet) : ParticleProvider<Sim
         zAux: Double,
         random: RandomSource
     ): Particle {
-        val flameParticle = FlameParticle.Provider(sprite).createParticle(
+        val FlameParticle = FlameParticle.Provider(SpriteSet).createParticle(
             particleOptions,
             clientLevel,
             x,
@@ -36,6 +36,6 @@ class FireParticleProvider(private val sprite: SpriteSet) : ParticleProvider<Sim
             zAux,
             random
         ).scale(1.5f)
-        return flameParticle
+        return FlameParticle
     }
 }

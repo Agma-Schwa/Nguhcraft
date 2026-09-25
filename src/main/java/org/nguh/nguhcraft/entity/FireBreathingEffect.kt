@@ -14,22 +14,22 @@ class FireBreathingEffect: MobEffect(MobEffectCategory.BENEFICIAL, 0xe84723) {
     }
 
     override fun applyEffectTick(level: ServerLevel, entity: LivingEntity, amplifier: Int): Boolean {
-        val angle = entity.lookAngle.offsetRandom(level.random, 0.25f)
+        val Angle = entity.lookAngle.offsetRandom(level.random, 0.25f)
         repeat(level.random.nextInt(2 * (amplifier + 1), 3 * (amplifier + 1))) {
-            val particle = if (level.random.nextDouble() < 0.66) {
+            val Particle = if (level.random.nextDouble() < 0.66) {
                 NguhParticles.FIRE
             } else {
                 ParticleTypes.FLAME
             }
             level.sendParticles(
-                particle,
+                Particle,
                 entity.x,
                 entity.y + 1.8,
                 entity.z,
                 0,
-                angle.x,
-                angle.y,
-                angle.z,
+                Angle.x,
+                Angle.y,
+                Angle.z,
                 (amplifier + 1.0) * 0.25
             )
         }

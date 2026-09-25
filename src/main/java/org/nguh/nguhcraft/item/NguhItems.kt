@@ -214,7 +214,7 @@ object NguhItems {
     // =========================================================================
     val HOTSPOT_GLASSES_EQUIPMENT_ASSET_KEY: ResourceKey<EquipmentAsset> = ResourceKey.create(EquipmentAssets.ROOT_ID, Id("hotspot_glasses"))
 
-    private val holderGetter: HolderGetter<EntityType<*>> =
+    private val HolderGetter: HolderGetter<EntityType<*>> =
         BuiltInRegistries.acquireBootstrapRegistrationLookup(BuiltInRegistries.ENTITY_TYPE)
 
     val HOTSPOT_GLASSES = CreateItem(
@@ -230,7 +230,7 @@ object NguhItems {
                 // Can only equip onto mobs with the tag nguhcraft:can_equip_hotspot_glasses. One would think that there
                 // would be a tag for "mobs that actually render armour that they have equipped" but Mojank has not
                 // provided one.
-                .setAllowedEntities(holderGetter.getOrThrow(NguhTags.CAN_EQUIP_HOTSPOT_GLASSES))
+                .setAllowedEntities(HolderGetter.getOrThrow(NguhTags.CAN_EQUIP_HOTSPOT_GLASSES))
                 .setCanBeSheared(true)
                 .setShearingSound(SoundEvents.ARMOR_EQUIP_GENERIC)
                 .build())
