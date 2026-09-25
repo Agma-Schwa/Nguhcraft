@@ -10,6 +10,7 @@ import net.minecraft.core.particles.ParticleType
 import net.minecraft.core.registries.BuiltInRegistries
 import org.nguh.nguhcraft.Nguhcraft.Companion.Id
 
+@Environment(EnvType.CLIENT)
 object NguhParticles {
     val FIRE = FabricParticleTypes.simple()
 
@@ -21,8 +22,7 @@ object NguhParticles {
         Register(FIRE, "fire")
     }
 
-    @Environment(EnvType.CLIENT)
-    fun ClientSideInitialisation() {
+    fun Init() {
         fun<T: ParticleOptions> Register(
             particle: ParticleType<T>,
             provider: ParticleProviderRegistry.PendingParticleProvider<T>
