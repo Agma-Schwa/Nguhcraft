@@ -18,7 +18,6 @@ import net.minecraft.resources.Identifier
 import net.minecraft.sounds.SoundEvent
 import net.minecraft.sounds.SoundEvents
 import net.minecraft.tags.TagKey
-import net.minecraft.world.effect.MobEffect
 import net.minecraft.world.effect.MobEffectInstance
 import net.minecraft.world.entity.EntityType
 import net.minecraft.world.entity.EquipmentSlot
@@ -36,14 +35,13 @@ import net.minecraft.world.item.equipment.EquipmentAssets
 import net.minecraft.world.item.equipment.trim.TrimPattern
 import net.minecraft.world.level.ItemLike
 import net.minecraft.world.level.block.Block
-import org.nguh.nguhcraft.Constants
+import net.minecraft.world.level.block.ColorCollection
 import net.minecraft.world.level.storage.loot.providers.number.ints.ContextIntProviders
 import org.nguh.nguhcraft.Nguhcraft.Companion.Id
 import org.nguh.nguhcraft.Nguhcraft.Companion.RKey
 import org.nguh.nguhcraft.Utils
 import org.nguh.nguhcraft.block.ChestVariant
 import org.nguh.nguhcraft.block.NguhBlocks
-import org.nguh.nguhcraft.entity.FireBreathingEffect
 import org.nguh.nguhcraft.entity.NguhEffects
 import org.nguh.nguhcraft.tags.NguhTags
 import java.util.*
@@ -258,22 +256,38 @@ object NguhItems {
     // =========================================================================
     // Earpieces
     // =========================================================================
-    val EARPIECE_EQUIPMENT_ASSET_KEYS = Constants.colours.associateWith {
-        ResourceKey.create(EquipmentAssets.ROOT_ID, Id("earpiece_${it}"))
-    }
-    val EARPIECES = Constants.colours.associateWith {
-        CreateEarpiece(it, EARPIECE_EQUIPMENT_ASSET_KEYS.getValue(it))
-    }
+    val EARPIECE_EQUIPMENT_ASSET_KEY = ColorCollection.zipMap(
+        ColorCollection.VALUES,
+        ColorCollection.prefixWithColor(ColorCollection.create("earpiece")),
+        { _, Item ->
+            ResourceKey.create(EquipmentAssets.ROOT_ID, Id(Item))
+        }
+    )
+    val EARPIECE = ColorCollection.zipMap(
+        ColorCollection.VALUES,
+        EARPIECE_EQUIPMENT_ASSET_KEY,
+        { Color, AssetKey ->
+            CreateEarpiece(Color.getName(), AssetKey)
+        }
+    )
 
     // =========================================================================
     // Headsets
     // =========================================================================
-    val HEADSET_EQUIPMENT_ASSET_KEYS = Constants.colours.associateWith {
-        ResourceKey.create(EquipmentAssets.ROOT_ID, Id("headset_${it}"))
-    }
-    val HEADSETS = Constants.colours.associateWith {
-        CreateHeadset(it, HEADSET_EQUIPMENT_ASSET_KEYS.getValue(it))
-    }
+    val HEADSET_EQUIPMENT_ASSET_KEY = ColorCollection.zipMap(
+        ColorCollection.VALUES,
+        ColorCollection.prefixWithColor(ColorCollection.create("headset")),
+        { _, Item ->
+            ResourceKey.create(EquipmentAssets.ROOT_ID, Id(Item))
+        }
+    )
+    val HEADSET = ColorCollection.zipMap(
+        ColorCollection.VALUES,
+        HEADSET_EQUIPMENT_ASSET_KEY,
+        { Color, AssetKey ->
+            CreateHeadset(Color.getName(), AssetKey)
+        }
+    )
 
     // =========================================================================
     //  Farming and Crops
@@ -432,10 +446,12 @@ object NguhItems {
 
         Register(HOTSPOT_GLASSES)
         Register(HOTSPOT_SAUCE)
-        for ((_, earpiece) in EARPIECES)
-            Register(earpiece)
-        for ((_, headset) in HEADSETS)
-            Register(headset)
+        EARPIECE.forEach {
+            Register(it)
+        }
+        HEADSET.forEach {
+            Register(it)
+        }
 
         Register(GRAPES)
         Register(GRAPE_LEAF)
@@ -480,10 +496,12 @@ object NguhItems {
 
         CreativeModeTabEvents.modifyOutputEvent(CreativeModeTabs.COMBAT).register {
             it.accept(HOTSPOT_GLASSES)
-            for ((_, earpiece) in EARPIECES)
-                it.accept(earpiece)
-            for ((_, headset) in HEADSETS)
-                it.accept(headset)
+            EARPIECE.forEach { it2 ->
+                it.accept(it2)
+            }
+            HEADSET.forEach { it2 ->
+                it.accept(it2)
+            }
         }
 
         CreativeModeTabEvents.modifyOutputEvent(CreativeModeTabs.INGREDIENTS).register {
@@ -545,7 +563,7 @@ object NguhItems {
 
     private fun CreateEarpiece(ColourName: String, AssetKey: ResourceKey<EquipmentAsset>): Item {
         return CreateItem(
-            Id("earpiece_${ColourName}"),
+            Id("${ColourName}_earpiece"),
             Item.Properties()
                 .stacksTo(1)
                 .component(DataComponents.EQUIPPABLE, Equippable.builder(EquipmentSlot.HEAD)
@@ -558,7 +576,7 @@ object NguhItems {
 
     private fun CreateHeadset(ColourName: String, AssetKey: ResourceKey<EquipmentAsset>): Item {
         return CreateItem(
-            Id("headset_${ColourName}"),
+            Id("${ColourName}_headset"),
             Item.Properties()
                 .stacksTo(1)
                 .component(DataComponents.EQUIPPABLE, Equippable.builder(EquipmentSlot.HEAD)

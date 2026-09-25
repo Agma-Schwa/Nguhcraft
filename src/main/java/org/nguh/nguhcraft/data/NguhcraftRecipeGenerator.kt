@@ -25,6 +25,7 @@ import net.minecraft.resources.Identifier
 import net.minecraft.tags.ItemTags
 import net.minecraft.tags.TagKey
 import net.minecraft.world.item.crafting.Recipe
+import net.minecraft.world.level.block.ColorCollection
 import org.nguh.nguhcraft.Nguhcraft.Companion.Id
 import org.nguh.nguhcraft.block.*
 import org.nguh.nguhcraft.item.KeyDuplicationRecipe
@@ -108,42 +109,16 @@ class NguhcraftRecipeGenerator(
         // =========================================================================
         //  Earpieces
         // =========================================================================
-        offerEarpiece(NguhItems.EARPIECES.getValue("white"), Items.WOOL.white)
-        offerEarpiece(NguhItems.EARPIECES.getValue("light_gray"), Items.WOOL.lightGray)
-        offerEarpiece(NguhItems.EARPIECES.getValue("gray"), Items.WOOL.gray)
-        offerEarpiece(NguhItems.EARPIECES.getValue("black"), Items.WOOL.black)
-        offerEarpiece(NguhItems.EARPIECES.getValue("brown"), Items.WOOL.brown)
-        offerEarpiece(NguhItems.EARPIECES.getValue("red"), Items.WOOL.red)
-        offerEarpiece(NguhItems.EARPIECES.getValue("orange"), Items.WOOL.orange)
-        offerEarpiece(NguhItems.EARPIECES.getValue("yellow"), Items.WOOL.yellow)
-        offerEarpiece(NguhItems.EARPIECES.getValue("lime"), Items.WOOL.lime)
-        offerEarpiece(NguhItems.EARPIECES.getValue("green"), Items.WOOL.green)
-        offerEarpiece(NguhItems.EARPIECES.getValue("cyan"), Items.WOOL.cyan)
-        offerEarpiece(NguhItems.EARPIECES.getValue("light_blue"), Items.WOOL.lightBlue)
-        offerEarpiece(NguhItems.EARPIECES.getValue("blue"), Items.WOOL.blue)
-        offerEarpiece(NguhItems.EARPIECES.getValue("purple"), Items.WOOL.purple)
-        offerEarpiece(NguhItems.EARPIECES.getValue("magenta"), Items.WOOL.magenta)
-        offerEarpiece(NguhItems.EARPIECES.getValue("pink"), Items.WOOL.pink)
+        ColorCollection.VALUES.forEach {
+            offerEarpiece(NguhItems.EARPIECE.pick(it), Items.WOOL.pick(it))
+        }
 
         // =========================================================================
         //  Headsets
         // =========================================================================
-        offerHeadset(NguhItems.HEADSETS.getValue("white"), Items.WOOL.white)
-        offerHeadset(NguhItems.HEADSETS.getValue("light_gray"), Items.WOOL.lightGray)
-        offerHeadset(NguhItems.HEADSETS.getValue("gray"), Items.WOOL.gray)
-        offerHeadset(NguhItems.HEADSETS.getValue("black"), Items.WOOL.black)
-        offerHeadset(NguhItems.HEADSETS.getValue("brown"), Items.WOOL.brown)
-        offerHeadset(NguhItems.HEADSETS.getValue("red"), Items.WOOL.red)
-        offerHeadset(NguhItems.HEADSETS.getValue("orange"), Items.WOOL.orange)
-        offerHeadset(NguhItems.HEADSETS.getValue("yellow"), Items.WOOL.yellow)
-        offerHeadset(NguhItems.HEADSETS.getValue("lime"), Items.WOOL.lime)
-        offerHeadset(NguhItems.HEADSETS.getValue("green"), Items.WOOL.green)
-        offerHeadset(NguhItems.HEADSETS.getValue("cyan"), Items.WOOL.cyan)
-        offerHeadset(NguhItems.HEADSETS.getValue("light_blue"), Items.WOOL.lightBlue)
-        offerHeadset(NguhItems.HEADSETS.getValue("blue"), Items.WOOL.blue)
-        offerHeadset(NguhItems.HEADSETS.getValue("purple"), Items.WOOL.purple)
-        offerHeadset(NguhItems.HEADSETS.getValue("magenta"), Items.WOOL.magenta)
-        offerHeadset(NguhItems.HEADSETS.getValue("pink"), Items.WOOL.pink)
+        ColorCollection.VALUES.forEach {
+            offerHeadset(NguhItems.HEADSET.pick(it), Items.WOOL.pick(it))
+        }
 
         // =========================================================================
         // Vanilla Block Decompositions

@@ -36,6 +36,7 @@ import net.minecraft.world.item.enchantment.Enchantments
 import net.minecraft.world.item.equipment.EquipmentAsset
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.Blocks
+import net.minecraft.world.level.block.ColorCollection
 import net.minecraft.world.level.block.CropBlock
 import net.minecraft.world.level.block.SlabBlock
 import net.minecraft.world.level.storage.loot.LootPool
@@ -193,14 +194,16 @@ class NguhcraftEquipmentAssetProvider(
             NguhItems.HOTSPOT_GLASSES_EQUIPMENT_ASSET_KEY,
             EquipmentClientInfo.builder().addHumanoidLayers(Id("hotspot_glasses")).build()
         )
-        for (Colour in Constants.colours) {
+        ColorCollection.VALUES.forEach {
             Add(
-                NguhItems.EARPIECE_EQUIPMENT_ASSET_KEYS.getValue(Colour),
-                EquipmentClientInfo.builder().addHumanoidLayers(Id("earpiece_${Colour}")).build()
+                NguhItems.EARPIECE_EQUIPMENT_ASSET_KEY.pick(it),
+                EquipmentClientInfo.builder().addHumanoidLayers(Id(it.getName() + "_earpiece")).build()
             )
+        }
+        ColorCollection.VALUES.forEach {
             Add(
-                NguhItems.HEADSET_EQUIPMENT_ASSET_KEYS.getValue(Colour),
-                EquipmentClientInfo.builder().addHumanoidLayers(Id("headset_${Colour}")).build()
+                NguhItems.HEADSET_EQUIPMENT_ASSET_KEY.pick(it),
+                EquipmentClientInfo.builder().addHumanoidLayers(Id(it.getName() + "_headset")).build()
             )
         }
     }
@@ -239,8 +242,8 @@ class NguhcraftItemTagProvider(
         builder(ItemTags.HOES).add(NguhItems.AMETHYST_HOE)
 
         builder(ItemTags.HEAD_ARMOR).add(NguhItems.HOTSPOT_GLASSES)
-        builder(ItemTags.HEAD_ARMOR).addAll(NguhItems.EARPIECES.values)
-        builder(ItemTags.HEAD_ARMOR).addAll(NguhItems.HEADSETS.values)
+        builder(ItemTags.HEAD_ARMOR).addAll(NguhItems.EARPIECE.asList())
+        builder(ItemTags.HEAD_ARMOR).addAll(NguhItems.HEADSET.asList())
 
         builder(ItemTags.LOGS_THAT_BURN)
             .add(NguhBlocks.TINTED_OAK_LOG.asItem())
