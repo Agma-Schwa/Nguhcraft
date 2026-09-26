@@ -939,6 +939,14 @@ object NguhBlocks {
         ),
 
         WoodFamily(
+            BlockFamilies.POPLAR_PLANKS,
+            Log = Blocks.POPLAR_LOG,
+            Wood = Blocks.POPLAR_WOOD,
+            StrippedLog = Blocks.STRIPPED_POPLAR_LOG,
+            StrippedWood = Blocks.STRIPPED_POPLAR_WOOD,
+        ),
+
+        WoodFamily(
             BlockFamilies.SPRUCE_PLANKS,
             Log = Blocks.SPRUCE_LOG,
             Wood = Blocks.SPRUCE_WOOD,
@@ -972,7 +980,13 @@ object NguhBlocks {
     val BAMBOO_SLAB_VERTICAL = RegisterVSlab("bamboo", Blocks.BAMBOO_SLAB)
     val BIRCH_SLAB_VERTICAL = RegisterVSlab("birch", Blocks.BIRCH_SLAB)
     val BLACKSTONE_SLAB_VERTICAL = RegisterVSlab("blackstone", Blocks.BLACKSTONE_SLAB)
+    val BLACK_CONCRETE_SLAB_VERTICAL = RegisterVSlab("black_concrete", Blocks.CONCRETE_SLAB.black)
+    val BLACK_WOOL_SLAB_VERTICAL = RegisterVSlab("black_wool", Blocks.WOOL_SLAB.black)
+    val BLUE_CONCRETE_SLAB_VERTICAL = RegisterVSlab("blue_concrete", Blocks.CONCRETE_SLAB.blue)
+    val BLUE_WOOL_SLAB_VERTICAL = RegisterVSlab("blue_wool", Blocks.WOOL_SLAB.blue)
     val BRICK_SLAB_VERTICAL = RegisterVSlab("brick", Blocks.BRICK_SLAB)
+    val BROWN_CONCRETE_SLAB_VERTICAL = RegisterVSlab("brown_concrete", Blocks.CONCRETE_SLAB.brown)
+    val BROWN_WOOL_SLAB_VERTICAL = RegisterVSlab("brown_wool", Blocks.WOOL_SLAB.brown)
     val CHERRY_SLAB_VERTICAL = RegisterVSlab("cherry", Blocks.CHERRY_SLAB)
     val COBBLED_DEEPSLATE_SLAB_VERTICAL = RegisterVSlab("cobbled_deepslate", Blocks.COBBLED_DEEPSLATE_SLAB)
     val COBBLESTONE_SLAB_VERTICAL = RegisterVSlab("cobblestone", Blocks.COBBLESTONE_SLAB)
@@ -980,6 +994,8 @@ object NguhBlocks {
     val CUT_COPPER_SLAB_VERTICAL = RegisterCopperVSlab("cut_copper", Blocks.CUT_COPPER_SLAB.weathering.unaffected, WeatheringCopper.WeatherState.UNAFFECTED)
     val CUT_RED_SANDSTONE_SLAB_VERTICAL = RegisterVSlab("cut_red_sandstone", Blocks.CUT_RED_SANDSTONE_SLAB)
     val CUT_SANDSTONE_SLAB_VERTICAL = RegisterVSlab("cut_sandstone", Blocks.CUT_SANDSTONE_SLAB)
+    val CYAN_CONCRETE_SLAB_VERTICAL = RegisterVSlab("cyan_concrete", Blocks.CONCRETE_SLAB.cyan)
+    val CYAN_WOOL_SLAB_VERTICAL = RegisterVSlab("cyan_wool", Blocks.WOOL_SLAB.cyan)
     val DARK_OAK_SLAB_VERTICAL = RegisterVSlab("dark_oak", Blocks.DARK_OAK_SLAB)
     val DARK_PRISMARINE_SLAB_VERTICAL = RegisterVSlab("dark_prismarine", Blocks.DARK_PRISMARINE_SLAB)
     val DEEPSLATE_BRICK_SLAB_VERTICAL = RegisterVSlab("deepslate_brick", Blocks.DEEPSLATE_BRICK_SLAB)
@@ -988,28 +1004,50 @@ object NguhBlocks {
     val END_STONE_BRICK_SLAB_VERTICAL = RegisterVSlab("end_stone_brick", Blocks.END_STONE_BRICK_SLAB)
     val EXPOSED_CUT_COPPER_SLAB_VERTICAL = RegisterCopperVSlab("exposed_cut_copper", Blocks.CUT_COPPER_SLAB.weathering.exposed, WeatheringCopper.WeatherState.EXPOSED)
     val GRANITE_SLAB_VERTICAL = RegisterVSlab("granite", Blocks.GRANITE_SLAB)
+    val GRAY_CONCRETE_SLAB_VERTICAL = RegisterVSlab("gray_concrete", Blocks.CONCRETE_SLAB.gray)
+    val GRAY_WOOL_SLAB_VERTICAL = RegisterVSlab("gray_wool", Blocks.WOOL_SLAB.gray)
+    val GREEN_CONCRETE_SLAB_VERTICAL = RegisterVSlab("green_concrete", Blocks.CONCRETE_SLAB.green)
+    val GREEN_WOOL_SLAB_VERTICAL = RegisterVSlab("green_wool", Blocks.WOOL_SLAB.green)
     val JUNGLE_SLAB_VERTICAL = RegisterVSlab("jungle", Blocks.JUNGLE_SLAB)
+    val LIGHT_BLUE_CONCRETE_SLAB_VERTICAL = RegisterVSlab("light_blue_concrete", Blocks.CONCRETE_SLAB.lightBlue)
+    val LIGHT_BLUE_WOOL_SLAB_VERTICAL = RegisterVSlab("light_blue_wool", Blocks.WOOL_SLAB.lightBlue)
+    val LIGHT_GRAY_CONCRETE_SLAB_VERTICAL = RegisterVSlab("light_gray_concrete", Blocks.CONCRETE_SLAB.lightGray)
+    val LIGHT_GRAY_WOOL_SLAB_VERTICAL = RegisterVSlab("light_gray_wool", Blocks.WOOL_SLAB.lightGray)
+    val LIME_CONCRETE_SLAB_VERTICAL = RegisterVSlab("lime_concrete", Blocks.CONCRETE_SLAB.lime)
+    val LIME_WOOL_SLAB_VERTICAL = RegisterVSlab("lime_wool", Blocks.WOOL_SLAB.lime)
+    val MAGENTA_CONCRETE_SLAB_VERTICAL = RegisterVSlab("magenta_concrete", Blocks.CONCRETE_SLAB.magenta)
+    val MAGENTA_WOOL_SLAB_VERTICAL = RegisterVSlab("magenta_wool", Blocks.WOOL_SLAB.magenta)
     val MANGROVE_SLAB_VERTICAL = RegisterVSlab("mangrove", Blocks.MANGROVE_SLAB)
     val MOSSY_COBBLESTONE_SLAB_VERTICAL = RegisterVSlab("mossy_cobblestone", Blocks.MOSSY_COBBLESTONE_SLAB)
     val MOSSY_STONE_BRICK_SLAB_VERTICAL = RegisterVSlab("mossy_stone_brick", Blocks.MOSSY_STONE_BRICK_SLAB)
     val MUD_BRICK_SLAB_VERTICAL = RegisterVSlab("mud_brick", Blocks.MUD_BRICK_SLAB)
     val NETHER_BRICK_SLAB_VERTICAL = RegisterVSlab("nether_brick", Blocks.NETHER_BRICK_SLAB)
     val OAK_SLAB_VERTICAL = RegisterVSlab("oak", Blocks.OAK_SLAB)
+    val ORANGE_CONCRETE_SLAB_VERTICAL = RegisterVSlab("orange_concrete", Blocks.CONCRETE_SLAB.orange)
+    val ORANGE_WOOL_SLAB_VERTICAL = RegisterVSlab("orange_wool", Blocks.WOOL_SLAB.orange)
     val OXIDIZED_CUT_COPPER_SLAB_VERTICAL = RegisterCopperVSlab("oxidized_cut_copper", Blocks.CUT_COPPER_SLAB.weathering.oxidized, WeatheringCopper.WeatherState.OXIDIZED)
     val PALE_OAK_SLAB_VERTICAL = RegisterVSlab("pale_oak", Blocks.PALE_OAK_SLAB)
+    val PINK_CONCRETE_SLAB_VERTICAL = RegisterVSlab("pink_concrete", Blocks.CONCRETE_SLAB.pink)
+    val PINK_WOOL_SLAB_VERTICAL = RegisterVSlab("pink_wool", Blocks.WOOL_SLAB.pink)
     val POLISHED_ANDESITE_SLAB_VERTICAL = RegisterVSlab("polished_andesite", Blocks.POLISHED_ANDESITE_SLAB)
     val POLISHED_BLACKSTONE_BRICK_SLAB_VERTICAL = RegisterVSlab("polished_blackstone_brick", Blocks.POLISHED_BLACKSTONE_BRICK_SLAB)
     val POLISHED_BLACKSTONE_SLAB_VERTICAL = RegisterVSlab("polished_blackstone", Blocks.POLISHED_BLACKSTONE_SLAB)
     val POLISHED_DEEPSLATE_SLAB_VERTICAL = RegisterVSlab("polished_deepslate", Blocks.POLISHED_DEEPSLATE_SLAB)
     val POLISHED_DIORITE_SLAB_VERTICAL = RegisterVSlab("polished_diorite", Blocks.POLISHED_DIORITE_SLAB)
     val POLISHED_GRANITE_SLAB_VERTICAL = RegisterVSlab("polished_granite", Blocks.POLISHED_GRANITE_SLAB)
+    val POLISHED_SULFUR_SLAB_VERTICAL = RegisterVSlab("sulfur", Blocks.POLISHED_SULFUR_SLAB)
     val POLISHED_TUFF_SLAB_VERTICAL = RegisterVSlab("polished_tuff", Blocks.POLISHED_TUFF_SLAB)
+    val POPLAR_SLAB_VERTICAL = RegisterVSlab("poplar", Blocks.POPLAR_SLAB)
     val PRISMARINE_BRICK_SLAB_VERTICAL = RegisterVSlab("prismarine_brick", Blocks.PRISMARINE_BRICK_SLAB)
     val PRISMARINE_SLAB_VERTICAL = RegisterVSlab("prismarine", Blocks.PRISMARINE_SLAB)
+    val PURPLE_CONCRETE_SLAB_VERTICAL = RegisterVSlab("purple_concrete", Blocks.CONCRETE_SLAB.purple)
+    val PURPLE_WOOL_SLAB_VERTICAL = RegisterVSlab("purple_wool", Blocks.WOOL_SLAB.purple)
     val PURPUR_SLAB_VERTICAL = RegisterVSlab("purpur", Blocks.PURPUR_SLAB)
     val QUARTZ_SLAB_VERTICAL = RegisterVSlab("quartz", Blocks.QUARTZ_SLAB)
+    val RED_CONCRETE_SLAB_VERTICAL = RegisterVSlab("red_concrete", Blocks.CONCRETE_SLAB.red)
     val RED_NETHER_BRICK_SLAB_VERTICAL = RegisterVSlab("red_nether_brick", Blocks.RED_NETHER_BRICK_SLAB)
     val RED_SANDSTONE_SLAB_VERTICAL = RegisterVSlab("red_sandstone", Blocks.RED_SANDSTONE_SLAB)
+    val RED_WOOL_SLAB_VERTICAL = RegisterVSlab("red_wool", Blocks.WOOL_SLAB.red)
     val SANDSTONE_SLAB_VERTICAL = RegisterVSlab("sandstone", Blocks.SANDSTONE_SLAB)
     val SMOOTH_QUARTZ_SLAB_VERTICAL = RegisterVSlab("smooth_quartz", Blocks.SMOOTH_QUARTZ_SLAB)
     val SMOOTH_RED_SANDSTONE_SLAB_VERTICAL = RegisterVSlab("smooth_red_sandstone", Blocks.SMOOTH_RED_SANDSTONE_SLAB)
@@ -1018,14 +1056,23 @@ object NguhBlocks {
     val SPRUCE_SLAB_VERTICAL = RegisterVSlab("spruce", Blocks.SPRUCE_SLAB)
     val STONE_BRICK_SLAB_VERTICAL = RegisterVSlab("stone_brick", Blocks.STONE_BRICK_SLAB)
     val STONE_SLAB_VERTICAL = RegisterVSlab("stone", Blocks.STONE_SLAB)
+    val SULFUR_BRICK_SLAB_VERTICAL = RegisterVSlab("sulfur", Blocks.SULFUR_BRICK_SLAB)
+    val SULFUR_SLAB_VERTICAL = RegisterVSlab("sulfur", Blocks.SULFUR_SLAB)
     val TUFF_BRICK_SLAB_VERTICAL = RegisterVSlab("tuff_brick", Blocks.TUFF_BRICK_SLAB)
     val TUFF_SLAB_VERTICAL = RegisterVSlab("tuff", Blocks.TUFF_SLAB)
+    val VANILLA_CINNABAR_BRICK_SLAB_VERTICAL = RegisterVSlab("vanilla_cinnabar_brick", Blocks.CINNABAR_BRICK_SLAB)
+    val VANILLA_CINNABAR_SLAB_VERTICAL = RegisterVSlab("vanilla_cinnabar", Blocks.CINNABAR_SLAB)
+    val VANILLA_POLISHED_CINNABAR_SLAB_VERTICAL = RegisterVSlab("vanilla_polished_cinnabar", Blocks.POLISHED_CINNABAR_SLAB)
     val WARPED_SLAB_VERTICAL = RegisterVSlab("warped", Blocks.WARPED_SLAB)
     val WAXED_CUT_COPPER_SLAB_VERTICAL = RegisterVSlab("waxed_cut_copper", Blocks.CUT_COPPER_SLAB.waxed.unaffected)
     val WAXED_EXPOSED_CUT_COPPER_SLAB_VERTICAL = RegisterVSlab("waxed_exposed_cut_copper", Blocks.CUT_COPPER_SLAB.waxed.exposed)
     val WAXED_OXIDIZED_CUT_COPPER_SLAB_VERTICAL = RegisterVSlab("waxed_oxidized_cut_copper", Blocks.CUT_COPPER_SLAB.waxed.oxidized)
     val WAXED_WEATHERED_CUT_COPPER_SLAB_VERTICAL = RegisterVSlab("waxed_weathered_cut_copper", Blocks.CUT_COPPER_SLAB.waxed.weathered)
     val WEATHERED_CUT_COPPER_SLAB_VERTICAL = RegisterCopperVSlab("weathered_cut_copper", Blocks.CUT_COPPER_SLAB.weathering.weathered, WeatheringCopper.WeatherState.WEATHERED)
+    val WHITE_CONCRETE_SLAB_VERTICAL = RegisterVSlab("white_concrete", Blocks.CONCRETE_SLAB.white)
+    val WHITE_WOOL_SLAB_VERTICAL = RegisterVSlab("white_wool", Blocks.WOOL_SLAB.white)
+    val YELLOW_CONCRETE_SLAB_VERTICAL = RegisterVSlab("yellow_concrete", Blocks.CONCRETE_SLAB.yellow)
+    val YELLOW_WOOL_SLAB_VERTICAL = RegisterVSlab("yellow_wool", Blocks.WOOL_SLAB.yellow)
 
     // =========================================================================
     // Tags
