@@ -939,6 +939,14 @@ object NguhBlocks {
         ),
 
         WoodFamily(
+            BlockFamilies.POPLAR_PLANKS,
+            Log = Blocks.POPLAR_LOG,
+            Wood = Blocks.POPLAR_WOOD,
+            StrippedLog = Blocks.STRIPPED_POPLAR_LOG,
+            StrippedWood = Blocks.STRIPPED_POPLAR_WOOD,
+        ),
+
+        WoodFamily(
             BlockFamilies.SPRUCE_PLANKS,
             Log = Blocks.SPRUCE_LOG,
             Wood = Blocks.SPRUCE_WOOD,
