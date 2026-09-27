@@ -1,0 +1,36 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_sulfur": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": "minecraft:sulfur"
+          }
+        ]
+      }
+    },
+    "has_nether_brick": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": "minecraft:nether_brick"
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "has_sulfur",
+      "has_nether_brick"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "nguhcraft:cinnabar_from_nether_brick"
+    ]
+  }
+}
