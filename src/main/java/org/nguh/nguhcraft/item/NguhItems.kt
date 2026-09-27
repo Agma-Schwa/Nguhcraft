@@ -6,6 +6,7 @@ import net.minecraft.client.data.models.ItemModelGenerators
 import net.minecraft.client.data.models.model.ModelTemplate
 import net.minecraft.client.data.models.model.ModelTemplates
 import net.minecraft.core.Holder
+import net.minecraft.core.HolderGetter
 import net.minecraft.core.Registry
 import net.minecraft.core.component.DataComponents
 import net.minecraft.core.registries.BuiltInRegistries
@@ -17,10 +18,16 @@ import net.minecraft.resources.Identifier
 import net.minecraft.sounds.SoundEvent
 import net.minecraft.sounds.SoundEvents
 import net.minecraft.tags.TagKey
+import net.minecraft.world.effect.MobEffectInstance
+import net.minecraft.world.entity.EntityType
+import net.minecraft.world.entity.EquipmentSlot
 import net.minecraft.world.food.FoodProperties
+import net.minecraft.world.food.Foods
 import net.minecraft.world.item.*
 import net.minecraft.world.item.component.Consumable
 import net.minecraft.world.item.component.Consumables
+import net.minecraft.world.item.consume_effects.ApplyStatusEffectsConsumeEffect
+import net.minecraft.world.item.equipment.*
 import net.minecraft.world.item.equipment.ArmorMaterial
 import net.minecraft.world.item.equipment.ArmorType
 import net.minecraft.world.item.equipment.EquipmentAsset
@@ -28,12 +35,15 @@ import net.minecraft.world.item.equipment.EquipmentAssets
 import net.minecraft.world.item.equipment.trim.TrimPattern
 import net.minecraft.world.level.ItemLike
 import net.minecraft.world.level.block.Block
+import net.minecraft.world.level.block.ColorCollection
 import net.minecraft.world.level.storage.loot.providers.number.ints.ContextIntProviders
 import org.nguh.nguhcraft.Nguhcraft.Companion.Id
 import org.nguh.nguhcraft.Nguhcraft.Companion.RKey
 import org.nguh.nguhcraft.Utils
 import org.nguh.nguhcraft.block.ChestVariant
 import org.nguh.nguhcraft.block.NguhBlocks
+import org.nguh.nguhcraft.entity.NguhEffects
+import org.nguh.nguhcraft.tags.NguhTags
 import java.util.*
 
 object NguhItems {
@@ -200,6 +210,86 @@ object NguhItems {
     )
 
     // =========================================================================
+    // Hotspot Glasses
+    // =========================================================================
+    val HOTSPOT_GLASSES_EQUIPMENT_ASSET_KEY: ResourceKey<EquipmentAsset> = ResourceKey.create(EquipmentAssets.ROOT_ID, Id("hotspot_glasses"))
+
+    private val HolderGetter: HolderGetter<EntityType<*>> =
+        BuiltInRegistries.acquireBootstrapRegistrationLookup(BuiltInRegistries.ENTITY_TYPE)
+
+    val HOTSPOT_GLASSES = CreateItem(
+        Id("hotspot_glasses"),
+        Item.Properties()
+            .stacksTo(1)
+            .component(DataComponents.EQUIPPABLE, Equippable.builder(EquipmentSlot.HEAD)
+                .setEquipSound(SoundEvents.ARMOR_EQUIP_GENERIC)
+                .setAsset(HOTSPOT_GLASSES_EQUIPMENT_ASSET_KEY)
+                .setDamageOnHurt(false)
+                // Can equip by right-clicking
+                .setEquipOnInteract(true)
+                // Can only equip onto mobs with the tag nguhcraft:can_equip_hotspot_glasses. One would think that there
+                // would be a tag for "mobs that actually render armour that they have equipped" but Mojank has not
+                // provided one.
+                .setAllowedEntities(HolderGetter.getOrThrow(NguhTags.CAN_EQUIP_HOTSPOT_GLASSES))
+                .setCanBeSheared(true)
+                .setShearingSound(SoundEvents.ARMOR_EQUIP_GENERIC)
+                .build())
+    )
+
+    // =========================================================================
+    // Hotspot Sauce
+    // =========================================================================
+    val HOTSPOT_SAUCE = CreateItem(
+        Id("hotspot_sauce"),
+        Item.Properties()
+            .stacksTo(1)
+            .food(Foods.SUSPICIOUS_STEW)
+            .component(DataComponents.CONSUMABLE, Consumable.builder()
+                .animation(ItemUseAnimation.DRINK)
+                .sound(SoundEvents.GENERIC_DRINK)
+                .onConsume(ApplyStatusEffectsConsumeEffect(MobEffectInstance(NguhEffects.FIRE_BREATHING, 200, 0)))
+                .build())
+			.usingConvertsTo(Items.BOWL)
+            .craftRemainder(Items.BOWL)
+    )
+
+    // =========================================================================
+    // Earpieces
+    // =========================================================================
+    val EARPIECE_EQUIPMENT_ASSET_KEY = ColorCollection.zipMap(
+        ColorCollection.VALUES,
+        ColorCollection.prefixWithColor(ColorCollection.create("earpiece")),
+        { _, Item ->
+            ResourceKey.create(EquipmentAssets.ROOT_ID, Id(Item))
+        }
+    )
+    val EARPIECE = ColorCollection.zipMap(
+        ColorCollection.VALUES,
+        EARPIECE_EQUIPMENT_ASSET_KEY,
+        { Color, AssetKey ->
+            CreateEarpiece(Color.getName(), AssetKey)
+        }
+    )
+
+    // =========================================================================
+    // Headsets
+    // =========================================================================
+    val HEADSET_EQUIPMENT_ASSET_KEY = ColorCollection.zipMap(
+        ColorCollection.VALUES,
+        ColorCollection.prefixWithColor(ColorCollection.create("headset")),
+        { _, Item ->
+            ResourceKey.create(EquipmentAssets.ROOT_ID, Id(Item))
+        }
+    )
+    val HEADSET = ColorCollection.zipMap(
+        ColorCollection.VALUES,
+        HEADSET_EQUIPMENT_ASSET_KEY,
+        { Color, AssetKey ->
+            CreateHeadset(Color.getName(), AssetKey)
+        }
+    )
+
+    // =========================================================================
     //  Farming and Crops
     // =========================================================================
     var GRAPE_SEEDS = CreateItem(
@@ -354,6 +444,15 @@ object NguhItems {
         G.generateTrimmableItem(AMETHYST_LEGGINGS, ItemModelGenerators.TRIM_PREFIX_LEGGINGS, false, mapOf())
         G.generateTrimmableItem(AMETHYST_BOOTS, ItemModelGenerators.TRIM_PREFIX_BOOTS, false, mapOf())
 
+        Register(HOTSPOT_GLASSES)
+        Register(HOTSPOT_SAUCE)
+        EARPIECE.forEach {
+            Register(it)
+        }
+        HEADSET.forEach {
+            Register(it)
+        }
+
         Register(GRAPES)
         Register(GRAPE_LEAF)
         Register(GRAPE_JUICE)
@@ -395,6 +494,16 @@ object NguhItems {
             it.accept(NGUHROVISION_2025_DISC)
         }
 
+        CreativeModeTabEvents.modifyOutputEvent(CreativeModeTabs.COMBAT).register {
+            it.accept(HOTSPOT_GLASSES)
+            EARPIECE.forEach { it2 ->
+                it.accept(it2)
+            }
+            HEADSET.forEach { it2 ->
+                it.accept(it2)
+            }
+        }
+
         CreativeModeTabEvents.modifyOutputEvent(CreativeModeTabs.INGREDIENTS).register {
             for (T in ALL_NGUHCRAFT_ARMOUR_TRIMS) it.accept(T)
             it.accept(GRAPE_LEAF)
@@ -418,6 +527,7 @@ object NguhItems {
             it.accept(DUBIOUS_STEW)
             it.accept(CHOCOLATE)
             it.accept(GLOW_ROLLS)
+            it.accept(HOTSPOT_SAUCE)
         }
 
         Registry.register(
@@ -448,6 +558,32 @@ object NguhItems {
             BuiltInRegistries.ITEM,
             Id,
             SmithingTemplateItem.createArmorTrimTemplate(I.setId(Key(Id)))
+        )
+    }
+
+    private fun CreateEarpiece(ColourName: String, AssetKey: ResourceKey<EquipmentAsset>): Item {
+        return CreateItem(
+            Id("${ColourName}_earpiece"),
+            Item.Properties()
+                .stacksTo(1)
+                .component(DataComponents.EQUIPPABLE, Equippable.builder(EquipmentSlot.HEAD)
+                    .setEquipSound(SoundEvents.ARMOR_EQUIP_GENERIC)
+                    .setAsset(AssetKey)
+                    .setDamageOnHurt(false)
+                    .build())
+        )
+    }
+
+    private fun CreateHeadset(ColourName: String, AssetKey: ResourceKey<EquipmentAsset>): Item {
+        return CreateItem(
+            Id("${ColourName}_headset"),
+            Item.Properties()
+                .stacksTo(1)
+                .component(DataComponents.EQUIPPABLE, Equippable.builder(EquipmentSlot.HEAD)
+                    .setEquipSound(SoundEvents.ARMOR_EQUIP_GENERIC)
+                    .setAsset(AssetKey)
+                    .setDamageOnHurt(false)
+                    .build())
         )
     }
 

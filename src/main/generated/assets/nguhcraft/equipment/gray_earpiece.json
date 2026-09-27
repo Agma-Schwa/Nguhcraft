@@ -1,0 +1,19 @@
+{
+  "layers": {
+    "humanoid": [
+      {
+        "texture": "nguhcraft:gray_earpiece"
+      }
+    ],
+    "humanoid_baby": [
+      {
+        "texture": "nguhcraft:gray_earpiece"
+      }
+    ],
+    "humanoid_leggings": [
+      {
+        "texture": "nguhcraft:gray_earpiece"
+      }
+    ]
+  }
+}

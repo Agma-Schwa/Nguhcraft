@@ -17,6 +17,7 @@ import org.nguh.nguhcraft.block.ChestVariantProperty
 import org.nguh.nguhcraft.block.NguhBlockModels
 import org.nguh.nguhcraft.client.render.Renderer
 import org.nguh.nguhcraft.client.render.WorldRendering
+import org.nguh.nguhcraft.particle.NguhParticles
 import org.nguh.nguhcraft.server.hasPermissions
 
 @Environment(EnvType.CLIENT)
@@ -26,6 +27,7 @@ class NguhcraftClient : ClientModInitializer {
         Renderer.Init()
         NguhcraftItemGroups.Init()
         NguhBlockModels.InitColorRegistry()
+        NguhParticles.Init()
 
         ClientCommandRegistrationCallback.EVENT.register { Dispatcher, _ ->
             Dispatcher.register(RenderCommand())

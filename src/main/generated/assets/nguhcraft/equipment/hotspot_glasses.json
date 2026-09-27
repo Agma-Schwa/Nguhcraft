@@ -1,0 +1,19 @@
+{
+  "layers": {
+    "humanoid": [
+      {
+        "texture": "nguhcraft:hotspot_glasses"
+      }
+    ],
+    "humanoid_baby": [
+      {
+        "texture": "nguhcraft:hotspot_glasses"
+      }
+    ],
+    "humanoid_leggings": [
+      {
+        "texture": "nguhcraft:hotspot_glasses"
+      }
+    ]
+  }
+}

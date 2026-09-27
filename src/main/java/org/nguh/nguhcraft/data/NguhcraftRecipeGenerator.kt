@@ -25,6 +25,7 @@ import net.minecraft.resources.Identifier
 import net.minecraft.tags.ItemTags
 import net.minecraft.tags.TagKey
 import net.minecraft.world.item.crafting.Recipe
+import net.minecraft.world.level.block.ColorCollection
 import org.nguh.nguhcraft.Nguhcraft.Companion.Id
 import org.nguh.nguhcraft.block.*
 import org.nguh.nguhcraft.item.KeyDuplicationRecipe
@@ -94,6 +95,29 @@ class NguhcraftRecipeGenerator(
             pattern("iri")
             cinput('i', Items.IRON_INGOT)
             cinput('r', Items.REDSTONE)
+        }
+
+        offerShaped(NguhItems.HOTSPOT_GLASSES, 1) {
+            pattern("s s")
+            pattern("psp")
+            cinput('s', Items.STICK)
+            cinput('p', Items.STAINED_GLASS_PANE.red)
+        }
+
+        offerShapelessRecipe(NguhItems.HOTSPOT_SAUCE, 1, NguhItems.HOTSPOT_GLASSES to 1, Items.BOWL to 1, Items.LAVA_BUCKET to 1, Items.BLAZE_POWDER to 1)
+
+        // =========================================================================
+        //  Earpieces
+        // =========================================================================
+        ColorCollection.VALUES.forEach {
+            offerEarpiece(NguhItems.EARPIECE.pick(it), Items.WOOL.pick(it))
+        }
+
+        // =========================================================================
+        //  Headsets
+        // =========================================================================
+        ColorCollection.VALUES.forEach {
+            offerHeadset(NguhItems.HEADSET.pick(it), Items.WOOL.pick(it))
         }
 
         // =========================================================================
@@ -529,6 +553,31 @@ class NguhcraftRecipeGenerator(
         // =========================================================================
         SpecialRecipeBuilder.special(::KeyLockPairingRecipe).save(output, "key_lock_pairing")
         SpecialRecipeBuilder.special(::KeyDuplicationRecipe).save(output, "key_duplication")
+    }
+
+    /** Add a recipe for an earpiece item. */
+    fun offerEarpiece(I: Item, Wool: Item) {
+        offerShaped(I, 1) {
+            pattern("n ")
+            pattern("sw")
+            cinput('n', Items.NOTE_BLOCK)
+            cinput('s', Items.STICK)
+            cinput('w', Wool)
+            group("earpiece")
+        }
+    }
+
+    /** Add a recipe for a headset item. */
+    fun offerHeadset(I: Item, Wool: Item) {
+        offerShaped(I, 1) {
+            pattern("sss")
+            pattern("n n")
+            pattern("sw ")
+            cinput('n', Items.NOTE_BLOCK)
+            cinput('s', Items.STICK)
+            cinput('w', Wool)
+            group("headset")
+        }
     }
 
     /** Add a recipe for a brocade block. */
