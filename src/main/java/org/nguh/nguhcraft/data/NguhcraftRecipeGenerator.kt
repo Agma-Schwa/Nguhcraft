@@ -3,34 +3,29 @@ package org.nguh.nguhcraft.data
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
 import net.minecraft.advancements.Advancement
-import net.minecraft.world.level.block.Block
-import net.minecraft.world.level.block.Blocks
+import net.minecraft.core.HolderLookup
+import net.minecraft.core.registries.BuiltInRegistries
+import net.minecraft.core.registries.Registries
 import net.minecraft.data.BlockFamilies
 import net.minecraft.data.BlockFamily
-import net.minecraft.data.recipes.SpecialRecipeBuilder
-import net.minecraft.data.recipes.RecipeOutput
-import net.minecraft.data.recipes.RecipeProvider
-import net.minecraft.data.recipes.ShapedRecipeBuilder
-import net.minecraft.world.item.Item
-import net.minecraft.world.level.ItemLike
-import net.minecraft.world.item.Items
-import net.minecraft.data.recipes.RecipeCategory
-import net.minecraft.world.item.crafting.CookingBookCategory
-import net.minecraft.core.registries.BuiltInRegistries
-import net.minecraft.resources.ResourceKey
-import net.minecraft.core.registries.Registries
-import net.minecraft.core.HolderLookup
+import net.minecraft.data.recipes.*
 import net.minecraft.data.worldgen.BootstrapContext
 import net.minecraft.resources.Identifier
+import net.minecraft.resources.ResourceKey
 import net.minecraft.tags.ItemTags
 import net.minecraft.tags.TagKey
+import net.minecraft.world.item.Item
+import net.minecraft.world.item.Items
+import net.minecraft.world.item.crafting.CookingBookCategory
 import net.minecraft.world.item.crafting.Recipe
+import net.minecraft.world.level.ItemLike
+import net.minecraft.world.level.block.Block
+import net.minecraft.world.level.block.Blocks
 import org.nguh.nguhcraft.Nguhcraft.Companion.Id
 import org.nguh.nguhcraft.block.*
 import org.nguh.nguhcraft.item.KeyDuplicationRecipe
 import org.nguh.nguhcraft.item.KeyLockPairingRecipe
 import org.nguh.nguhcraft.item.NguhItems
-import kotlin.collections.iterator
 
 @Environment(EnvType.CLIENT)
 class NguhcraftRecipeGenerator(
@@ -200,6 +195,12 @@ class NguhcraftRecipeGenerator(
             pattern("ccc")
             pattern("ccc")
             cinput('c', Items.CHARCOAL)
+        }
+
+        offerShaped(Blocks.CINNABAR, 1, "from_cinnabar_spike", Category = RecipeCategory.BUILDING_BLOCKS) {
+            pattern("##")
+            pattern("##")
+            cinput('#', NguhBlocks.CINNABAR_SPIKE)
         }
 
         offerChainAndLantern(NguhBlocks.OCHRE_CHAIN, NguhBlocks.OCHRE_LANTERN, Items.RESIN_CLUMP, Items.OCHRE_FROGLIGHT)

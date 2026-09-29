@@ -31,9 +31,12 @@ import net.minecraft.world.item.crafting.Recipe
 import net.minecraft.world.damagesource.DamageType
 import net.minecraft.world.entity.decoration.painting.PaintingVariant
 import net.minecraft.world.item.Item
+import net.minecraft.world.item.ItemStackTemplate
 import net.minecraft.world.item.Items
 import net.minecraft.world.item.enchantment.Enchantments
 import net.minecraft.world.item.equipment.EquipmentAsset
+import net.minecraft.world.item.trading.TradeCost
+import net.minecraft.world.item.trading.VillagerTrade
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.CropBlock
@@ -102,6 +105,8 @@ class NguhcraftBlockTagProvider(
             .add(NguhBlocks.BUDDING_OAK_LEAVES)
             .add(NguhBlocks.BUDDING_DARK_OAK_LEAVES)
             .add(NguhBlocks.BUDDING_CHERRY_LEAVES)
+
+        builder(BlockTags.SPELEOTHEMS).add(NguhBlocks.CINNABAR_SPIKE)
 
         // Block tags for crops.
         builder(BlockTags.CROPS).add(NguhBlocks.GRAPE_CROP).add(NguhBlocks.PEANUT_CROP)
@@ -399,6 +404,30 @@ class NguhcraftRecipeProvider(
     override fun getName() = "Nguhcraft Recipe Provider"
 }
 
+@Environment(EnvType.CLIENT)
+class NguhcraftVillagerTradingTagProvider(
+    O: FabricPackOutput,
+    RLF: CompletableFuture<HolderLookup.Provider>
+) : FabricTagsProvider<VillagerTrade>(O, Registries.VILLAGER_TRADE ,RLF) {
+    override fun addTags(WL: HolderLookup.Provider) {
+        getOrCreateRawBuilder(VillagerTradeTags.WANDERING_TRADER_BUYING)
+            .add(TagEntry.element(NguhcraftVillagerTrades.WANDERING_TRADER_EMERALD_CINNABAR_SPIKE.identifier()))
+    }
+}
+
+object NguhcraftVillagerTrades {
+    val WANDERING_TRADER_EMERALD_CINNABAR_SPIKE = createKey("wandering_trader/emerald_cinnabar_spike")
+
+    fun BootstrapTrades(R: BootstrapContext<VillagerTrade>) {
+        R.register(
+            WANDERING_TRADER_EMERALD_CINNABAR_SPIKE,
+            VillagerTrade.builder(TradeCost(Items.EMERALD, 1), ItemStackTemplate(NguhBlocks.CINNABAR_SPIKE.asItem(), 2), 5, 1, 0.05F).build()
+        )
+    }
+
+    fun createKey(Name: String) = ResourceKey.create(Registries.VILLAGER_TRADE, Id(Name))
+}
+
 // =========================================================================
 //  Dynamic Registries
 // =========================================================================
@@ -413,6 +442,7 @@ class NguhcraftDynamicRegistryProvider(
         E.addAll(WL.lookupOrThrow(Registries.DAMAGE_TYPE))
         E.addAll(WL.lookupOrThrow(Registries.PAINTING_VARIANT))
         E.addAll(WL.lookupOrThrow(Registries.TRIM_PATTERN))
+        E.addAll(WL.lookupOrThrow(Registries.VILLAGER_TRADE))
     }
 
     override fun getName() = "Nguhcraft Dynamic Registries"
@@ -423,6 +453,7 @@ class NguhcraftDataGenerator : DataGeneratorEntrypoint {
         RB.add(Registries.DAMAGE_TYPE, NguhDamageTypes::Bootstrap)
         RB.add(Registries.PAINTING_VARIANT, NguhPaintings::Bootstrap)
         RB.add(Registries.TRIM_PATTERN, NguhItems::BootstrapArmourTrims)
+        RB.add(Registries.VILLAGER_TRADE, NguhcraftVillagerTrades::BootstrapTrades)
     }
 
     override fun onInitializeDataGenerator(FDG: FabricDataGenerator) {
@@ -436,5 +467,6 @@ class NguhcraftDataGenerator : DataGeneratorEntrypoint {
         P.addProvider(::NguhcraftModelGenerator)
         P.addProvider(::NguhcraftPaintingVariantTagProvider)
         P.addProvider(::NguhcraftRecipeProvider)
+        P.addProvider(::NguhcraftVillagerTradingTagProvider)
     }
 }
