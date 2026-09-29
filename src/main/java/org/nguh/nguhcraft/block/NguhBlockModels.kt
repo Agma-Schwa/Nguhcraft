@@ -303,6 +303,9 @@ object NguhBlockModels {
         RegisterBuddingLeaves(G, NguhBlocks.BUDDING_DARK_OAK_LEAVES, Blocks.DARK_OAK_LEAVES, true, BuddingLeavesBlock.AGE)
         RegisterBuddingLeaves(G, NguhBlocks.BUDDING_CHERRY_LEAVES, Blocks.CHERRY_LEAVES, false, BuddingLeavesBlock.AGE)
 
+        // Spikes
+        RegisterSpeleothem(G, NguhBlocks.CINNABAR_SPIKE)
+
         // custom block models
         RegisterTrophyModel(G, NguhBlocks.NGUHROVISION_TROPHY)
 
@@ -580,6 +583,20 @@ object NguhBlockModels {
                     )
                 )
         )
+        G.registerSimpleItemModel(B, Template.create(B.asItem(), Map, G.modelOutput))
+    }
+
+    @Environment(EnvType.CLIENT)
+    fun RegisterSpeleothem(
+        G: BlockModelGenerators,
+        B: Block
+    ) {
+        G.createSpeleothem(B)
+        // the speleothem is copied from sulfur_spike.json / pointed_dripstone.json
+        // why tf is there not already a speleothem.json if both of these use the same values for some random view stuff???
+        val Template = ModelTemplate(Optional.of(Id("item/speleothem")), empty(), TextureSlot.LAYER0)
+        val Map = TextureMapping()
+            .put(TextureSlot.LAYER0, TextureMapping.getItemTexture(B.asItem()))
         G.registerSimpleItemModel(B, Template.create(B.asItem(), Map, G.modelOutput))
     }
 }

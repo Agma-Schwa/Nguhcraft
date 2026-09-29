@@ -710,6 +710,24 @@ object NguhBlocks {
         Properties.ofFullCopy(Blocks.CHERRY_LEAVES)
     )
 
+    val CINNABAR_SPIKE = Register(
+        "cinnabar_spike",
+        { SulfurSpikeBlock(Blocks.CINNABAR.defaultBlockState(), it) },
+        Properties.of()
+            .mapColor(MapColor.COLOR_RED)
+            .forceSolidOn()
+            .instrument(NoteBlockInstrument.BASEDRUM)
+            .noOcclusion()
+            .sound(SoundType.CINNABAR)
+            .randomTicks()
+            .strength(1.5F, 3.0F)
+            .dynamicShape()
+            .offsetType(BlockBehaviour.OffsetType.XZ)
+            .pushReaction(PushReaction.POPPED)
+            .isRedstoneConductor(Blocks::never)
+            .noOcclusion()
+    )
+
     @JvmField
     val LEAVES_TO_BUDDING_LEAVES = mapOf(
         Blocks.OAK_LEAVES to BUDDING_OAK_LEAVES,
@@ -1044,7 +1062,8 @@ object NguhBlocks {
         PYRITE,
         IRON_GRATE,
         WROUGHT_IRON_GRATE,
-        CHARCOAL_BLOCK
+        CHARCOAL_BLOCK,
+        CINNABAR_SPIKE
     ).also {
         it.addAll(CHAINS_AND_LANTERNS.flatten())
         it.addAll(STONE_VARIANT_FAMILY_BLOCKS)
@@ -1064,7 +1083,8 @@ object NguhBlocks {
         IRON_GRATE,
         WROUGHT_IRON_GRATE,
         CHARCOAL_BLOCK,
-        NGUHROVISION_TROPHY
+        NGUHROVISION_TROPHY,
+        CINNABAR_SPIKE
     ).also {
         it.addAll(CHAINS_AND_LANTERNS.flatten())
         it.addAll(ALL_BROCADE_BLOCKS)
@@ -1106,6 +1126,10 @@ object NguhBlocks {
             for (B in VERTICAL_SLABS) it.accept(B)
             for (B in ALL_BROCADE_BLOCKS) it.accept(B)
             it.accept(NGUHROVISION_TROPHY)
+        }
+
+        CreativeModeTabEvents.modifyOutputEvent(CreativeModeTabs.NATURAL_BLOCKS).register {
+            it.accept(CINNABAR_SPIKE)
         }
 
         CreativeModeTabEvents.modifyOutputEvent(CreativeModeTabs.FUNCTIONAL_BLOCKS).register {
