@@ -70,7 +70,7 @@ class NguhcraftBlockTagProvider(
     override fun addTags(WL: HolderLookup.Provider) {
         builder(BlockTags.MINEABLE_WITH_PICKAXE).let { T ->
             for (B in NguhBlocks.PICKAXE_MINEABLE) T.add(B)
-            for (B in NguhBlockModels.VERTICAL_SLABS.filter { !it.Wood }) T.add(B.VerticalSlab)
+            for (B in NguhBlockModels.VERTICAL_SLABS.filter { !it.Wood && !it.Wool }) T.add(B.VerticalSlab)
         }
 
         builder(BlockTags.MINEABLE_WITH_AXE).addAll(NguhBlocks.CRATES)
@@ -85,7 +85,6 @@ class NguhcraftBlockTagProvider(
                 for (B in NguhBlockModels.VERTICAL_SLABS.filter { it.Wood })
                     it.add(B.VerticalSlab)
             }
-
         builder(BlockTags.WOODEN_STAIRS).add(NguhBlocks.TINTED_OAK_STAIRS)
         builder(BlockTags.WOODEN_FENCES).add(NguhBlocks.TINTED_OAK_FENCE)
         builder(BlockItemTags.LOGS_THAT_BURN.block())
@@ -102,6 +101,11 @@ class NguhcraftBlockTagProvider(
             .add(NguhBlocks.BUDDING_OAK_LEAVES)
             .add(NguhBlocks.BUDDING_DARK_OAK_LEAVES)
             .add(NguhBlocks.BUDDING_CHERRY_LEAVES)
+        builder(BlockTags.WOOL_SLABS)
+            .let{
+                for (B in NguhBlockModels.VERTICAL_SLABS.filter { it.Wool })
+                    it.add(B.VerticalSlab)
+            }
 
         // Block tags for crops.
         builder(BlockTags.CROPS).add(NguhBlocks.GRAPE_CROP).add(NguhBlocks.PEANUT_CROP)

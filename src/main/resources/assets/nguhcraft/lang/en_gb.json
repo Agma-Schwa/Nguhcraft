@@ -11,6 +11,9 @@
 	"block.nguhcraft.chiseled_pyrite_bricks": "Chiselled Pyrite Bricks",
 	"block.nguhcraft.gilded_chiseled_calcite": "Gilded Chiselled Calcite",
 	"block.nguhcraft.gilded_chiseled_calcite_bricks": "Gilded Chiselled Calcite Bricks",
+		"block.nguhcraft.polished_sulfur_slab_vertical": "Vertical Polished Sulphur Slab",
+	"block.nguhcraft.sulfur_slab_vertical": "Vertical Sulphur Slab",
+	"block.nguhcraft.sulfur_brick_slab_vertical": "Vertical Sulphur Brick Slab",
 
 	"item.nguhcraft.atlantic_armour_trim_smithing_template": "Atlantic Armour Trim",
 	"item.nguhcraft.cenrail_armour_trim_smithing_template": "Cenrail Armour Trim",
