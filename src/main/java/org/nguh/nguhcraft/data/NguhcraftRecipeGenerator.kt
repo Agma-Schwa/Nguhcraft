@@ -361,6 +361,45 @@ class NguhcraftRecipeGenerator(
 
         offerShapelessRecipe(NguhBlocks.CINNABAR, 2, Items.NETHERRACK to 1, Items.COBBLESTONE to 1)
 
+        // Recipes for coral
+        for ((Coral, CoralBlock) in listOf(
+            Blocks.BRAIN_CORAL to Blocks.BRAIN_CORAL_BLOCK,
+            Blocks.DEAD_BRAIN_CORAL to Blocks.DEAD_BRAIN_CORAL_BLOCK,
+            Blocks.BUBBLE_CORAL to Blocks.BUBBLE_CORAL_BLOCK,
+            Blocks.DEAD_BUBBLE_CORAL to Blocks.DEAD_BUBBLE_CORAL_BLOCK,
+            Blocks.FIRE_CORAL to Blocks.FIRE_CORAL_BLOCK,
+            Blocks.DEAD_FIRE_CORAL to Blocks.DEAD_FIRE_CORAL_BLOCK,
+            Blocks.HORN_CORAL to Blocks.HORN_CORAL_BLOCK,
+            Blocks.DEAD_HORN_CORAL to Blocks.DEAD_HORN_CORAL_BLOCK,
+            Blocks.TUBE_CORAL to Blocks.TUBE_CORAL_BLOCK,
+            Blocks.DEAD_TUBE_CORAL to Blocks.DEAD_TUBE_CORAL_BLOCK
+        )) {
+            offerShaped(CoralBlock, 1) {
+                pattern("##")
+                pattern("##")
+                cinput('#', Coral)
+            }
+
+            offerShapeless(Coral, 4, CoralBlock to 1)
+        }
+
+        for ((Coral, CoralFan) in listOf(
+            Blocks.BRAIN_CORAL to Blocks.BRAIN_CORAL_FAN,
+            Blocks.DEAD_BRAIN_CORAL to Blocks.DEAD_BRAIN_CORAL_FAN,
+            Blocks.BUBBLE_CORAL to Blocks.BUBBLE_CORAL_FAN,
+            Blocks.DEAD_BUBBLE_CORAL to Blocks.DEAD_BUBBLE_CORAL_FAN,
+            Blocks.FIRE_CORAL to Blocks.FIRE_CORAL_FAN,
+            Blocks.DEAD_FIRE_CORAL to Blocks.DEAD_FIRE_CORAL_FAN,
+            Blocks.HORN_CORAL to Blocks.HORN_CORAL_FAN,
+            Blocks.DEAD_HORN_CORAL to Blocks.DEAD_HORN_CORAL_FAN,
+            Blocks.TUBE_CORAL to Blocks.TUBE_CORAL_FAN,
+            Blocks.DEAD_TUBE_CORAL to Blocks.DEAD_TUBE_CORAL_FAN
+        )) {
+            offerShapeless(Coral, 1, CoralFan to 1)
+            offerShapeless(CoralFan, 1, Coral to 1)
+        }
+
+
         // =========================================================================
         //  Tinted Oak
         // =========================================================================
